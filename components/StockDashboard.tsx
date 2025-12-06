@@ -8,7 +8,7 @@ import {
 import { motion } from "framer-motion";
 import { ArrowUp, ArrowDown, TrendingUp, Activity } from "lucide-react";
 
-interface StockData {
+export interface StockData {
     symbol: string;
     name: string;
     currentPrice: number;
