@@ -25,10 +25,9 @@ export async function GET() {
         const geminiPromise = (async () => {
             try {
                 // Enable Google Search Grounding
-                // @ts-ignore: googleSearch is not yet in the Tool type definition but supported at runtime
                 const model = genAI.getGenerativeModel({
                     model: "gemini-2.5-flash",
-                    tools: [{ googleSearch: {} }]
+                    tools: [{ googleSearch: {} } as any]
                 });
 
                 const today = new Date().toISOString().split('T')[0];
