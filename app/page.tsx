@@ -54,14 +54,16 @@ export default function Home() {
   // Separate effect for stock data auto-refresh to avoid stale closures
   useEffect(() => {
     const stockRefreshInterval = setInterval(() => {
-      if (stockData?.symbol) {
-        console.log("Auto-refreshing stock data for:", stockData.symbol);
+      // Use 'as any' to bypass persistent type inference issue in some environments
+      const currentStock = stockData as any;
+      if (currentStock?.symbol) {
+        console.log("Auto-refreshing stock data for:", currentStock.symbol);
         // Re-use the search logic but silent (no loading spinner if possible, or minimal)
         // For simplicity, we'll just call the API directly similar to handleSearch
         fetch("/api/stock", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query: stockData.symbol, range: timeRange }),
+          body: JSON.stringify({ query: currentStock.symbol, range: timeRange }),
         })
           .then(res => res.json())
           .then(data => {
@@ -126,7 +128,7 @@ export default function Home() {
         const response = await fetch("/api/stock", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query: stockData.symbol, range: newRange }),
+          body: JSON.stringify({ query: stockData.symbol, range: timeRange }),
         });
         const data = await response.json();
         setStockData(data);
