@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import SearchArea from "@/components/SearchArea";
-import StockDashboard from "@/components/StockDashboard";
+import StockDashboard, { StockData } from "@/components/StockDashboard";
 import MarketStatus, { MarketData } from "@/components/MarketStatus";
 import { motion, AnimatePresence } from "framer-motion"; // Consolidated framer-motion import
 
 export default function Home() {
   const [loading, setLoading] = useState(false); // Changed from isLoading to loading
-  const [stockData, setStockData] = useState(null);
+  const [stockData, setStockData] = useState<StockData | null>(null);
   const [error, setError] = useState(null); // Changed initial state from "" to null
 
   const [timeRange, setTimeRange] = useState("1y"); // New state for time range
