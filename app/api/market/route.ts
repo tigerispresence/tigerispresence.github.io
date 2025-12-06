@@ -27,6 +27,7 @@ export async function GET() {
                 // Enable Google Search Grounding
                 const model = genAI.getGenerativeModel({
                     model: "gemini-2.5-flash",
+                    // Explicitly cast to any to avoid TS build error with googleSearch tool
                     tools: [{ googleSearch: {} } as any]
                 });
 
