@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 import { TrendingUp, TrendingDown, Activity, AlertTriangle, Zap } from "lucide-react";
 import { motion } from "framer-motion";
@@ -8,12 +8,13 @@ import { motion } from "framer-motion";
 export interface MarketData {
     vix: {
         current: number;
+        date: string | null;
         history: { date: string; close: number }[];
     };
     metrics: {
-        gex: { current: number | null; change: number; history: { date: string; value: number }[] };
-        dix: { current: number | null; change: number; history: { date: string; value: number }[] };
-        fearGreed: { current: number | null; change: number; history: { date: string; value: number }[] };
+        gex: { current: number | null; date: string | null; change: number; history: { date: string; value: number }[] };
+        dix: { current: number | null; date: string | null; change: number; history: { date: string; value: number }[] };
+        fearGreed: { current: number | null; date: string | null; change: number; history: { date: string; value: number }[] };
     };
 }
 
@@ -22,9 +23,7 @@ interface MarketStatusProps {
     loading: boolean;
 }
 
-export default function MarketStatus({ data, loading }: MarketStatusProps) {
-
-
+function MarketStatus({ data, loading }: MarketStatusProps) {
 
     if (loading) return <div className="animate-pulse h-32 bg-gray-900/50 rounded-3xl mb-8"></div>;
     if (!data) return null;
@@ -45,6 +44,12 @@ export default function MarketStatus({ data, loading }: MarketStatusProps) {
         return "Extreme Fear";
     };
 
+    const formatDate = (dateString: string | null) => {
+        if (!dateString) return "";
+        const date = new Date(dateString);
+        return `${date.getMonth() + 1}/${date.getDate()}`;
+    };
+
     return (
         <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -57,6 +62,7 @@ export default function MarketStatus({ data, loading }: MarketStatusProps) {
                     <div>
                         <div className="text-gray-400 text-xs font-medium uppercase tracking-wider flex items-center gap-1">
                             <Activity className="w-3 h-3" /> VIX Index
+                            {data.vix.date && <span className="text-gray-600 ml-1">({formatDate(data.vix.date)})</span>}
                         </div>
                         <div className="text-white font-bold text-2xl mt-1">{data.vix.current.toFixed(2)}</div>
                     </div>
@@ -85,6 +91,7 @@ export default function MarketStatus({ data, loading }: MarketStatusProps) {
                 <div className="flex justify-between items-start relative z-10">
                     <div className="text-gray-400 text-xs font-medium uppercase tracking-wider flex items-center gap-1">
                         <Zap className="w-3 h-3" /> Fear & Greed
+                        {data.metrics.fearGreed.date && <span className="text-gray-600 ml-1">({formatDate(data.metrics.fearGreed.date)})</span>}
                     </div>
                 </div>
                 <div className="flex items-end gap-2 mt-2 relative z-10">
@@ -121,9 +128,10 @@ export default function MarketStatus({ data, loading }: MarketStatusProps) {
             <div className="bg-gray-900/50 backdrop-blur-xl border border-gray-800 rounded-2xl p-4 flex flex-col justify-center relative overflow-hidden group">
                 <div className="text-gray-400 text-xs font-medium uppercase tracking-wider flex items-center gap-1 mb-1 relative z-10">
                     <TrendingUp className="w-3 h-3" /> Gamma Exposure (GEX)
+                    {data.metrics.gex.date && <span className="text-gray-600 ml-1">({formatDate(data.metrics.gex.date)})</span>}
                 </div>
                 <div className="text-white font-bold text-2xl relative z-10 flex items-end gap-2">
-                    {data.metrics.gex.current ? `$${data.metrics.gex.current.toFixed(1)}B` : <span className="text-gray-600 text-lg">N/A</span>}
+                    {data.metrics.gex.current ? `$${data.metrics.gex.current.toFixed(1)} B` : <span className="text-gray-600 text-lg">N/A</span>}
                     {typeof data.metrics.gex.change === 'number' && data.metrics.gex.change !== 0 && (
                         <span className={`text-sm mb-1 ${data.metrics.gex.change > 0 ? 'text-green-400' : 'text-red-400'}`}>
                             {data.metrics.gex.change > 0 ? '+' : ''}{data.metrics.gex.change.toFixed(1)}
@@ -153,6 +161,7 @@ export default function MarketStatus({ data, loading }: MarketStatusProps) {
             <div className="bg-gray-900/50 backdrop-blur-xl border border-gray-800 rounded-2xl p-4 flex flex-col justify-center relative overflow-hidden group">
                 <div className="text-gray-400 text-xs font-medium uppercase tracking-wider flex items-center gap-1 mb-1 relative z-10">
                     <AlertTriangle className="w-3 h-3" /> Dark Index (DIX)
+                    {data.metrics.dix.date && <span className="text-gray-600 ml-1">({formatDate(data.metrics.dix.date)})</span>}
                 </div>
                 <div className="text-white font-bold text-2xl relative z-10 flex items-end gap-2">
                     {data.metrics.dix.current ? `${data.metrics.dix.current.toFixed(1)}%` : <span className="text-gray-600 text-lg">N/A</span>}
@@ -183,3 +192,5 @@ export default function MarketStatus({ data, loading }: MarketStatusProps) {
         </motion.div>
     );
 }
+
+export default memo(MarketStatus);

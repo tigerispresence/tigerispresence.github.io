@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, memo } from "react";
 import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     AreaChart, Area, BarChart, Bar, Legend, ComposedChart, ReferenceLine, Scatter
@@ -37,7 +37,7 @@ interface StockDashboardProps {
     data: StockData | null;
 }
 
-export default function StockDashboard({ data }: StockDashboardProps) {
+const StockDashboard = memo(({ data }: StockDashboardProps) => {
     if (!data) return null;
 
     // State for Simulation Strategy
@@ -56,44 +56,68 @@ export default function StockDashboard({ data }: StockDashboardProps) {
         if (!data.history || data.history.length === 0) return [];
 
         const history = [...data.history].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        const period = 20;
+
+        // Pre-calculate changes for efficiency
+        const changes = history.map((day, i) => {
+            if (i === 0) return 0;
+            const prev = history[i - 1].close;
+            return ((day.close - prev) / prev) * 100;
+        });
 
         return history.map((day, index) => {
-            const prevDay = history[index - 1];
-            const changePercent = prevDay
-                ? ((day.close - prevDay.close) / prevDay.close) * 100
-                : 0;
-
-            // Calculate 20-day rolling stats
+            const changePercent = changes[index];
             let rollingSD = 0;
             let sma20 = null;
             let upperBand = null;
             let lowerBand = null;
 
-            if (index >= 19) { // Need 20 points (0 to 19)
-                const slice = history.slice(index - 19, index + 1);
-
-                // 1. Volatility (SD of Returns)
-                const changes = slice.map((d, i) => {
-                    if (i === 0) return 0; // Skip first change in slice for simplicity or look back further
-                    const p = slice[i - 1];
-                    return ((d.close - p.close) / p.close) * 100;
-                }).slice(1); // Remove the first 0
-
-                if (changes.length > 0) {
-                    const meanChange = changes.reduce((a, b) => a + b, 0) / changes.length;
-                    const varianceChange = changes.reduce((a, b) => a + Math.pow(b - meanChange, 2), 0) / changes.length;
-                    rollingSD = Math.sqrt(varianceChange);
+            if (index >= period - 1) {
+                // Calculate SMA and Bollinger Bands (Price based)
+                // Access prices directly from history without slicing objects
+                let sumPrice = 0;
+                for (let k = 0; k < period; k++) {
+                    sumPrice += history[index - k].close;
                 }
-
-                // 2. Bollinger Bands (SD of Price)
-                const prices = slice.map(d => d.close);
-                const meanPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
-                const variancePrice = prices.reduce((a, b) => a + Math.pow(b - meanPrice, 2), 0) / prices.length;
-                const sdPrice = Math.sqrt(variancePrice);
-
+                const meanPrice = sumPrice / period;
                 sma20 = meanPrice;
+
+                let sumSqDiffPrice = 0;
+                for (let k = 0; k < period; k++) {
+                    sumSqDiffPrice += Math.pow(history[index - k].close - meanPrice, 2);
+                }
+                const sdPrice = Math.sqrt(sumSqDiffPrice / period);
+
                 upperBand = meanPrice + (2 * sdPrice);
                 lowerBand = meanPrice - (2 * sdPrice);
+
+                // Calculate Volatility (SD of Returns based)
+                // Use the pre-calculated changes array
+                let sumChange = 0;
+                // Note: The original logic skipped the very first change in the slice of 20? 
+                // "if (i === 0) return 0"
+                // Ideally, Volatility for day X should probably use returns x, x-1, ... x-19.
+                // Let's use the window of returns ending at 'index'.
+
+                // We need 20 returns. 
+                // changes[index] is return from index-1 to index.
+                const windowKernelSize = period;
+
+                // Optimize: simple loop over pre-calculated array
+                let validChangeCount = 0;
+                for (let k = 0; k < windowKernelSize; k++) {
+                    sumChange += changes[index - k];
+                    validChangeCount++;
+                }
+
+                if (validChangeCount > 0) {
+                    const meanChange = sumChange / validChangeCount;
+                    let sumSqDiffChange = 0;
+                    for (let k = 0; k < windowKernelSize; k++) {
+                        sumSqDiffChange += Math.pow(changes[index - k] - meanChange, 2);
+                    }
+                    rollingSD = Math.sqrt(sumSqDiffChange / validChangeCount);
+                }
             }
 
             return {
@@ -227,13 +251,13 @@ export default function StockDashboard({ data }: StockDashboardProps) {
             else if (diff >= 1 * sigma) zone = "1";
 
             if (selectedZones.includes(zone)) {
-                const sharesBought = 100 / day.close;
+                const sharesBought = 1; // Buy 1 share
 
                 // Both scenarios buy the same amount of stock with new capital
                 sharesReinvest += sharesBought;
                 sharesNoReinvest += sharesBought;
 
-                totalInvested += 100;
+                totalInvested += day.close;
                 buyCount++;
                 buyDates.add(day.date);
             }
@@ -256,16 +280,20 @@ export default function StockDashboard({ data }: StockDashboardProps) {
             totalDividends: totalDividendsReinvested,
             currentValue: currentValueReinvest,
             totalReturn: totalReturnReinvest,
-            buyDates
+            buyDates,
+            avgPrice: buyCount > 0 ? totalInvested / buyCount : 0
         };
-
     }, [processedData, distributionData.sd, distributionData.mean, data.currentPrice, data.dividends, selectedZones]);
 
     // Helper to downsample data for charts to improve performance
     const downsample = (data: any[], limit: number) => {
         if (!data || data.length <= limit) return data;
         const step = Math.ceil(data.length / limit);
-        return data.filter((_, i) => i % step === 0);
+        const result = [];
+        for (let i = 0; i < data.length; i += step) {
+            result.push(data[i]);
+        }
+        return result;
     };
 
     const chartData = useMemo(() => {
@@ -372,8 +400,11 @@ export default function StockDashboard({ data }: StockDashboardProps) {
                                 <XAxis
                                     dataKey="date"
                                     stroke="#6b7280"
-                                    tickFormatter={(str) => new Date(str).toLocaleDateString(undefined, { month: 'short', year: '2-digit' })}
-                                    minTickGap={30}
+                                    tickFormatter={(str) => {
+                                        const date = new Date(str);
+                                        return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+                                    }}
+                                    minTickGap={50}
                                 />
                                 <YAxis
                                     stroke="#6b7280"
@@ -465,8 +496,11 @@ export default function StockDashboard({ data }: StockDashboardProps) {
                                 <XAxis
                                     dataKey="date"
                                     stroke="#6b7280"
-                                    tickFormatter={(str) => new Date(str).toLocaleDateString(undefined, { month: 'short', year: '2-digit' })}
-                                    minTickGap={30}
+                                    tickFormatter={(str) => {
+                                        const date = new Date(str);
+                                        return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+                                    }}
+                                    minTickGap={50}
                                 />
                                 <YAxis
                                     stroke="#6b7280"
@@ -578,7 +612,7 @@ export default function StockDashboard({ data }: StockDashboardProps) {
                             </div>
                             <div>
                                 <h3 className="text-xl font-semibold text-white">Volatility Trading Simulation</h3>
-                                <p className="text-gray-400 text-sm">Strategy: Buy $100 when daily change is in selected zones + <span className="text-green-400">Reinvest Dividends</span></p>
+                                <p className="text-gray-400 text-sm">Strategy: Buy 1 Share when daily change is in selected zones + <span className="text-green-400">Reinvest Dividends</span></p>
                             </div>
                         </div>
 
@@ -611,7 +645,7 @@ export default function StockDashboard({ data }: StockDashboardProps) {
                         </div>
 
                         {/* Simulation Stats */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
                             <div className="bg-gray-800/50 rounded-2xl p-3 border border-gray-700/50">
                                 <div className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">Total Buys</div>
                                 <div className="text-white font-bold text-lg">{simulationData.totalBuys}</div>
@@ -621,11 +655,19 @@ export default function StockDashboard({ data }: StockDashboardProps) {
                                 <div className="text-white font-bold text-lg">${simulationData.totalInvested.toLocaleString()}</div>
                             </div>
                             <div className="bg-gray-800/50 rounded-2xl p-3 border border-gray-700/50">
+                                <div className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">Avg Buy Price</div>
+                                <div className="text-white font-bold text-lg">${simulationData.avgPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
+                            </div>
+                            <div className="bg-gray-800/50 rounded-2xl p-3 border border-gray-700/50">
+                                <div className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">Avg Buy Price</div>
+                                <div className="text-white font-bold text-lg">${simulationData.avgPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
+                            </div>
+                            <div className="bg-gray-800/50 rounded-2xl p-3 border border-gray-700/50">
                                 <div className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">Total Dividends</div>
                                 <div className="text-green-400 font-bold text-lg">+${simulationData.totalDividends.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
                             </div>
                             <div className="bg-gray-800/50 rounded-2xl p-3 border border-gray-700/50">
-                                <div className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">Current Value</div>
+                                <div className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">Val (Reinvest)</div>
                                 <div className="text-white font-bold text-lg">${simulationData.currentValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
                             </div>
                             <div className="bg-gray-800/50 rounded-2xl p-3 border border-gray-700/50">
@@ -653,8 +695,11 @@ export default function StockDashboard({ data }: StockDashboardProps) {
                                     <XAxis
                                         dataKey="date"
                                         stroke="#6b7280"
-                                        tickFormatter={(str) => new Date(str).toLocaleDateString(undefined, { month: 'short', year: '2-digit' })}
-                                        minTickGap={30}
+                                        tickFormatter={(str) => {
+                                            const date = new Date(str);
+                                            return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+                                        }}
+                                        minTickGap={50}
                                     />
                                     <YAxis
                                         stroke="#6b7280"
@@ -671,22 +716,44 @@ export default function StockDashboard({ data }: StockDashboardProps) {
                                         }}
                                     />
                                     <Legend />
+                                    {/* Areas for Fill (Gradient) - Green behind Blue */}
                                     <Area
                                         type="monotone"
                                         dataKey="valueReinvest"
                                         name="With Reinvestment"
-                                        stroke="#10b981"
+                                        stroke="none"
                                         fill="url(#colorValueReinvest)"
-                                        strokeWidth={2}
+                                        activeDot={false}
                                     />
                                     <Area
                                         type="monotone"
                                         dataKey="valueNoReinvest"
                                         name="Without Reinvestment"
-                                        stroke="#3b82f6"
+                                        stroke="none"
                                         fill="url(#colorValueNoReinvest)"
-                                        strokeWidth={2}
+                                        activeDot={false}
                                     />
+
+                                    {/* Lines for Stroke - Green on top of Blue */}
+                                    <Line
+                                        type="monotone"
+                                        dataKey="valueNoReinvest"
+                                        stroke="#3b82f6"
+                                        strokeWidth={2}
+                                        dot={false}
+                                        legendType="none"
+                                        tooltipType="none"
+                                    />
+                                    <Line
+                                        type="monotone"
+                                        dataKey="valueReinvest"
+                                        stroke="#10b981"
+                                        strokeWidth={2}
+                                        dot={false}
+                                        legendType="none"
+                                        tooltipType="none"
+                                    />
+
                                     <Line
                                         type="step"
                                         dataKey="invested"
@@ -706,4 +773,6 @@ export default function StockDashboard({ data }: StockDashboardProps) {
             </div>
         </motion.div>
     );
-}
+});
+
+export default StockDashboard;
