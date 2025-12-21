@@ -37,7 +37,8 @@ export async function GET() {
                     For GEX and DIX, specifically search for "SqueezeMetrics" data.
                     For Fear & Greed, search for "CNN Fear and Greed Index".
                     
-                    If data for today (${today}) is not yet published, use the most recent available closing data.
+                    CRITICAL: If data for today (${today}) is not available (e.g. weekend or pre-market), YOU MUST search back up to 5 days to find the most recent closing value.
+                    Do not return null if a value exists within the last 5 days.
 
                     1. S&P 500 Gamma Exposure (GEX) in Billion USD.
                     2. Dark Index (DIX) %.
@@ -46,14 +47,15 @@ export async function GET() {
                     Return ONLY a valid JSON object with keys: "gex", "dix", "fearGreed".
                     Each key should contain an object with:
                     - "current": number (the most recent value found)
-                    - "change": number (change from the previous value, e.g., +1.2 or -0.5. If not explicitly found, calculate it from the history)
+                    - "date": "YYYY-MM-DD" (the specific date of this 'current' value)
+                    - "change": number (change from the previous value)
                     - "history": array of objects { "date": "YYYY-MM-DD", "value": number } (last 14 days history)
 
                     Example: 
                     { 
-                        "gex": { "current": 5.2, "change": 0.4, "history": [{ "date": "2023-10-27", "value": 4.8 }, ...] },
-                        "dix": { "current": 45.3, "change": -1.2, "history": [{ "date": "2023-10-27", "value": 46.5 }, ...] },
-                        "fearGreed": { "current": 65, "change": 5, "history": [{ "date": "2023-10-27", "value": 60 }, ...] }
+                        "gex": { "current": 5.2, "date": "2023-10-27", "change": 0.4, "history": [...] },
+                        "dix": { "current": 45.3, "date": "2023-10-27", "change": -1.2, "history": [...] },
+                        "fearGreed": { "current": 65, "date": "2023-10-27", "change": 5, "history": [...] }
                     }
                     Do not include markdown formatting or code blocks. Just the raw JSON string.
                 `;
@@ -76,15 +78,16 @@ export async function GET() {
         return NextResponse.json({
             vix: {
                 current: vixData[vixData.length - 1]?.close || 0,
+                date: vixData[vixData.length - 1]?.date ? new Date(vixData[vixData.length - 1].date).toISOString().split('T')[0] : null,
                 history: vixData.map((day: any) => ({
                     date: day.date.toISOString(),
                     close: day.close
                 }))
             },
             metrics: {
-                gex: geminiMetrics?.gex || { current: null, change: 0, history: [] },
-                dix: geminiMetrics?.dix || { current: null, change: 0, history: [] },
-                fearGreed: geminiMetrics?.fearGreed || { current: null, change: 0, history: [] }
+                gex: geminiMetrics?.gex || { current: null, date: null, change: 0, history: [] },
+                dix: geminiMetrics?.dix || { current: null, date: null, change: 0, history: [] },
+                fearGreed: geminiMetrics?.fearGreed || { current: null, date: null, change: 0, history: [] }
             }
         });
 
