@@ -26,7 +26,7 @@ export async function GET() {
             try {
                 // Enable Google Search Grounding
                 const model = genAI.getGenerativeModel({
-                    model: "gemini-2.5-flash",
+                    model: "gemini-2.0-flash-exp",
                     // Explicitly cast to any to avoid TS build error with googleSearch tool
                     tools: [{ googleSearch: {} } as any]
                 });
@@ -34,11 +34,13 @@ export async function GET() {
                 const today = new Date().toISOString().split('T')[0];
                 const prompt = `
                     Find the latest market data for the following indicators. 
-                    For GEX and DIX, specifically search for "SqueezeMetrics" data.
-                    For Fear & Greed, search for "CNN Fear and Greed Index".
-                    
-                    CRITICAL: If data for today (${today}) is not available (e.g. weekend or pre-market), YOU MUST search back up to 5 days to find the most recent closing value.
-                    Do not return null if a value exists within the last 5 days.
+                    For GEX and DIX, specifically search for "SqueezeMetrics" data (latest PDF or site update).
+                    For Fear & Greed, search for "CNN Fear and Greed Index" or "Fear and Greed Index current value".
+
+                    CRITICAL INSTRUCTION:
+                    If data for today (${today}) is not explicitly stated, YOU MUST find the most recent available value from the last 5 days.
+                    - For Fear & Greed: It is a number between 0 and 100. If you cannot find today's value, return the latest value you can find (e.g. yesterday's or from Friday). DO NOT RETURN NULL.
+                    - For GEX/DIX: These are often updated late. Return the latest available closing data.
 
                     1. S&P 500 Gamma Exposure (GEX) in Billion USD.
                     2. Dark Index (DIX) %.
@@ -47,7 +49,7 @@ export async function GET() {
                     Return ONLY a valid JSON object with keys: "gex", "dix", "fearGreed".
                     Each key should contain an object with:
                     - "current": number (the most recent value found)
-                    - "date": "YYYY-MM-DD" (the specific date of this 'current' value)
+                    - "date": "YYYY-MM-DD" (the specific date of this 'current' value. If date is not explicit, infer from "yesterday", "2 days ago", etc. relative to ${today})
                     - "change": number (change from the previous value)
                     - "history": array of objects { "date": "YYYY-MM-DD", "value": number } (last 14 days history)
 
