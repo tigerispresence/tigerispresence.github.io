@@ -285,6 +285,71 @@ const StockDashboard = memo(({ data }: StockDashboardProps) => {
         };
     }, [processedData, distributionData.sd, distributionData.mean, data.currentPrice, data.dividends, selectedZones]);
 
+    // Calculate Monthly DCA Simulation Data
+    const dcaSimulationData = useMemo(() => {
+        if (!processedData || processedData.length === 0) return null;
+
+        let shares = 0;
+        let totalInvested = 0;
+        let buyCount = 0;
+        let totalDividendsReinvested = 0;
+        let lastMonth = -1; // Track month changes
+
+        // Create a map for quick dividend lookup
+        const dividendMap = new Map();
+        if (data.dividends) {
+            data.dividends.forEach(d => {
+                const dateStr = new Date(d.date).toISOString().split('T')[0];
+                dividendMap.set(dateStr, d.amount);
+            });
+        }
+
+        const simHistory = processedData.map(day => {
+            const dateObj = new Date(day.date);
+            const currentMonth = dateObj.getMonth();
+            const dateStr = dateObj.toISOString().split('T')[0];
+
+            // 1. Check for Dividend Payment (Reinvest)
+            if (dividendMap.has(dateStr)) {
+                const divAmount = dividendMap.get(dateStr);
+                const payout = shares * divAmount;
+                if (payout > 0) {
+                    const sharesBought = payout / day.close;
+                    shares += sharesBought;
+                    totalDividendsReinvested += payout;
+                }
+            }
+
+            // 2. Check for Monthly Buy (First trading day of the month)
+            if (currentMonth !== lastMonth) {
+                const sharesBought = 1; // Buy 1 share
+                shares += sharesBought;
+                totalInvested += day.close;
+                buyCount++;
+                lastMonth = currentMonth;
+            }
+
+            return {
+                date: day.date,
+                invested: totalInvested,
+                value: shares * day.close
+            };
+        });
+
+        const currentValue = shares * data.currentPrice;
+        const totalReturn = totalInvested > 0 ? ((currentValue - totalInvested) / totalInvested) * 100 : 0;
+
+        return {
+            history: simHistory,
+            totalBuys: buyCount,
+            totalInvested,
+            totalDividends: totalDividendsReinvested,
+            currentValue,
+            totalReturn,
+            avgPrice: buyCount > 0 ? totalInvested / buyCount : 0
+        };
+    }, [processedData, data.currentPrice, data.dividends]);
+
     // Helper to downsample data for charts to improve performance
     const downsample = (data: any[], limit: number) => {
         if (!data || data.length <= limit) return data;
@@ -306,6 +371,7 @@ const StockDashboard = memo(({ data }: StockDashboardProps) => {
         }));
     }, [processedData, simulationData]);
     const simulationChartData = useMemo(() => simulationData ? downsample(simulationData.history, 500) : [], [simulationData]);
+    const dcaChartData = useMemo(() => dcaSimulationData ? downsample(dcaSimulationData.history, 500) : [], [dcaSimulationData]);
 
     const isPositive = data.change >= 0;
 
@@ -598,7 +664,109 @@ const StockDashboard = memo(({ data }: StockDashboardProps) => {
                     </div>
                 </motion.div>
 
-                {/* Trading Simulation Chart */}
+                {/* Monthly DCA Simulation Chart */}
+                {dcaSimulationData && (
+                    <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.6 }}
+                        className="bg-gray-900/50 backdrop-blur-xl border border-gray-800 rounded-3xl p-6 shadow-xl lg:col-span-2"
+                    >
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="p-2 bg-blue-500/10 rounded-xl">
+                                <TrendingUp className="w-6 h-6 text-blue-400" />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-semibold text-white">Monthly DCA Simulation</h3>
+                                <p className="text-gray-400 text-sm">Strategy: Buy 1 Share on Month Start + <span className="text-green-400">Reinvest Dividends</span></p>
+                            </div>
+                        </div>
+
+                        {/* DCA Stats */}
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                            <div className="bg-gray-800/50 rounded-2xl p-3 border border-gray-700/50">
+                                <div className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">Total Buys</div>
+                                <div className="text-white font-bold text-lg">{dcaSimulationData.totalBuys}</div>
+                            </div>
+                            <div className="bg-gray-800/50 rounded-2xl p-3 border border-gray-700/50">
+                                <div className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">Total Invested</div>
+                                <div className="text-white font-bold text-lg">${dcaSimulationData.totalInvested.toLocaleString()}</div>
+                            </div>
+                            <div className="bg-gray-800/50 rounded-2xl p-3 border border-gray-700/50">
+                                <div className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">Avg Buy Price</div>
+                                <div className="text-white font-bold text-lg">${dcaSimulationData.avgPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
+                            </div>
+
+                            <div className="bg-gray-800/50 rounded-2xl p-3 border border-gray-700/50">
+                                <div className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">Total Dividends</div>
+                                <div className="text-green-400 font-bold text-lg">+${dcaSimulationData.totalDividends.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
+                            </div>
+                            <div className="bg-gray-800/50 rounded-2xl p-3 border border-gray-700/50">
+                                <div className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">Current Value</div>
+                                <div className="text-white font-bold text-lg">${dcaSimulationData.currentValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
+                            </div>
+                            <div className="bg-gray-800/50 rounded-2xl p-3 border border-gray-700/50">
+                                <div className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">Total Return</div>
+                                <div className={`font-bold text-lg ${dcaSimulationData.totalReturn >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                    {dcaSimulationData.totalReturn >= 0 ? '+' : ''}{dcaSimulationData.totalReturn.toFixed(2)}%
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="h-[350px] w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={dcaChartData}>
+                                    <defs>
+                                        <linearGradient id="colorDcaValue" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" vertical={false} />
+                                    <XAxis
+                                        dataKey="date"
+                                        stroke="#6b7280"
+                                        tickFormatter={(str) => {
+                                            const date = new Date(str);
+                                            return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+                                        }}
+                                        minTickGap={50}
+                                    />
+                                    <YAxis
+                                        stroke="#6b7280"
+                                        tickFormatter={(val) => `$${val}`}
+                                    />
+                                    <Tooltip
+                                        contentStyle={{ backgroundColor: '#111827', borderColor: '#374151', borderRadius: '12px' }}
+                                        itemStyle={{ color: '#e5e7eb' }}
+                                        labelStyle={{ color: '#9ca3af' }}
+                                        formatter={(value: number) => [`$${value.toLocaleString()}`, ""]}
+                                    />
+                                    <Legend />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="value"
+                                        name="Portfolio Value"
+                                        stroke="#3b82f6"
+                                        fill="url(#colorDcaValue)"
+                                        strokeWidth={2}
+                                    />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="invested"
+                                        name="Total Invested"
+                                        stroke="#9ca3af" // Gray line for invested amount
+                                        fill="none"
+                                        strokeWidth={2}
+                                        strokeDasharray="5 5"
+                                    />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </motion.div>
+                )}
+
+                {/* Volatility Trading Simulation Chart */}
                 {simulationData && (
                     <motion.div
                         initial={{ opacity: 0, x: -20 }}
