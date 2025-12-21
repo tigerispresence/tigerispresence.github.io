@@ -155,7 +155,7 @@ export default function Home() {
             Stock Analysis {/* Changed title */}
           </h1>
           <p className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto">
-            Real-time market insights powered by AI. Search for any company to get started. {/* Changed description */}
+            WorkingNow - Youngkyu Lee
           </p>
         </motion.div>
 
