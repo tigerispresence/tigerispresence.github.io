@@ -658,10 +658,7 @@ const StockDashboard = memo(({ data }: StockDashboardProps) => {
                                 <div className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">Avg Buy Price</div>
                                 <div className="text-white font-bold text-lg">${simulationData.avgPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
                             </div>
-                            <div className="bg-gray-800/50 rounded-2xl p-3 border border-gray-700/50">
-                                <div className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">Avg Buy Price</div>
-                                <div className="text-white font-bold text-lg">${simulationData.avgPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
-                            </div>
+
                             <div className="bg-gray-800/50 rounded-2xl p-3 border border-gray-700/50">
                                 <div className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">Total Dividends</div>
                                 <div className="text-green-400 font-bold text-lg">+${simulationData.totalDividends.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
