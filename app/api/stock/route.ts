@@ -32,9 +32,22 @@ export async function POST(req: Request) {
                 const prompt = `
           Identify the stock ticker symbol for: "${query}".
           Return ONLY the ticker symbol.
+          
+          Instructions:
+          1. Identify the company.
+          2. If it is a Korean company, you MUST append the correct suffix:
+             - ".KS" for KOSPI (e.g. Samsung Electronics -> 005930.KS)
+             - ".KQ" for KOSDAQ (e.g. EcoPro BM -> 247540.KQ)
+          3. For US stocks, return the standard ticker (e.g. Apple -> AAPL).
+          
           Examples:
           "Apple" -> "AAPL"
           "Samsung Electronics" -> "005930.KS"
+          "삼성전자" -> "005930.KS"
+          "Kakao" -> "035720.KS"
+          "카카오" -> "035720.KS"
+          "EcoPro BM" -> "247540.KQ"
+          "에코프로비엠" -> "247540.KQ"
           "Tesla" -> "TSLA"
           "Bitcoin" -> "BTC-USD"
           
