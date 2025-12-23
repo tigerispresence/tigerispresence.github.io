@@ -23,50 +23,52 @@ export async function GET() {
         // 2. Fetch Market Sentiment Metrics (Gemini)
         // GEX, DIX, Fear & Greed are not available via standard free APIs, so we use Gemini Grounding
         const geminiPromise = (async () => {
-            try {
-                // Enable Google Search Grounding
-                const model = genAI.getGenerativeModel({
-                    model: "gemini-2.0-flash-exp",
-                    // Explicitly cast to any to avoid TS build error with googleSearch tool
-                    tools: [{ googleSearch: {} } as any]
-                });
+            const maxRetries = 3;
+            let attempt = 0;
 
-                const today = new Date().toISOString().split('T')[0];
-                const prompt = `
-                    Find the latest market data for the following indicators. 
-                    For GEX and DIX, specifically search for "SqueezeMetrics" data (latest PDF or site update).
-                    For Fear & Greed, search for "CNN Fear and Greed Index" or "Fear and Greed Index current value".
+            while (attempt < maxRetries) {
+                try {
+                    // Enable Google Search Grounding
+                    const model = genAI.getGenerativeModel({
+                        model: "gemini-2.0-flash-exp",
+                        tools: [{ googleSearch: {} } as any]
+                    });
 
-                    CRITICAL INSTRUCTION:
-                    If data for today (${today}) is not explicitly stated, YOU MUST find the most recent available value from the last 5 days.
-                    - For Fear & Greed: It is a number between 0 and 100. If you cannot find today's value, return the latest value you can find (e.g. yesterday's or from Friday). DO NOT RETURN NULL.
-                    - For GEX/DIX: These are often updated late. Return the latest available closing data.
+                    const today = new Date().toISOString().split('T')[0];
+                    const prompt = `
+                        Task: Extract the LATEST available market data (Value, Date) for these indicators.
+                        
+                        Indicators to Search:
+                        1. "CNN Fear and Greed Index" (Current score 0-100).
+                        2. "S&P 500 Gamma Exposure (GEX)" (Billions USD, often from SqueezeMetrics).
+                        3. "Dark Index (DIX)" (%, often from SqueezeMetrics).
+    
+                        CRITICAL INSTRUCTION:
+                        - If data for Today (${today}) is missing, YOU MUST Search backwards up to 7 days.
+                        - ALWAYS return the most recent valid number you can find. DO NOT return null if a value exists in the last week.
+                        - For Fear & Greed, specifically look for "Fear & Greed Index score today" or "latest".
+    
+                        Output JSON Format:
+                        {
+                            "gex": { "current": number | null, "date": "YYYY-MM-DD", "change": number, "history": [] },
+                            "dix": { "current": number | null, "date": "YYYY-MM-DD", "change": number, "history": [] },
+                            "fearGreed": { "current": number | null, "date": "YYYY-MM-DD", "change": number, "history": [] }
+                        }
+                        
+                        Return ONLY raw JSON. No markdown.
+                    `;
 
-                    1. S&P 500 Gamma Exposure (GEX) in Billion USD.
-                    2. Dark Index (DIX) %.
-                    3. CNN Fear & Greed Index (0-100).
+                    const result = await model.generateContent(prompt);
+                    const text = result.response.text().replace(/```json|```/g, "").trim();
+                    return JSON.parse(text);
 
-                    Return ONLY a valid JSON object with keys: "gex", "dix", "fearGreed".
-                    Each key should contain an object with:
-                    - "current": number (the most recent value found)
-                    - "date": "YYYY-MM-DD" (the specific date of this 'current' value. If date is not explicit, infer from "yesterday", "2 days ago", etc. relative to ${today})
-                    - "change": number (change from the previous value)
-                    - "history": array of objects { "date": "YYYY-MM-DD", "value": number } (last 14 days history)
-
-                    Example: 
-                    { 
-                        "gex": { "current": 5.2, "date": "2023-10-27", "change": 0.4, "history": [...] },
-                        "dix": { "current": 45.3, "date": "2023-10-27", "change": -1.2, "history": [...] },
-                        "fearGreed": { "current": 65, "date": "2023-10-27", "change": 5, "history": [...] }
-                    }
-                    Do not include markdown formatting or code blocks. Just the raw JSON string.
-                `;
-                const result = await model.generateContent(prompt);
-                const text = result.response.text().replace(/```json|```/g, "").trim();
-                return JSON.parse(text);
-            } catch (e) {
-                console.error("Gemini market metrics fetch failed:", e);
-                return null;
+                } catch (e: any) {
+                    console.error(`Gemini fetch attempt ${attempt + 1} failed:`, e.message);
+                    attempt++;
+                    if (attempt === maxRetries) return null;
+                    // Wait 2 seconds before retrying
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                }
             }
         })();
 

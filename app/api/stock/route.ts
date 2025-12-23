@@ -27,6 +27,13 @@ export async function POST(req: Request) {
 
         // 2. If Yahoo search failed or returned no results, use Gemini to find the ticker
         if (!symbol) {
+            const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+
+            if (!apiKey) {
+                console.error("Critical: NEXT_PUBLIC_GEMINI_API_KEY is not set in environment variables. Korean/Fallback search will fail.");
+                return NextResponse.json({ error: "Configuration Error: Gemini API Key missing on server." }, { status: 500 });
+            }
+
             try {
                 const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
                 const prompt = `
