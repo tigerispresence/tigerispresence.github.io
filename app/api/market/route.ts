@@ -1,15 +1,17 @@
 import { NextResponse } from 'next/server';
 import yahooFinance from 'yahoo-finance2';
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import fs from 'fs';
+import path from 'path';
 
 const yf = new yahooFinance();
-
 const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY || "");
+const CACHE_FILE = path.resolve(process.cwd(), '.cache/market_data.json');
+const CACHE_DURATION = 12 * 60 * 60 * 1000; // 12 Hours
 
 export async function GET() {
     try {
         // 1. Fetch VIX History (Yahoo Finance)
-        // Get last 30 days of VIX data for the chart
         const endDate = new Date();
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - 30);
@@ -20,55 +22,81 @@ export async function GET() {
             interval: '1d'
         });
 
-        // 2. Fetch Market Sentiment Metrics (Gemini)
-        // GEX, DIX, Fear & Greed are not available via standard free APIs, so we use Gemini Grounding
+        // 2. Fetch Market Sentiment (Persistent Cache -> Gemini Search -> Fallback)
         const geminiPromise = (async () => {
-            const maxRetries = 3;
-            let attempt = 0;
-
-            while (attempt < maxRetries) {
-                try {
-                    // Enable Google Search Grounding
-                    const model = genAI.getGenerativeModel({
-                        model: "gemini-2.0-flash-exp",
-                        tools: [{ googleSearch: {} } as any]
-                    });
-
-                    const today = new Date().toISOString().split('T')[0];
-                    const prompt = `
-                        Task: Extract the LATEST available market data (Value, Date) for these indicators.
-                        
-                        Indicators to Search:
-                        1. "CNN Fear and Greed Index" (Current score 0-100).
-                        2. "S&P 500 Gamma Exposure (GEX)" (Billions USD, often from SqueezeMetrics).
-                        3. "Dark Index (DIX)" (%, often from SqueezeMetrics).
-    
-                        CRITICAL INSTRUCTION:
-                        - If data for Today (${today}) is missing, YOU MUST Search backwards up to 7 days.
-                        - ALWAYS return the most recent valid number you can find. DO NOT return null if a value exists in the last week.
-                        - For Fear & Greed, specifically look for "Fear & Greed Index score today" or "latest".
-    
-                        Output JSON Format:
-                        {
-                            "gex": { "current": number | null, "date": "YYYY-MM-DD", "change": number, "history": [] },
-                            "dix": { "current": number | null, "date": "YYYY-MM-DD", "change": number, "history": [] },
-                            "fearGreed": { "current": number | null, "date": "YYYY-MM-DD", "change": number, "history": [] }
-                        }
-                        
-                        Return ONLY raw JSON. No markdown.
-                    `;
-
-                    const result = await model.generateContent(prompt);
-                    const text = result.response.text().replace(/```json|```/g, "").trim();
-                    return JSON.parse(text);
-
-                } catch (e: any) {
-                    console.error(`Gemini fetch attempt ${attempt + 1} failed:`, e.message);
-                    attempt++;
-                    if (attempt === maxRetries) return null;
-                    // Wait 2 seconds before retrying
-                    await new Promise(resolve => setTimeout(resolve, 2000));
+            // A. Try reading from cache first
+            let cachedData = null;
+            try {
+                if (fs.existsSync(CACHE_FILE)) {
+                    const raw = fs.readFileSync(CACHE_FILE, 'utf8');
+                    cachedData = JSON.parse(raw);
                 }
+            } catch (e) {
+                console.warn("Failed to read cache:", e);
+            }
+
+            // B. Check if cache is valid (Freshness check)
+            const now = Date.now();
+            if (cachedData && (now - cachedData.timestamp < CACHE_DURATION)) {
+                console.log("Using cached market data (Fresh)");
+                return cachedData.data;
+            }
+
+            // C. Try fetching new data (if cache stale or missing)
+            try {
+                console.log("Cache missing/stale. Fetching new market data...");
+                // Use 2.0-flash-exp to enable Google Search (needed for real data)
+                const model = genAI.getGenerativeModel({
+                    model: "gemini-2.0-flash-exp",
+                    tools: [{ googleSearch: {} }] as any
+                });
+
+                const today = new Date().toISOString().split('T')[0];
+                const prompt = `
+                    Search for the latest values of:
+                    1. "CNN Fear and Greed Index" (current score 0-100).
+                    2. "S&P 500 Gamma Exposure" (GEX) -> Source: SqueezeMetrics.
+                    3. "Dark Index" (DIX) -> Source: SqueezeMetrics.
+
+                    Return ONLY a JSON object:
+                    {
+                        "gex": { "current": value, "date": "${today}", "change": 0 },
+                        "dix": { "current": value, "date": "${today}", "change": 0 },
+                        "fearGreed": { "current": value, "date": "${today}", "change": 0 }
+                    }
+                    Fill null if not found. Do not use Markdown.
+                    IMPORTANT: If real-time GEX/DIX is not available, estimate based on recent VIX or find the last known closing value (e.g. yesterday).
+                `;
+
+                const result = await model.generateContent(prompt);
+                const text = result.response.text().replace(/```json|```/g, "").trim();
+                const newData = JSON.parse(text);
+
+                // Validation: Ensure we actually got a number for Fear & Greed
+                if (newData.fearGreed && typeof newData.fearGreed.current === 'number') {
+                    // Save to cache
+                    fs.writeFileSync(CACHE_FILE, JSON.stringify({
+                        timestamp: now,
+                        data: newData
+                    }, null, 2));
+                    console.log("Market data refreshed and cached.");
+                    return newData;
+                } else {
+                    throw new Error("Invalid format/missing data from API");
+                }
+
+            } catch (apiError: any) {
+                console.error("Gemini Search failed (Rate Limit/Error):", apiError.message);
+
+                // D. Fallback: Return stale cache if available
+                if (cachedData) {
+                    console.warn("Returning STALE cache due to API failure.");
+                    return cachedData.data;
+                }
+
+                // E. Last Resort: Internal Estimate (without search)
+                console.warn("No cache. Fallback to estimation.");
+                return null; // The frontend or next step will handle nulls (or we can estimate here)
             }
         })();
 
@@ -78,6 +106,18 @@ export async function GET() {
         ]);
 
         const vixData = vixHistory as any[];
+
+        // Default structure for metrics
+        const defaultMetrics = {
+            gex: { current: null, date: null, change: 0, history: [] },
+            dix: { current: null, date: null, change: 0, history: [] },
+            fearGreed: { current: 50, date: null, change: 0, history: [] } // Default 50 neutral
+        };
+
+        const finalMetrics = geminiMetrics || defaultMetrics;
+
+        // If we really fell back to null but have VIX, maybe we can estimate Fear/Greed roughly? 
+        // For now, let's stick to the default neutral to avoid confusion if search fails completely.
 
         return NextResponse.json({
             vix: {
@@ -89,9 +129,9 @@ export async function GET() {
                 }))
             },
             metrics: {
-                gex: geminiMetrics?.gex || { current: null, date: null, change: 0, history: [] },
-                dix: geminiMetrics?.dix || { current: null, date: null, change: 0, history: [] },
-                fearGreed: geminiMetrics?.fearGreed || { current: null, date: null, change: 0, history: [] }
+                gex: finalMetrics.gex || defaultMetrics.gex,
+                dix: finalMetrics.dix || defaultMetrics.dix,
+                fearGreed: finalMetrics.fearGreed || defaultMetrics.fearGreed
             }
         });
 

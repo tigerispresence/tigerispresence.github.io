@@ -35,41 +35,33 @@ export async function POST(req: Request) {
             }
 
             try {
-                const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-                const prompt = `
-          Identify the stock ticker symbol for: "${query}".
-          Return ONLY the ticker symbol.
-          
-          Instructions:
-          1. Identify the company.
-          2. If it is a Korean company, you MUST append the correct suffix:
-             - ".KS" for KOSPI (e.g. Samsung Electronics -> 005930.KS)
-             - ".KQ" for KOSDAQ (e.g. EcoPro BM -> 247540.KQ)
-          3. For US stocks, return the standard ticker (e.g. Apple -> AAPL).
-          
-          Examples:
-          "Apple" -> "AAPL"
-          "Samsung Electronics" -> "005930.KS"
-          "삼성전자" -> "005930.KS"
-          "Kakao" -> "035720.KS"
-          "카카오" -> "035720.KS"
-          "EcoPro BM" -> "247540.KQ"
-          "에코프로비엠" -> "247540.KQ"
-          "Tesla" -> "TSLA"
-          "Bitcoin" -> "BTC-USD"
-          
-          If you cannot find a valid ticker, return "NOT_FOUND".
-          Do not include any markdown or extra text.
-        `;
+                // "Web Searching" Fallback using Naver Stock Autocomplete API
+                // This replaces the unreliable Gemini AI fallback.
+                // Endpoint: ac.stock.naver.com (Returns JSON, supports UTF-8)
+                const naverUrl = `https://ac.stock.naver.com/ac?q=${encodeURIComponent(query)}&target=stock,index,test&q_enc=utf-8&st=11&r_format=json&t_koreng=1`;
 
-                const result = await model.generateContent(prompt);
-                const text = result.response.text().trim();
+                const res = await fetch(naverUrl);
+                const json = await res.json();
 
-                if (text !== "NOT_FOUND") {
-                    symbol = text;
+                if (json && json.items && json.items.length > 0) {
+                    const topMatch = json.items[0]; // Best match is usually first
+                    const code = topMatch.code;
+                    const typeCode = topMatch.typeCode; // "KOSPI" or "KOSDAQ"
+
+                    if (code) {
+                        // Append correct suffix for Yahoo Finance
+                        if (typeCode === 'KOSPI') {
+                            symbol = code + ".KS";
+                        } else if (typeCode === 'KOSDAQ') {
+                            symbol = code + ".KQ";
+                        } else {
+                            // Default fallback if type is unknown
+                            symbol = code + ".KS";
+                        }
+                    }
                 }
-            } catch (geminiError) {
-                console.error("Gemini resolution failed:", geminiError);
+            } catch (webSearchError) {
+                console.error("Naver web search failed:", webSearchError);
             }
         }
 
@@ -118,7 +110,8 @@ export async function POST(req: Request) {
             }),
             (async () => {
                 try {
-                    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+                    // Use 1.5-flash to ensure fallback works when Yahoo fails
+                    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
                     const prompt = `
                         Analyze the stock "${symbol}" and provide the following financial metrics based on the most recent data available to you:
                         1. Trailing P/E Ratio (TTM)
