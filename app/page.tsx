@@ -128,7 +128,7 @@ export default function Home() {
         const response = await fetch("/api/stock", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query: stockData.symbol, range: timeRange }),
+          body: JSON.stringify({ query: stockData.symbol, range: newRange }),
         });
         const data = await response.json();
         setStockData(data);
