@@ -3,8 +3,11 @@ import { yahooFinance } from '@/lib/yahoo';
 import { generateJsonWithFallback } from '@/lib/gemini';
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 
-const CACHE_FILE = path.resolve(process.cwd(), '.cache/market_data.json');
+const CACHE_FILE = process.env.NODE_ENV === 'production'
+    ? path.join(os.tmpdir(), 'market_data.json')
+    : path.resolve(process.cwd(), '.cache/market_data.json');
 const CACHE_DURATION = 12 * 60 * 60 * 1000; // 12 Hours
 
 export async function GET() {

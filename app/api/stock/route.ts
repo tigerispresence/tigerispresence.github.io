@@ -4,8 +4,11 @@ import { generateJsonWithFallback } from '@/lib/gemini';
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
+import os from 'os';
 
-const CACHE_DIR = path.resolve(process.cwd(), '.cache/stock_data');
+const CACHE_DIR = process.env.NODE_ENV === 'production'
+    ? path.join(os.tmpdir(), 'stock_data')
+    : path.resolve(process.cwd(), '.cache/stock_data');
 const CACHE_DURATION = 60 * 60 * 1000; // 1 Hour Cache for Stock Data
 
 export async function POST(req: Request) {
