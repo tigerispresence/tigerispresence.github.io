@@ -58,7 +58,8 @@ export async function GET(req: Request) {
                 `;
 
                 const geminiResults = await generateJsonWithFallback(prompt, {
-                    tools: [{ googleSearch: {} }] as any // Enable search for latest tickers
+                    // Removed googleSearch tool to prevent Vercel Timeouts (Latency optimization)
+                    // Gemini has internal knowledge of major tickers.
                 });
 
                 if (Array.isArray(geminiResults) && geminiResults.length > 0) {
