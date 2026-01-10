@@ -10,6 +10,9 @@ export async function GET(req: Request) {
         return NextResponse.json({ results: [] });
     }
 
+    // Debugging for Vercel: Check if API Key is available
+    console.log("[Search API] GEMINI_API_KEY configured:", !!process.env.NEXT_PUBLIC_GEMINI_API_KEY);
+
     try {
         console.log(`[Search API] Searching for: ${query}`);
 
@@ -43,8 +46,12 @@ export async function GET(req: Request) {
                 const prompt = `
                     User is searching for a stock with query: "${query}".
                     Identify up to 5 likely stock candidates.
-                    - If query is Korean (e.g. "삼성"), find relevant tickers (e.g. "005930.KS").
-                    - If query is generic, find best matches.
+                    
+                    CRITICAL:
+                    - If the query is a Korean company, you MUST provide the correct ticker with ".KS" (KOSPI) or ".KQ" (KOSDAQ) suffix.
+                    - Yahoo Finance requires these suffixes for Korean stocks.
+                    - Example: "삼성전자" -> "005930.KS"
+                    - Example: "에코프로" -> "086520.KQ"
                     
                     Return ONLY a valid JSON array of objects:
                     [ { "symbol": "TICKER", "name": "Company Name", "exchange": "ExchangeCode" }, ... ]
@@ -58,7 +65,8 @@ export async function GET(req: Request) {
                     // Deduplicate against existing Yahoo results
                     const existingSymbols = new Set(results.map(r => r.symbol));
                     geminiResults.forEach((r: any) => {
-                        if (!existingSymbols.has(r.symbol)) {
+                        // Ensure symbol fits standard format
+                        if (r.symbol && !existingSymbols.has(r.symbol)) {
                             results.push(r);
                             existingSymbols.add(r.symbol);
                         }
