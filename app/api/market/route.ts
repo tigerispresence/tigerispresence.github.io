@@ -46,7 +46,8 @@ export async function GET() {
                 if (result && result.regularMarketPrice) {
                     return [{
                         date: new Date(),
-                        close: result.regularMarketPrice
+                        close: result.regularMarketPrice,
+                        changePercent: result.regularMarketChangePercent || 0
                     }];
                 }
             } catch (e) {
@@ -57,15 +58,16 @@ export async function GET() {
             try {
                 console.log("Fetching VIX via Gemini (Fallback)...");
                 const result = await generateJsonWithFallback(
-                    `Search for the current price/value of the CBOE Volatility Index (^VIX).
-                     Return a JSON object: { "price": number, "date": "YYYY-MM-DD" }`,
+                    `Search for the current price and daily change percentage of the CBOE Volatility Index (^VIX).
+                     Return a JSON object: { "price": number, "changePercent": number, "date": "YYYY-MM-DD" }`,
                     { tools: [{ googleSearch: {} }] as any }
                 );
 
                 if (result && result.price) {
                     return [{
                         date: new Date(),
-                        close: result.price
+                        close: result.price,
+                        changePercent: result.changePercent || 0
                     }];
                 }
                 return [];
@@ -80,8 +82,8 @@ export async function GET() {
             try {
                 const today = new Date().toISOString().split('T')[0];
                 const prompt = `
-                    Search for the latest values of:
-                    1. "CNN Fear and Greed Index" (current score 0-100).
+                    Search for the latest values AND daily change associated with:
+                    1. "CNN Fear and Greed Index" (current score 0-100). Find how much it changed from Yesterday (daily change).
                     2. "S&P 500 Gamma Exposure" (GEX) -> Source: SqueezeMetrics.
                     3. "Dark Index" (DIX) -> Source: SqueezeMetrics.
 
@@ -89,10 +91,10 @@ export async function GET() {
                     {
                         "gex": { "current": value, "date": "${today}", "change": 0 },
                         "dix": { "current": value, "date": "${today}", "change": 0 },
-                        "fearGreed": { "current": value, "date": "${today}", "change": 0 }
+                        "fearGreed": { "current": value, "date": "${today}", "changePercent": value }
                     }
                     Fill null if not found. Do not use Markdown.
-                    IMPORTANT: If real-time GEX/DIX is not available, estimate based on recent VIX or find the last known closing value (e.g. yesterday).
+                    Example: "fearGreed": { "current": 45, "date": "2024-01-01", "changePercent": -2.5 }
                 `;
 
                 const newData = await generateJsonWithFallback(prompt, {
@@ -120,6 +122,7 @@ export async function GET() {
         // Prepare VIX response format
         const vixResponse = {
             current: vixData.length > 0 ? vixData[vixData.length - 1].close : 0,
+            changePercent: vixData.length > 0 ? (vixData[vixData.length - 1].changePercent || 0) : 0,
             date: vixData.length > 0 ? new Date(vixData[vixData.length - 1].date).toISOString().split('T')[0] : null,
             history: vixData.map((day: any) => ({
                 date: day.date.toISOString(),
@@ -130,7 +133,7 @@ export async function GET() {
         const defaultMetrics = {
             gex: { current: null, date: null, change: 0, history: [] },
             dix: { current: null, date: null, change: 0, history: [] },
-            fearGreed: { current: 50, date: null, change: 0, history: [] }
+            fearGreed: { current: 50, date: null, changePercent: 0, history: [] }
         };
 
         const finalMetrics = geminiMetrics || (cachedData ? cachedData.data.metrics : defaultMetrics);

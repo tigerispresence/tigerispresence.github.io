@@ -9,12 +9,13 @@ export interface MarketData {
     vix: {
         current: number;
         date: string | null;
+        changePercent?: number;
         history: { date: string; close: number }[];
     };
     metrics: {
         gex: { current: number | null; date: string | null; change: number; history: { date: string; value: number }[] };
         dix: { current: number | null; date: string | null; change: number; history: { date: string; value: number }[] };
-        fearGreed: { current: number | null; date: string | null; change: number; history: { date: string; value: number }[] };
+        fearGreed: { current: number | null; date: string | null; changePercent?: number; history: { date: string; value: number }[] };
     };
 }
 
@@ -26,11 +27,11 @@ interface MarketStatusProps {
 function MarketStatus({ data, loading }: MarketStatusProps) {
 
     const defaultData: MarketData = {
-        vix: { current: 0, date: null, history: [] },
+        vix: { current: 0, date: null, changePercent: 0, history: [] },
         metrics: {
             gex: { current: null, date: null, change: 0, history: [] },
             dix: { current: null, date: null, change: 0, history: [] },
-            fearGreed: { current: null, date: null, change: 0, history: [] }
+            fearGreed: { current: null, date: null, changePercent: 0, history: [] }
         }
     };
 
@@ -76,7 +77,14 @@ function MarketStatus({ data, loading }: MarketStatusProps) {
                                 <Activity className="w-3 h-3" /> VIX Index
                                 {displayData.vix.date && <span className="text-gray-600 ml-1">({formatDate(displayData.vix.date)})</span>}
                             </div>
-                            <div className="text-white font-bold text-2xl mt-1">{displayData.vix.current.toFixed(2)}</div>
+                            <div className="flex items-end gap-2 mt-1">
+                                <div className="text-white font-bold text-2xl">{displayData.vix.current.toFixed(2)}</div>
+                                {displayData.vix.changePercent !== undefined && (
+                                    <span className={`text-sm mb-1 ${displayData.vix.changePercent > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                        {displayData.vix.changePercent > 0 ? '+' : ''}{displayData.vix.changePercent.toFixed(2)}%
+                                    </span>
+                                )}
+                            </div>
                         </div>
                         <div className={`text-xs px-2 py-1 rounded-full ${displayData.vix.current > 20 ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}`}>
                             {displayData.vix.current > 20 ? 'High Volatility' : 'Stable'}
@@ -115,9 +123,9 @@ function MarketStatus({ data, loading }: MarketStatusProps) {
                         <div className="text-sm text-gray-400 mb-1 font-medium">
                             {displayData.metrics.fearGreed.current ? getFearGreedLabel(displayData.metrics.fearGreed.current) : ""}
                         </div>
-                        {typeof displayData.metrics.fearGreed.change === 'number' && displayData.metrics.fearGreed.change !== 0 && (
-                            <span className={`text-sm mb-1 ml-1 ${displayData.metrics.fearGreed.change > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                {displayData.metrics.fearGreed.change > 0 ? '+' : ''}{displayData.metrics.fearGreed.change.toFixed(0)}
+                        {displayData.metrics.fearGreed.changePercent !== undefined && (
+                            <span className={`text-sm mb-1 ml-1 ${displayData.metrics.fearGreed.changePercent > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                {displayData.metrics.fearGreed.changePercent > 0 ? '+' : ''}{displayData.metrics.fearGreed.changePercent.toFixed(1)}%
                             </span>
                         )}
                     </div>
