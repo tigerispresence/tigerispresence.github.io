@@ -7,6 +7,7 @@ import {
 } from "recharts";
 import { motion } from "framer-motion";
 import { ArrowUp, ArrowDown, TrendingUp, Activity } from "lucide-react";
+import NewsSection from "./NewsSection";
 
 export interface StockData {
     symbol: string;
@@ -942,6 +943,9 @@ const StockDashboard = memo(({ data }: StockDashboardProps) => {
 
 
             </div>
+            {/* News & Social Insights Section */}
+            <NewsSection symbol={data.symbol} />
+
         </motion.div>
     );
 });
