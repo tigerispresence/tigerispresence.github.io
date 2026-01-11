@@ -375,6 +375,12 @@ const StockDashboard = memo(({ data }: StockDashboardProps) => {
 
     const isPositive = data.change >= 0;
 
+    const formatCurrency = (value: number) => {
+        if (data.currency === 'KRW') return `${value.toLocaleString()}원`;
+        if (data.currency === 'USD') return `$${value.toLocaleString()}`;
+        return `${value.toLocaleString()} ${data.currency}`;
+    };
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -390,7 +396,7 @@ const StockDashboard = memo(({ data }: StockDashboardProps) => {
                     </div>
                     <div className="text-right">
                         <div className="text-5xl font-bold text-white tracking-tighter">
-                            {data.currency === "USD" ? "$" : ""}{data.currentPrice.toLocaleString()}
+                            {formatCurrency(data.currentPrice)}
                         </div>
                         <div className={`flex items-center justify-end gap-2 text-xl font-medium mt-2 ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
                             {isPositive ? <ArrowUp className="w-6 h-6" /> : <ArrowDown className="w-6 h-6" />}
@@ -475,7 +481,7 @@ const StockDashboard = memo(({ data }: StockDashboardProps) => {
                                 <YAxis
                                     stroke="#6b7280"
                                     domain={['auto', 'auto']}
-                                    tickFormatter={(val) => `$${val}`}
+                                    tickFormatter={(val) => data.currency === 'USD' ? `$${val}` : val.toLocaleString()}
                                 />
                                 <Tooltip
                                     contentStyle={{ backgroundColor: '#111827', borderColor: '#374151', borderRadius: '12px' }}
@@ -734,13 +740,13 @@ const StockDashboard = memo(({ data }: StockDashboardProps) => {
                                     />
                                     <YAxis
                                         stroke="#6b7280"
-                                        tickFormatter={(val) => `$${val}`}
+                                        tickFormatter={(val) => data.currency === 'USD' ? `$${val}` : val.toLocaleString()}
                                     />
                                     <Tooltip
                                         contentStyle={{ backgroundColor: '#111827', borderColor: '#374151', borderRadius: '12px' }}
                                         itemStyle={{ color: '#e5e7eb' }}
                                         labelStyle={{ color: '#9ca3af' }}
-                                        formatter={(value: number) => [`$${value.toLocaleString()}`, ""]}
+                                        formatter={(value: number) => [formatCurrency(value), ""]}
                                     />
                                     <Legend />
                                     <Area

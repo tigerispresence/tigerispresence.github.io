@@ -23,77 +23,63 @@ export async function GET() {
             console.warn("Failed to read cache:", e);
         }
 
-        // 2. Check if cache is valid (Freshness check)
+        // 2. Check if cache is valid (Freshness check AND Schema check)
         const now = Date.now();
-        if (cachedData && (now - cachedData.timestamp < CACHE_DURATION)) {
+        // Check if the cache contains the new 'indices' field (Schema Migration)
+        const hasNewSchema = cachedData?.data?.indices?.vix !== undefined;
+
+        if (cachedData && (now - cachedData.timestamp < CACHE_DURATION) && hasNewSchema) {
             console.log("Using cached market data (Fresh)");
             return NextResponse.json(cachedData.data);
         }
 
+        if (cachedData && !hasNewSchema) {
+            console.log("Cache exists but has old schema (missing changePercent). Refreshing...");
+        }
+
         console.log("Cache missing/stale. Fetching new market data...");
 
-        // 3. Fetch New Data (VIX + Gemini)
-        const endDate = new Date();
-        const startDate = new Date();
-        startDate.setDate(startDate.getDate() - 30);
-
-        // 3. Fetch New Data (VIX - Yahoo Primary, Gemini Fallback)
-        const vixPromise = (async () => {
-            // A. Try Yahoo First (Primary)
+        // 3. Fetch New Data
+        // A. Batch Fetch Yahoo Market Data (Fast & Reliable)
+        const yahooPromise = (async () => {
             try {
-                console.log("Fetching VIX via Yahoo...");
-                const result = await yahooFinance.quote('^VIX');
-                if (result && result.regularMarketPrice) {
-                    return [{
-                        date: new Date(),
-                        close: result.regularMarketPrice,
-                        changePercent: result.regularMarketChangePercent || 0
-                    }];
-                }
-            } catch (e) {
-                console.warn("Yahoo VIX failed, trying Gemini fallback...", e);
-            }
+                console.log("Fetching Market Indices via Yahoo...");
+                const results = await yahooFinance.quote(['^VIX', '^GSPC', '^IXIC', 'KRW=X']);
 
-            // B. Fallback: Gemini Search
-            try {
-                console.log("Fetching VIX via Gemini (Fallback)...");
-                const result = await generateJsonWithFallback(
-                    `Search for the current price and daily change percentage of the CBOE Volatility Index (^VIX).
-                     Return a JSON object: { "price": number, "changePercent": number, "date": "YYYY-MM-DD" }`,
-                    { tools: [{ googleSearch: {} }] as any }
-                );
+                // Helper to extract data
+                const extract = (symbol: string) => {
+                    const item = results.find((r: any) => r.symbol === symbol);
+                    if (!item) return { current: 0, changePercent: 0, date: null };
+                    return {
+                        current: item.regularMarketPrice || 0,
+                        changePercent: item.regularMarketChangePercent || 0,
+                        date: new Date().toISOString()
+                    };
+                };
 
-                if (result && result.price) {
-                    return [{
-                        date: new Date(),
-                        close: result.price,
-                        changePercent: result.changePercent || 0
-                    }];
-                }
-                return [];
+                return {
+                    vix: extract('^VIX'),
+                    sp500: extract('^GSPC'),
+                    nasdaq: extract('^IXIC'),
+                    usdkrw: extract('KRW=X')
+                };
             } catch (e) {
-                console.error("Gemini VIX Fetch Error:", e);
-                return [];
+                console.error("Yahoo Batch Fetch Failed:", e);
+                return null;
             }
         })();
 
-        // Use 2.0-flash-exp to enable Google Search (needed for real data)
+        // B. Gemini for Fear & Greed Only (Niche Data)
         const geminiPromise = (async () => {
             try {
                 const today = new Date().toISOString().split('T')[0];
                 const prompt = `
-                    Search for the latest values AND daily change associated with:
-                    1. "CNN Fear and Greed Index" (current score 0-100). Find how much it changed from Yesterday (daily change).
-                    2. "S&P 500 Gamma Exposure" (GEX) -> Source: SqueezeMetrics.
-                    3. "Dark Index" (DIX) -> Source: SqueezeMetrics.
-
+                    Search for the latest "CNN Fear and Greed Index" (current score 0-100) and its daily change from yesterday.
+                    
                     Return ONLY a JSON object:
                     {
-                        "gex": { "current": value, "date": "${today}", "change": 0 },
-                        "dix": { "current": value, "date": "${today}", "change": 0 },
                         "fearGreed": { "current": value, "date": "${today}", "changePercent": value }
                     }
-                    Fill null if not found. Do not use Markdown.
                     Example: "fearGreed": { "current": 45, "date": "2024-01-01", "changePercent": -2.5 }
                 `;
 
@@ -101,9 +87,7 @@ export async function GET() {
                     tools: [{ googleSearch: {} }] as any
                 });
 
-                // Basic validation
-                if (!newData.fearGreed) throw new Error("Missing fearGreed data");
-
+                if (!newData?.fearGreed) throw new Error("Missing fearGreed data");
                 return newData;
             } catch (error: any) {
                 console.error("Gemini Market Data Error:", error.message);
@@ -111,67 +95,39 @@ export async function GET() {
             }
         })();
 
-        const [vixHistory, geminiMetrics] = await Promise.all([
-            vixPromise,
+        const [yahooData, geminiData] = await Promise.all([
+            yahooPromise,
             geminiPromise
         ]);
 
+        const defaultIndex = { current: 0, changePercent: 0, date: null };
+
         // 4. Construct Final Data
-        const vixData = vixHistory as any[];
-
-        // Prepare VIX response format
-        const vixResponse = {
-            current: vixData.length > 0 ? vixData[vixData.length - 1].close : 0,
-            changePercent: vixData.length > 0 ? (vixData[vixData.length - 1].changePercent || 0) : 0,
-            date: vixData.length > 0 ? new Date(vixData[vixData.length - 1].date).toISOString().split('T')[0] : null,
-            history: vixData.map((day: any) => ({
-                date: day.date.toISOString(),
-                close: day.close
-            }))
-        };
-
-        const defaultMetrics = {
-            gex: { current: null, date: null, change: 0, history: [] },
-            dix: { current: null, date: null, change: 0, history: [] },
-            fearGreed: { current: 50, date: null, changePercent: 0, history: [] }
-        };
-
-        const finalMetrics = geminiMetrics || (cachedData ? cachedData.data.metrics : defaultMetrics);
-
         const responseData = {
-            vix: vixResponse,
-            metrics: {
-                gex: finalMetrics.gex || defaultMetrics.gex,
-                dix: finalMetrics.dix || defaultMetrics.dix,
-                fearGreed: finalMetrics.fearGreed || defaultMetrics.fearGreed
-            }
+            indices: {
+                vix: yahooData?.vix || defaultIndex,
+                sp500: yahooData?.sp500 || defaultIndex,
+                nasdaq: yahooData?.nasdaq || defaultIndex,
+                usdkrw: yahooData?.usdkrw || defaultIndex
+            },
+            fearGreed: geminiData?.fearGreed || { current: 50, changePercent: 0, date: null }
         };
 
-        // 5. Update Cache (Only if we got at least some data)
-        // Note: If Gemini failed but we have VIX, we might still want to update cache? 
-        // Or arguably, if Gemini failed, we shouldn't overwrite cache with "null" metrics.
-        // Logic: If Gemini succeeded, write to cache.
-        if (geminiMetrics) {
-            try {
-                if (!fs.existsSync(path.dirname(CACHE_FILE))) {
-                    fs.mkdirSync(path.dirname(CACHE_FILE), { recursive: true });
-                }
-                fs.writeFileSync(CACHE_FILE, JSON.stringify({
-                    timestamp: now,
-                    data: responseData
-                }, null, 2));
-                console.log("Market data refreshed and cached.");
-            } catch (err) {
-                console.error("Failed to write cache:", err);
+        // 5. Save to Cache
+        try {
+            if (!fs.existsSync(path.dirname(CACHE_FILE))) {
+                fs.mkdirSync(path.dirname(CACHE_FILE), { recursive: true });
             }
-        } else if (cachedData) {
-            // If fetch failed but we have stale cache, return stale cache preference?
-            // Actually we already constructed responseData using stale cache if Gemini failed.
-            console.warn("Using partial/stale data due to API failure.");
+            fs.writeFileSync(CACHE_FILE, JSON.stringify({
+                timestamp: Date.now(),
+                data: responseData
+            }, null, 2));
+            console.log("Cached market data");
+        } catch (e) {
+            console.error("Failed to write to cache:", e);
         }
 
         return NextResponse.json(responseData);
-
     } catch (error) {
         console.error("Market API Error:", error);
         return NextResponse.json({ error: "Failed to fetch market data" }, { status: 500 });

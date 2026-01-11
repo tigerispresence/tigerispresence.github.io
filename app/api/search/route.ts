@@ -19,7 +19,7 @@ export async function GET(req: Request) {
         // 1. Try Yahoo Finance Search First
         let results: any[] = [];
         try {
-            const yahooResults = await yahooFinance.search(query, { quotesCount: 5, newsCount: 0 });
+            const yahooResults = await yahooFinance.search(query, { quotesCount: 12, newsCount: 0 });
             if (yahooResults.quotes && yahooResults.quotes.length > 0) {
                 results = yahooResults.quotes
                     .filter((q: any) => q.isYahooFinance === true || q.symbol) // Basic filter
@@ -78,7 +78,7 @@ export async function GET(req: Request) {
             }
         }
 
-        return NextResponse.json({ results: results.slice(0, 5) });
+        return NextResponse.json({ results: results.slice(0, 12) });
 
     } catch (error) {
         console.error("[Search API] Error:", error);

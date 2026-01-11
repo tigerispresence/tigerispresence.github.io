@@ -22,7 +22,8 @@ export default function Home() {
     try {
       const res = await fetch("/api/market");
       const json = await res.json();
-      if (json.vix) {
+      // Check for new schema (indices)
+      if (json.indices) {
         setMarketData(json);
       }
     } catch (error) {
