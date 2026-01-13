@@ -6,8 +6,9 @@ const genAI = new GoogleGenerativeAI(apiKey);
 // Models prioritized by speed/cost to minimize rate limits as requested
 // We include the user-requested models plus known working standard models as fallbacks.
 const MODELS = [
-    "gemini-2.5-flash",      // Verified working (Success in logs)
-    "gemini-2.0-flash-exp",  // Experimental fallback
+    "gemini-2.5-flash",      // Verified working (but rate limited)
+    "gemini-1.5-flash",      // Standard fallback
+    "gemini-2.0-flash-exp",  // Experimental
 ];
 
 interface GeneratorOptions {
@@ -20,7 +21,7 @@ export async function generateContentWithFallback(
     prompt: string,
     options: GeneratorOptions & { validator?: (text: string) => boolean | Promise<boolean> } = {}
 ) {
-    let lastError = null;
+    const errors: string[] = [];
 
     for (const modelName of MODELS) {
         try {
@@ -62,17 +63,14 @@ export async function generateContentWithFallback(
             return text;
 
         } catch (error: any) {
-            console.warn(`Failed with ${modelName}:`, error.message || error);
-
-            // If it's a 404 (Model not found/available), we definitely want to continue.
-            // If it's a 429 (Rate limit), we also want to continue to the next model.
-            // If validation failed, we also continue!
-            lastError = error;
+            const msg = `[${modelName}] ${error.message || error}`;
+            console.warn(msg);
+            errors.push(msg);
             continue;
         }
     }
 
-    throw new Error(`All Gemini models failed. Last error: ${lastError?.message || lastError}`);
+    throw new Error(`All Gemini models failed.\nErrors:\n${errors.join('\n')}`);
 }
 
 // Helper for JSON parsing with markdown cleanup
