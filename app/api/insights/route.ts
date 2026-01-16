@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { generateJsonWithFallback } from '@/lib/gemini';
+import { yahooFinance } from '@/lib/yahoo';
 
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
@@ -10,67 +10,85 @@ export async function GET(req: Request) {
     }
 
     try {
-        console.log(`[Insights API] Fetching insights for: ${symbol}`);
+        console.log(`[Insights API] Fetching insights for: ${symbol} via Yahoo Finance`);
 
-        // Prompt designed to get high-impact news and social sentiment
-        const prompt = `
-            Research the latest financial news and social media sentiment for "${symbol}".
-            
-            1. **News**: Find 5 recent, high-impact news articles that are determining the stock's price direction. 
-               - **CRITICAL: Only include articles published within the last 30 days.**
-               - **Ignore articles older than 1 month.**
-               - Focus on "Financial Impact" and "Popularity".
-               - Provide a short summary of WHY it matters.
-            
-            2. **Social (SNS)**: Search for trending discussions on X (Twitter), StockTwits, and Reddit.
-               - Summarize the **overall sentiment** (Bullish/Bearish/Neutral).
-               - Identify key **trending topics** or hashtags people are discussing.
-            
-            RETURN ONLY JSON in the following format (Language: Korean):
-            {
-                "news": [
-                    {
-                        "title": "Headline",
-                        "summary": "Short summary of financial impact (1-2 sentences)",
-                        "source": "Source Name",
-                        "date": "YYYY-MM-DD",
-                        "url": "Link to article (if available, else null)"
-                    }
-                ],
-                "social": {
-                    "sentiment": "Positive/Negative/Neutral",
-                    "summary": "Summary of what retail investors are saying (e.g. 'Excited about earnings', 'Worried about regulation').",
-                    "trendingTopics": ["Topic 1", "Topic 2"]
-                }
-            }
-        `;
+        // Parallel Fetch: News + Analyst Sentiment
+        const [newsResult, quoteSummary] = await Promise.all([
+            yahooFinance.search(symbol, { newsCount: 5 }),
+            yahooFinance.quoteSummary(symbol, { modules: ['recommendationTrend', 'financialData'] })
+        ]);
 
-        const insights = await generateJsonWithFallback(prompt, {
-            // We NEED external tools for fresh news
-            tools: [{ googleSearch: {} }] as any
-        });
+        // 1. Process News
+        const news = newsResult.news.map((item: any) => ({
+            title: item.title,
+            summary: item.publisher, // Yahoo news often lacks a clean summary, using publisher or type as fallback context
+            source: item.publisher,
+            date: new Date(item.providerPublishTime).toISOString().split('T')[0],
+            url: item.link
+        }));
 
-        if (!insights) {
-            throw new Error("Failed to generate insights");
+        // 2. Process Analyst Sentiment
+        // Yahoo "financialData" has recommendationKey (buy, hold, sell, etc.) and targetMeanPrice
+        const financialData = quoteSummary.financialData;
+
+        let sentiment = "Neutral";
+        const recommendationKey = financialData?.recommendationKey?.toLowerCase() || "neutral";
+
+        if (recommendationKey.includes("buy") || recommendationKey.includes("perform")) {
+            sentiment = "Positive";
+        } else if (recommendationKey.includes("sell") || recommendationKey.includes("under")) {
+            sentiment = "Negative";
         }
+
+        // Create a summary string based on Analyst Data
+        const analystCount = financialData?.numberOfAnalystOpinions || 0;
+        const targetPrice = financialData?.targetMeanPrice;
+        const currentPrice = financialData?.currentPrice;
+
+        let sentimentSummary = `Analyst Consensus: ${recommendationKey.toUpperCase()}.`;
+        if (targetPrice && currentPrice) {
+            const upside = ((targetPrice - currentPrice) / currentPrice) * 100;
+            sentimentSummary += ` Target Mean Price: ${financialData.financialCurrency} ${targetPrice.toLocaleString()} (${upside > 0 ? '+' : ''}${upside.toFixed(1)}% upside).`;
+        }
+        if (analystCount > 0) {
+            sentimentSummary += ` Based on ${analystCount} analyst opinions.`;
+        } else {
+            sentimentSummary += " (Limited analyst data available)";
+        }
+
+        // 3. Trending Topics - Using Sector/Industry from Summary Profile if available (Separate call, or just simplistic fallback)
+        // Since we didn't request summaryProfile, we'll leave trending topics generic or empty for now.
+        // Or we can just use the "relatedTickers" from the news items as trending topics.
+        const relatedTickers = new Set<string>();
+        newsResult.news.forEach((n: any) => {
+            if (n.relatedTickers) {
+                n.relatedTickers.forEach((t: string) => {
+                    if (t !== symbol) relatedTickers.add(t);
+                });
+            }
+        });
+        const trendingTopics = Array.from(relatedTickers).slice(0, 5);
+
+        return NextResponse.json({
+            news,
+            social: {
+                sentiment: sentiment,
+                summary: sentimentSummary,
+                trendingTopics: trendingTopics
+            }
+        });
 
     } catch (error: any) {
         console.error("[Insights API] Error:", error);
 
-        let errorSummary = "일시적인 오류가 발생했습니다.";
-        if (error.message.includes("429") || error.message.includes("Quota")) {
-            errorSummary = "API 호출 한도가 초과되었습니다. (Daily Quota Exceeded). 잠시 후 다시 시도해주세요.";
-        } else if (error.message.includes("404")) {
-            errorSummary = "AI 모델을 찾을 수 없습니다. (Model Not Found).";
-        }
-
         return NextResponse.json({
             news: [],
             social: {
-                sentiment: "Error",
-                summary: errorSummary,
+                sentiment: "Neutral",
+                summary: "Failed to fetch data from Yahoo Finance.",
                 trendingTopics: []
-            }
+            },
+            error: error.message
         });
     }
 }
