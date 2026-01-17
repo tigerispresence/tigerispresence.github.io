@@ -46,10 +46,19 @@ export async function POST(req: Request) {
         // A. Try direct search with Yahoo Finance (Primary)
         try {
             console.log(`Searching for symbol: ${query} via Yahoo...`);
-            const searchResult = await yahooFinance.search(query);
+
+            // 1. Determine Search Context (Korean vs Global)
+            const hasKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(query);
+            const searchOptions = hasKorean
+                ? { quotesCount: 1, newsCount: 0, region: 'KR', lang: 'ko-KR' }
+                : { quotesCount: 1, newsCount: 0 };
+
+            // Yahoo Finance API can choke on raw Korean characters, so we encode them.
+            const searchQuery = hasKorean ? encodeURIComponent(query) : query;
+
+            const searchResult = await yahooFinance.search(searchQuery, searchOptions);
             if (searchResult.quotes.length > 0) {
                 const firstQuote = searchResult.quotes[0];
-                symbol = firstQuote.symbol;
                 symbol = firstQuote.symbol;
                 stockName = firstQuote.shortname || firstQuote.longname || firstQuote.symbol;
                 console.log(`Yahoo found symbol: ${symbol}`);
