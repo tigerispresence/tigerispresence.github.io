@@ -11,6 +11,8 @@ const CACHE_FILE = process.env.NODE_ENV === 'production'
     : path.resolve(process.cwd(), '.cache/market_data.json');
 const CACHE_DURATION = 60 * 60 * 1000; // 1 Hour (Reduced from 12 hours)
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
     try {
         // 1. Try reading from cache first
@@ -33,7 +35,8 @@ export async function GET() {
             console.log("Using cached market data (Fresh)");
             return NextResponse.json(cachedData.data, {
                 headers: {
-                    'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=600'
+                    // Reduce Edge Cache to 15 mins (900s), stale-while-revalidate for 5 mins
+                    'Cache-Control': 'public, s-maxage=900, stale-while-revalidate=300'
                 }
             });
         }
@@ -134,7 +137,8 @@ export async function GET() {
 
         return NextResponse.json(responseData, {
             headers: {
-                'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=600'
+                // Reduce Edge Cache to 15 mins (900s), stale-while-revalidate for 5 mins
+                'Cache-Control': 'public, s-maxage=900, stale-while-revalidate=300'
             }
         });
     } catch (error) {
