@@ -111,6 +111,20 @@ export async function GET() {
         const defaultIndex = { current: 0, changePercent: 0, date: null };
 
         // 4. Construct Final Data
+        // 4. Construct Final Data (With Stale-While-Error Fallback for Fear & Greed)
+        let fearGreedData = geminiData?.fearGreed;
+
+        if (!fearGreedData) {
+            // If live fetch failed, try to reuse stale cache
+            if (cachedData?.data?.fearGreed && cachedData.data.fearGreed.current !== 0) {
+                console.log("Gemini failed. Using stale Fear & Greed data from cache.");
+                fearGreedData = cachedData.data.fearGreed;
+            } else {
+                // Absolute fallback
+                fearGreedData = { current: 50, changePercent: 0, date: null };
+            }
+        }
+
         const responseData = {
             indices: {
                 vix: yahooData?.vix || defaultIndex,
@@ -118,7 +132,7 @@ export async function GET() {
                 nasdaq: yahooData?.nasdaq || defaultIndex,
                 usdkrw: yahooData?.usdkrw || defaultIndex
             },
-            fearGreed: geminiData?.fearGreed || { current: 50, changePercent: 0, date: null }
+            fearGreed: fearGreedData
         };
 
         // 5. Save to Cache
