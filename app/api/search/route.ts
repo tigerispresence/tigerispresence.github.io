@@ -17,10 +17,16 @@ export async function GET(req: Request) {
     try {
         console.log(`[Search API] Searching for: ${query}`);
 
-        // 1. Try Yahoo Finance Search First
+        // 1. Determine Search Context (Korean vs Global)
+        const hasKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(query);
+        const searchOptions = hasKorean
+            ? { quotesCount: 12, newsCount: 0, region: 'KR', lang: 'ko-KR' }
+            : { quotesCount: 12, newsCount: 0 };
+
+        // 2. Try Yahoo Finance Search First
         let results: any[] = [];
         try {
-            const yahooResults = await yahooFinance.search(query, { quotesCount: 12, newsCount: 0 });
+            const yahooResults = await yahooFinance.search(query, searchOptions);
             if (yahooResults.quotes && yahooResults.quotes.length > 0) {
                 results = yahooResults.quotes
                     .filter((q: any) => q.isYahooFinance === true || q.symbol) // Basic filter
@@ -35,9 +41,7 @@ export async function GET(req: Request) {
             console.warn("[Search API] Yahoo search failed:", e);
         }
 
-        // 2. Logic for Korean Queries (Han-geul) if Yahoo results are weak/empty
-        // Check if query contains Korean characters
-        const hasKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(query);
+        // 3. Logic for Korean Queries (Han-geul) if Yahoo results are weak/empty
         const isInsufficient = results.length === 0 || (hasKorean && results.length < 3);
 
         if (isInsufficient) {
