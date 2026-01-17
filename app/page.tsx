@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import SearchArea from "@/components/SearchArea";
 import StockDashboard, { StockData } from "@/components/StockDashboard";
 import MarketStatus, { MarketData } from "@/components/MarketStatus";
@@ -17,7 +18,7 @@ export default function Home() {
   const [marketData, setMarketData] = useState<MarketData | null>(null);
   const [marketLoading, setMarketLoading] = useState(true);
 
-  const fetchMarketData = async () => {
+  const fetchMarketData = useCallback(async () => {
     setMarketLoading(true);
     try {
       const res = await fetch("/api/market");
@@ -31,7 +32,7 @@ export default function Home() {
     } finally {
       setMarketLoading(false);
     }
-  };
+  }, []);
 
   // Initial load and Auto-Refresh
   useEffect(() => {
@@ -41,23 +42,10 @@ export default function Home() {
       fetchMarketData();
     }, 10 * 60 * 1000); // 10 minutes
     return () => clearInterval(intervalId);
-  }, []);
-
-  // Separate effect for stock data auto-refresh
-  useEffect(() => {
-    const stockRefreshInterval = setInterval(() => {
-      const currentStock = stockData as any;
-      if (currentStock?.symbol) {
-        console.log("Auto-refreshing stock data for:", currentStock.symbol);
-        fetchStockDetail(currentStock.symbol, true);
-      }
-    }, 10 * 60 * 1000); // 10 minutes
-
-    return () => clearInterval(stockRefreshInterval);
-  }, [stockData?.symbol, timeRange]);
+  }, [fetchMarketData]);
 
   // Core Stock Fetch Logic
-  const fetchStockDetail = async (symbol: string, isAutoRefresh = false) => {
+  const fetchStockDetail = useCallback(async (symbol: string, isAutoRefresh = false) => {
     if (!isAutoRefresh) {
       setLoading(true);
       setError(null);
@@ -99,7 +87,20 @@ export default function Home() {
     } finally {
       if (!isAutoRefresh) setLoading(false);
     }
-  };
+  }, [timeRange, fetchMarketData]);
+
+  // Separate effect for stock data auto-refresh
+  useEffect(() => {
+    const stockRefreshInterval = setInterval(() => {
+      const currentStock = stockData;
+      if (currentStock?.symbol) {
+        console.log("Auto-refreshing stock data for:", currentStock.symbol);
+        fetchStockDetail(currentStock.symbol, true);
+      }
+    }, 10 * 60 * 1000); // 10 minutes
+
+    return () => clearInterval(stockRefreshInterval);
+  }, [stockData, timeRange, fetchStockDetail]);
 
   // Handle Search Submission (matches UI request to show suggestions)
   const handleSearch = async (query: string) => {

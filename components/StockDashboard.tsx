@@ -2,7 +2,7 @@
 
 import { useMemo, useState, memo } from "react";
 import {
-    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+    Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     AreaChart, Area, BarChart, Bar, Legend, ComposedChart, ReferenceLine, Scatter
 } from "recharts";
 import { motion } from "framer-motion";
@@ -39,7 +39,7 @@ interface StockDashboardProps {
 }
 
 const StockDashboard = memo(({ data }: StockDashboardProps) => {
-    if (!data) return null;
+    // if (!data) return null; // Moved to after hooks
 
     // State for Simulation Strategy
     // Zones: "-2" (<= -2sd), "-1" (-2sd < x <= -1sd), "0" (-1sd < x < 1sd), "1" (1sd <= x < 2sd), "2" (>= 2sd)
@@ -54,7 +54,7 @@ const StockDashboard = memo(({ data }: StockDashboardProps) => {
     };
 
     const processedData = useMemo(() => {
-        if (!data.history || data.history.length === 0) return [];
+        if (!data || !data.history || data.history.length === 0) return [];
 
         const history = [...data.history].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
         const period = 20;
@@ -133,7 +133,7 @@ const StockDashboard = memo(({ data }: StockDashboardProps) => {
     }, [data]);
     // Calculate Distribution Data
     const distributionData = useMemo(() => {
-        if (!data.history || data.history.length < 2) return { data: [], mean: 0, sd: 0, count1Sigma: 0, count2Sigma: 0, totalDays: 0 };
+        if (!data || !data.history || data.history.length < 2) return { data: [], mean: 0, sd: 0, count1Sigma: 0, count2Sigma: 0, totalDays: 0 };
 
         const changes = data.history.map((day, i) => {
             if (i === 0) return 0;
@@ -207,11 +207,11 @@ const StockDashboard = memo(({ data }: StockDashboardProps) => {
         // Scenario 2: No Reinvestment (Cash)
         let sharesNoReinvest = 0;
         let cashNoReinvest = 0;
-        let totalDividendsCash = 0;
+        // let totalDividendsCash = 0; // Unused
 
         // Create a map for quick dividend lookup: date string (YYYY-MM-DD) -> amount
         const dividendMap = new Map();
-        if (data.dividends) {
+        if (data?.dividends) {
             data.dividends.forEach(d => {
                 const dateStr = new Date(d.date).toISOString().split('T')[0];
                 dividendMap.set(dateStr, d.amount);
@@ -237,7 +237,7 @@ const StockDashboard = memo(({ data }: StockDashboardProps) => {
                 const payoutCash = sharesNoReinvest * divAmount;
                 if (payoutCash > 0) {
                     cashNoReinvest += payoutCash;
-                    totalDividendsCash += payoutCash;
+                    // totalDividendsCash += payoutCash;
                 }
             }
 
@@ -271,7 +271,7 @@ const StockDashboard = memo(({ data }: StockDashboardProps) => {
             };
         });
 
-        const currentValueReinvest = sharesReinvest * data.currentPrice;
+        const currentValueReinvest = sharesReinvest * (data?.currentPrice || 0);
         const totalReturnReinvest = totalInvested > 0 ? ((currentValueReinvest - totalInvested) / totalInvested) * 100 : 0;
 
         return {
@@ -284,7 +284,7 @@ const StockDashboard = memo(({ data }: StockDashboardProps) => {
             buyDates,
             avgPrice: buyCount > 0 ? totalInvested / buyCount : 0
         };
-    }, [processedData, distributionData.sd, distributionData.mean, data.currentPrice, data.dividends, selectedZones]);
+    }, [processedData, distributionData.sd, distributionData.mean, data?.currentPrice, data?.dividends, selectedZones]);
 
     // Calculate Monthly DCA Simulation Data
     const dcaSimulationData = useMemo(() => {
@@ -298,7 +298,7 @@ const StockDashboard = memo(({ data }: StockDashboardProps) => {
 
         // Create a map for quick dividend lookup
         const dividendMap = new Map();
-        if (data.dividends) {
+        if (data?.dividends) {
             data.dividends.forEach(d => {
                 const dateStr = new Date(d.date).toISOString().split('T')[0];
                 dividendMap.set(dateStr, d.amount);
@@ -337,7 +337,7 @@ const StockDashboard = memo(({ data }: StockDashboardProps) => {
             };
         });
 
-        const currentValue = shares * data.currentPrice;
+        const currentValue = shares * (data?.currentPrice || 0);
         const totalReturn = totalInvested > 0 ? ((currentValue - totalInvested) / totalInvested) * 100 : 0;
 
         return {
@@ -349,10 +349,10 @@ const StockDashboard = memo(({ data }: StockDashboardProps) => {
             totalReturn,
             avgPrice: buyCount > 0 ? totalInvested / buyCount : 0
         };
-    }, [processedData, data.currentPrice, data.dividends]);
+    }, [processedData, data?.currentPrice, data?.dividends]);
 
     // Helper to downsample data for charts to improve performance
-    const downsample = (data: any[], limit: number) => {
+    const downsample = <T,>(data: T[], limit: number) => {
         if (!data || data.length <= limit) return data;
         const step = Math.ceil(data.length / limit);
         const result = [];
@@ -366,13 +366,16 @@ const StockDashboard = memo(({ data }: StockDashboardProps) => {
         const downsampled = downsample(processedData, 500);
         if (!simulationData) return downsampled;
 
-        return downsampled.map(point => ({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return downsampled.map((point: any) => ({
             ...point,
             buyPrice: simulationData.buyDates.has(point.date) ? point.close : null
         }));
     }, [processedData, simulationData]);
     const simulationChartData = useMemo(() => simulationData ? downsample(simulationData.history, 500) : [], [simulationData]);
     const dcaChartData = useMemo(() => dcaSimulationData ? downsample(dcaSimulationData.history, 500) : [], [dcaSimulationData]);
+
+    if (!data) return null;
 
     const isPositive = data.change >= 0;
 
@@ -654,7 +657,7 @@ const StockDashboard = memo(({ data }: StockDashboardProps) => {
                                     contentStyle={{ backgroundColor: '#111827', borderColor: '#374151', borderRadius: '12px' }}
                                     itemStyle={{ color: '#e5e7eb' }}
                                     labelStyle={{ color: '#9ca3af' }}
-                                    formatter={(value, name) => [value, "Days"]}
+                                    formatter={(value) => [value, "Days"]}
                                     labelFormatter={(label) => `Return: ${label}%`}
                                 />
                                 <Legend />
@@ -949,5 +952,7 @@ const StockDashboard = memo(({ data }: StockDashboardProps) => {
         </motion.div>
     );
 });
+
+StockDashboard.displayName = "StockDashboard";
 
 export default StockDashboard;

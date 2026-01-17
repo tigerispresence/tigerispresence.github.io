@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { yahooFinance } from '@/lib/yahoo';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { generateJsonWithFallback } from '@/lib/gemini';
 
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
@@ -12,10 +14,38 @@ export async function GET(req: Request) {
     try {
         console.log(`[Insights API] Fetching insights for: ${symbol} via Yahoo Finance`);
 
-        // Parallel Fetch: News + Analyst Sentiment
-        const [newsResult, quoteSummary] = await Promise.all([
+        // Parallel Fetch: News + Analyst Sentiment + Social Posts (Gemini)
+        // We isolate Gemini call so failure doesn't block other data
+        const socialPostsPromise = (async () => {
+            try {
+                const prompt = `
+                     Find 5 specific, recent, and trending social media posts/discussions about the stock "${symbol}".
+                     Search on Reddit, X (Twitter), and StockTwits.
+                     
+                     Return a JSON object with a "posts" array:
+                     {
+                         "posts": [
+                             { "title": "Post Title or Short Summary", "url": "Direct Link", "source": "Reddit/X/StockTwits" }
+                         ]
+                     }
+                 `;
+                const result = await generateJsonWithFallback(prompt, {
+                    tools: [{ googleSearch: {} }] as any
+                });
+                if (result?.posts && Array.isArray(result.posts)) {
+                    return result.posts;
+                }
+                return null;
+            } catch (e) {
+                console.warn("Gemini Social Search Failed (Quota/Error):", e);
+                return null;
+            }
+        })();
+
+        const [newsResult, quoteSummary, socialPosts] = await Promise.all([
             yahooFinance.search(symbol, { newsCount: 5 }),
-            yahooFinance.quoteSummary(symbol, { modules: ['recommendationTrend', 'financialData'] })
+            yahooFinance.quoteSummary(symbol, { modules: ['recommendationTrend', 'financialData'] }),
+            socialPostsPromise
         ]);
 
         // 1. Process News
@@ -69,12 +99,25 @@ export async function GET(req: Request) {
         });
         const trendingTopics = Array.from(relatedTickers).slice(0, 5);
 
+        // 4. Fallback for Social Posts if Gemini Failed
+        let finalPosts = socialPosts;
+        if (!finalPosts || finalPosts.length === 0) {
+            console.log("Using generic backup links for social posts.");
+            finalPosts = [
+                { title: `Search $${symbol} on Reddit`, url: `https://www.reddit.com/search/?q=$${symbol}`, source: "Reddit" },
+                { title: `Search $${symbol} on X`, url: `https://twitter.com/search?q=$${symbol}`, source: "X" },
+                { title: `Search $${symbol} on Stocktwits`, url: `https://stocktwits.com/symbol/${symbol}`, source: "Stocktwits" },
+                { title: `Search $${symbol} on Google`, url: `https://www.google.com/search?q=${symbol}+stock+discussion`, source: "Google" }
+            ];
+        }
+
         return NextResponse.json({
             news,
             social: {
                 sentiment: sentiment,
                 summary: sentimentSummary,
-                trendingTopics: trendingTopics
+                trendingTopics: trendingTopics,
+                posts: finalPosts
             }
         });
 
@@ -86,7 +129,8 @@ export async function GET(req: Request) {
             social: {
                 sentiment: "Neutral",
                 summary: "Failed to fetch data from Yahoo Finance.",
-                trendingTopics: []
+                trendingTopics: [],
+                posts: []
             },
             error: error.message
         });

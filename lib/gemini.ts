@@ -13,6 +13,7 @@ const MODELS = [
 
 interface GeneratorOptions {
     systemInstruction?: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     tools?: any[]; // For Google Search tool etc.
     jsonMode?: boolean;
 }
@@ -27,6 +28,7 @@ export async function generateContentWithFallback(
         try {
             console.log(`Trying Gemini model: ${modelName}...`);
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const modelConfig: any = {
                 model: modelName,
             };
@@ -62,7 +64,7 @@ export async function generateContentWithFallback(
             console.log(`Success with ${modelName}`);
             return text;
 
-        } catch (error: any) {
+        } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
             const msg = `[${modelName}] ${error.message || error}`;
             console.warn(msg);
             errors.push(msg);
@@ -83,7 +85,7 @@ export async function generateJsonWithFallback(prompt: string, options: Generato
                 const clean = t.replace(/```json|```/g, "").trim();
                 JSON.parse(clean);
                 return true;
-            } catch (e) {
+            } catch {
                 return false;
             }
         }

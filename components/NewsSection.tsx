@@ -16,6 +16,11 @@ interface InsightData {
         sentiment: string;
         summary: string;
         trendingTopics: string[];
+        posts?: {
+            title: string;
+            url: string;
+            source: string;
+        }[];
     };
 }
 
@@ -85,8 +90,8 @@ export default function NewsSection({ symbol }: { symbol: string }) {
                 <button
                     onClick={() => setActiveTab('news')}
                     className={`flex-1 p-4 flex items-center justify-center gap-2 text-sm font-medium transition-colors ${activeTab === 'news'
-                            ? 'bg-gray-800/50 text-white border-b-2 border-blue-500'
-                            : 'text-gray-400 hover:text-white hover:bg-gray-800/30'
+                        ? 'bg-gray-800/50 text-white border-b-2 border-blue-500'
+                        : 'text-gray-400 hover:text-white hover:bg-gray-800/30'
                         }`}
                 >
                     <Newspaper className="w-4 h-4" />
@@ -95,8 +100,8 @@ export default function NewsSection({ symbol }: { symbol: string }) {
                 <button
                     onClick={() => setActiveTab('social')}
                     className={`flex-1 p-4 flex items-center justify-center gap-2 text-sm font-medium transition-colors ${activeTab === 'social'
-                            ? 'bg-gray-800/50 text-white border-b-2 border-purple-500'
-                            : 'text-gray-400 hover:text-white hover:bg-gray-800/30'
+                        ? 'bg-gray-800/50 text-white border-b-2 border-purple-500'
+                        : 'text-gray-400 hover:text-white hover:bg-gray-800/30'
                         }`}
                 >
                     <MessageCircle className="w-4 h-4" />
@@ -166,7 +171,35 @@ export default function NewsSection({ symbol }: { symbol: string }) {
                             </p>
                         </div>
 
-                        {/* Trending Topics */}
+                        {/* Social Posts Links */}
+                        {data.social.posts && data.social.posts.length > 0 && (
+                            <div>
+                                <h4 className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-3">Trending Discussions</h4>
+                                <div className="space-y-3">
+                                    {data.social.posts.map((post, i) => (
+                                        <a
+                                            key={i}
+                                            href={post.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="block p-3 rounded-lg bg-gray-800/40 hover:bg-gray-800 border border-gray-800/50 hover:border-gray-700 transition-all group"
+                                        >
+                                            <div className="flex justify-between items-center">
+                                                <div className="text-gray-200 text-sm font-medium group-hover:text-blue-400 transition-colors truncate pr-4">
+                                                    {post.title}
+                                                </div>
+                                                <div className="flex items-center gap-2 text-xs text-gray-500 whitespace-nowrap">
+                                                    <span>{post.source}</span>
+                                                    <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                </div>
+                                            </div>
+                                        </a>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Trending Topics Tags */}
                         <div>
                             <h4 className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-3">Trending Topics</h4>
                             <div className="flex flex-wrap gap-2">

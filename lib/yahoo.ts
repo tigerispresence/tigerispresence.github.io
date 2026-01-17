@@ -41,13 +41,15 @@ const CONFIG = {
             'Sec-Fetch-User': '?1'
         }
     },
-    suppressNotices: ['ripHistorical', 'yahooSurvey'] as any
+    suppressNotices: ['ripHistorical', 'yahooSurvey']
 };
 
 // Use a global variable to store the instance in development
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const globalForYahoo = global as unknown as { yahooFinance: any };
 
 // Cast default export to any to allow constructor usage if types are wrong/ambiguous
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const YF = YahooFinance as any;
 
 export const yahooFinance = globalForYahoo.yahooFinance || new YF(CONFIG);

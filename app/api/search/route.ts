@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { yahooFinance } from '@/lib/yahoo';
 import { generateJsonWithFallback } from '@/lib/gemini';
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Search, History, X, TrendingUp } from "lucide-react";
+import { Search, History, TrendingUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface SearchAreaProps {
@@ -9,9 +9,15 @@ interface SearchAreaProps {
     isLoading: boolean;
 }
 
+interface Suggestion {
+    symbol: string;
+    name: string;
+    exchange: string;
+}
+
 export default function SearchArea({ onSearch, isLoading }: SearchAreaProps) {
     const [query, setQuery] = useState("");
-    const [suggestions, setSuggestions] = useState<any[]>([]);
+    const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
     const [history, setHistory] = useState<string[]>([]);
     const [showDropdown, setShowDropdown] = useState(false);
     const wrapperRef = useRef<HTMLDivElement>(null);
@@ -19,6 +25,7 @@ export default function SearchArea({ onSearch, isLoading }: SearchAreaProps) {
     useEffect(() => {
         const saved = localStorage.getItem("stockSearchHistory");
         if (saved) {
+            // eslint-disable-next-line
             setHistory(JSON.parse(saved));
         }
 
@@ -32,6 +39,16 @@ export default function SearchArea({ onSearch, isLoading }: SearchAreaProps) {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
+    const fetchSuggestions = async (q: string) => {
+        try {
+            const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+            const data = await res.json();
+            if (data.results) setSuggestions(data.results);
+        } catch (e) {
+            console.error("Suggestion fetch error:", e);
+        }
+    };
+
     // Debounced Search Fetch
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -43,16 +60,6 @@ export default function SearchArea({ onSearch, isLoading }: SearchAreaProps) {
         }, 400); // 400ms debounce to reduce API calls
         return () => clearTimeout(timer);
     }, [query]);
-
-    const fetchSuggestions = async (q: string) => {
-        try {
-            const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
-            const data = await res.json();
-            if (data.results) setSuggestions(data.results);
-        } catch (e) {
-            console.error("Suggestion fetch error:", e);
-        }
-    };
 
     const addToHistory = (q: string) => {
         const newHistory = [q, ...history.filter((h) => h !== q)].slice(0, 10);
@@ -68,7 +75,7 @@ export default function SearchArea({ onSearch, isLoading }: SearchAreaProps) {
         setShowDropdown(false);
     };
 
-    const handleSelect = (item: any) => {
+    const handleSelect = (item: Suggestion) => {
         // Use symbol for search, but maybe show name?
         // Usually searching by Symbol is safest.
         const value = item.symbol;

@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { TrendingUp, TrendingDown, Activity, Zap, DollarSign, BarChart2, ExternalLink } from "lucide-react";
+import { Activity, Zap, DollarSign, BarChart2, ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
 
 export interface MarketData {
@@ -18,6 +18,55 @@ interface MarketStatusProps {
     data: MarketData | null;
     loading: boolean;
 }
+
+const getChangeColor = (value: number) => {
+    if (value > 0) return "text-green-400";
+    if (value < 0) return "text-red-400";
+    return "text-gray-400";
+};
+
+interface MetricCardProps {
+    title: string;
+    value: number;
+    change?: number;
+    prefix?: string;
+    suffix?: string;
+    icon?: React.ElementType;
+    href?: string;
+}
+
+const MetricCard = ({ title, value, change, prefix = "", suffix = "", icon: Icon, href }: MetricCardProps) => {
+    const content = (
+        <div className={`bg-gray-900/50 backdrop-blur-xl border border-gray-800 rounded-2xl p-4 flex flex-col justify-between transition-colors ${href ? 'hover:bg-gray-800/80 cursor-pointer group' : 'hover:bg-gray-800/50'}`}>
+            <div className="flex justify-between items-start mb-2">
+                <div className="text-gray-400 text-xs font-medium uppercase tracking-wider flex items-center gap-1 group-hover:text-blue-400 transition-colors">
+                    {Icon && <Icon className="w-3 h-3" />} {title}
+                    {href && <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />}
+                </div>
+            </div>
+            <div className="flex items-end gap-2">
+                <div className="text-white font-bold text-2xl">
+                    {prefix}{value.toLocaleString(undefined, { maximumFractionDigits: 2 })}{suffix}
+                </div>
+                {change !== undefined && (
+                    <span className={`text-sm mb-1 ${getChangeColor(change)}`}>
+                        {change > 0 ? '+' : ''}{change.toFixed(2)}%
+                    </span>
+                )}
+            </div>
+        </div>
+    );
+
+    if (href) {
+        return (
+            <a href={href} target="_blank" rel="noopener noreferrer" className="block h-full">
+                {content}
+            </a>
+        );
+    }
+
+    return content;
+};
 
 function MarketStatus({ data, loading }: MarketStatusProps) {
 
@@ -41,45 +90,6 @@ function MarketStatus({ data, loading }: MarketStatusProps) {
         if (value >= 45) return "text-gray-400";
         if (value >= 25) return "text-red-400";
         return "text-red-500";
-    };
-
-    const getChangeColor = (value: number) => {
-        if (value > 0) return "text-green-400";
-        if (value < 0) return "text-red-400";
-        return "text-gray-400";
-    };
-
-    const MetricCard = ({ title, value, change, prefix = "", suffix = "", icon: Icon, href }: any) => {
-        const content = (
-            <div className={`bg-gray-900/50 backdrop-blur-xl border border-gray-800 rounded-2xl p-4 flex flex-col justify-between transition-colors ${href ? 'hover:bg-gray-800/80 cursor-pointer group' : 'hover:bg-gray-800/50'}`}>
-                <div className="flex justify-between items-start mb-2">
-                    <div className="text-gray-400 text-xs font-medium uppercase tracking-wider flex items-center gap-1 group-hover:text-blue-400 transition-colors">
-                        {Icon && <Icon className="w-3 h-3" />} {title}
-                        {href && <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />}
-                    </div>
-                </div>
-                <div className="flex items-end gap-2">
-                    <div className="text-white font-bold text-2xl">
-                        {prefix}{value.toLocaleString(undefined, { maximumFractionDigits: 2 })}{suffix}
-                    </div>
-                    {change !== undefined && (
-                        <span className={`text-sm mb-1 ${getChangeColor(change)}`}>
-                            {change > 0 ? '+' : ''}{change.toFixed(2)}%
-                        </span>
-                    )}
-                </div>
-            </div>
-        );
-
-        if (href) {
-            return (
-                <a href={href} target="_blank" rel="noopener noreferrer" className="block h-full">
-                    {content}
-                </a>
-            );
-        }
-
-        return content;
     };
 
     return (

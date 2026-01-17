@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from 'next/server';
 import { yahooFinance } from '@/lib/yahoo';
 import { generateJsonWithFallback } from '@/lib/gemini';
@@ -8,7 +9,7 @@ import os from 'os';
 const CACHE_FILE = process.env.NODE_ENV === 'production'
     ? path.join(os.tmpdir(), 'market_data.json')
     : path.resolve(process.cwd(), '.cache/market_data.json');
-const CACHE_DURATION = 12 * 60 * 60 * 1000; // 12 Hours
+const CACHE_DURATION = 60 * 60 * 1000; // 1 Hour (Reduced from 12 hours)
 
 export async function GET() {
     try {
@@ -30,7 +31,11 @@ export async function GET() {
 
         if (cachedData && (now - cachedData.timestamp < CACHE_DURATION) && hasNewSchema) {
             console.log("Using cached market data (Fresh)");
-            return NextResponse.json(cachedData.data);
+            return NextResponse.json(cachedData.data, {
+                headers: {
+                    'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=600'
+                }
+            });
         }
 
         if (cachedData && !hasNewSchema) {
@@ -127,7 +132,11 @@ export async function GET() {
             console.error("Failed to write to cache:", e);
         }
 
-        return NextResponse.json(responseData);
+        return NextResponse.json(responseData, {
+            headers: {
+                'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=600'
+            }
+        });
     } catch (error) {
         console.error("Market API Error:", error);
         return NextResponse.json({ error: "Failed to fetch market data" }, { status: 500 });

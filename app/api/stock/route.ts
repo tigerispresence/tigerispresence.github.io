@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { yahooFinance } from '@/lib/yahoo';
 import { NextResponse } from "next/server";
 import { generateJsonWithFallback } from '@/lib/gemini';
@@ -24,7 +25,7 @@ export async function POST(req: Request) {
         const cacheKey = crypto.createHash('md5').update(`${query}-${range}`).digest('hex');
         const cacheFilePath = path.join(CACHE_DIR, `${cacheKey}.json`);
 
-        let cachedData = null;
+        // let cachedData = null; // Unused 
         try {
             if (fs.existsSync(cacheFilePath)) {
                 const raw = fs.readFileSync(cacheFilePath, 'utf8');
@@ -49,7 +50,7 @@ export async function POST(req: Request) {
             if (searchResult.quotes.length > 0) {
                 const firstQuote = searchResult.quotes[0];
                 symbol = firstQuote.symbol;
-                // @ts-ignore
+                symbol = firstQuote.symbol;
                 stockName = firstQuote.shortname || firstQuote.longname || firstQuote.symbol;
                 console.log(`Yahoo found symbol: ${symbol}`);
             }
