@@ -3,6 +3,8 @@ import { NextResponse } from 'next/server';
 import { yahooFinance } from '@/lib/yahoo';
 import { generateJsonWithFallback } from '@/lib/gemini';
 
+import { KOREAN_STOCK_MAP } from '@/lib/korean_stocks';
+
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const query = searchParams.get('q');
@@ -23,8 +25,24 @@ export async function GET(req: Request) {
             ? { quotesCount: 12, newsCount: 0, region: 'KR', lang: 'ko-KR' }
             : { quotesCount: 12, newsCount: 0 };
 
-        // 2. Try Yahoo Finance Search First
         let results: any[] = [];
+
+        // 0. Static Map Check (Fastest Fallback for Common Korean Stocks)
+        if (hasKorean) {
+            const normalizedQuery = query.trim().replace(/\s+/g, ''); // Remove spaces
+            // Check for exact keys or partial keys (if short enough)
+            Object.keys(KOREAN_STOCK_MAP).forEach(key => {
+                if (key === normalizedQuery || (normalizedQuery.length >= 2 && key.includes(normalizedQuery))) {
+                    const candidate = KOREAN_STOCK_MAP[key];
+                    if (!results.find(r => r.symbol === candidate.symbol)) {
+                        results.push({ ...candidate, type: 'EQUITY' });
+                    }
+                }
+            });
+            console.log(`[Search API] Static map found ${results.length} matches`);
+        }
+
+        // 2. Try Yahoo Finance Search First
         try {
             // Yahoo Finance API can choke on raw Korean characters, so we encode them.
             const searchQuery = hasKorean ? encodeURIComponent(query) : query;

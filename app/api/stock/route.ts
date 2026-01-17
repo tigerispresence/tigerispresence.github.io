@@ -2,6 +2,7 @@
 import { yahooFinance } from '@/lib/yahoo';
 import { NextResponse } from "next/server";
 import { generateJsonWithFallback } from '@/lib/gemini';
+import { KOREAN_STOCK_MAP } from '@/lib/korean_stocks';
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
@@ -43,28 +44,49 @@ export async function POST(req: Request) {
         let symbol = "";
         let stockName = "";
 
-        // A. Try direct search with Yahoo Finance (Primary)
-        try {
-            console.log(`Searching for symbol: ${query} via Yahoo...`);
 
-            // 1. Determine Search Context (Korean vs Global)
-            const hasKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(query);
-            const searchOptions = hasKorean
-                ? { quotesCount: 1, newsCount: 0, region: 'KR', lang: 'ko-KR' }
-                : { quotesCount: 1, newsCount: 0 };
 
-            // Yahoo Finance API can choke on raw Korean characters, so we encode them.
-            const searchQuery = hasKorean ? encodeURIComponent(query) : query;
-
-            const searchResult = await yahooFinance.search(searchQuery, searchOptions);
-            if (searchResult.quotes.length > 0) {
-                const firstQuote = searchResult.quotes[0];
-                symbol = firstQuote.symbol;
-                stockName = firstQuote.shortname || firstQuote.longname || firstQuote.symbol;
-                console.log(`Yahoo found symbol: ${symbol}`);
+        // 0. Static Map Check (Fastest Fallback)
+        if (/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(query)) {
+            const normalizedQuery = query.trim().replace(/\s+/g, '');
+            // Check for exact keys or partial keys (if short enough)
+            const matchKey = Object.keys(KOREAN_STOCK_MAP).find(key =>
+                key === normalizedQuery || (normalizedQuery.length >= 2 && key.includes(normalizedQuery))
+            );
+            if (matchKey) {
+                const candidate = KOREAN_STOCK_MAP[matchKey];
+                symbol = candidate.symbol;
+                stockName = candidate.name;
+                console.log(`Static map found symbol: ${symbol} (${stockName})`);
             }
-        } catch (e) {
-            console.warn("Yahoo search failed, trying fallback...", e);
+        }
+
+        // A. Try direct search with Yahoo Finance (Primary)
+        // Only run if we didn't find a symbol in static map
+        if (!symbol) {
+            try {
+                console.log(`Searching for symbol: ${query} via Yahoo...`);
+
+                // 1. Determine Search Context (Korean vs Global)
+                const hasKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(query);
+                const searchOptions = hasKorean
+                    ? { quotesCount: 1, newsCount: 0, region: 'KR', lang: 'ko-KR' }
+                    : { quotesCount: 1, newsCount: 0 };
+
+                // Yahoo Finance API can choke on raw Korean characters, so we encode them.
+                const searchQuery = hasKorean ? encodeURIComponent(query) : query;
+
+                const searchResult = await yahooFinance.search(searchQuery, searchOptions);
+                if (searchResult.quotes.length > 0) {
+                    const firstQuote = searchResult.quotes[0];
+                    symbol = firstQuote.symbol;
+                    stockName = firstQuote.shortname || firstQuote.longname || firstQuote.symbol;
+                    console.log(`Yahoo found symbol: ${symbol}`);
+                }
+            } catch (e) {
+                console.warn("Yahoo search failed, trying fallback...", e);
+            }
+
         }
 
         // B. Fallback: Resolve Symbol using Gemini Search (If Yahoo failed)
