@@ -26,7 +26,9 @@ export async function GET(req: Request) {
         // 2. Try Yahoo Finance Search First
         let results: any[] = [];
         try {
-            const yahooResults = await yahooFinance.search(query, searchOptions);
+            // Yahoo Finance API can choke on raw Korean characters, so we encode them.
+            const searchQuery = hasKorean ? encodeURIComponent(query) : query;
+            const yahooResults = await yahooFinance.search(searchQuery, searchOptions);
             if (yahooResults.quotes && yahooResults.quotes.length > 0) {
                 results = yahooResults.quotes
                     .filter((q: any) => q.isYahooFinance === true || q.symbol) // Basic filter
@@ -68,6 +70,7 @@ export async function GET(req: Request) {
                 });
 
                 if (Array.isArray(geminiResults) && geminiResults.length > 0) {
+                    console.log(`[Search API] Gemini fallback returned ${geminiResults.length} items`);
                     // Deduplicate against existing Yahoo results
                     const existingSymbols = new Set(results.map(r => r.symbol));
                     geminiResults.forEach((r: any) => {
@@ -77,6 +80,8 @@ export async function GET(req: Request) {
                             existingSymbols.add(r.symbol);
                         }
                     });
+                } else {
+                    console.log("[Search API] Gemini fallback returned no valid items");
                 }
             } catch (geminiError) {
                 console.error("[Search API] Gemini fallback failed:", geminiError);
