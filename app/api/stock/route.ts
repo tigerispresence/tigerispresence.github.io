@@ -204,7 +204,7 @@ export async function POST(req: Request) {
             }
         })();
 
-        const [history, dividends, geminiMetrics] = await Promise.all([
+        const [history, dividends, geminiMetrics, quoteSummaryResult] = await Promise.all([
             yahooFinance.historical(symbol, {
                 period1: startDate,
                 period2: endDate,
@@ -222,8 +222,46 @@ export async function POST(req: Request) {
                 console.warn("Yahoo Dividends failed:", e);
                 return [] as any[];
             }),
-            metricsPromise
+            metricsPromise,
+            yahooFinance.quoteSummary(symbol, { modules: ['financialData', 'upgradeDowngradeHistory'] }).catch((e: any) => {
+                console.warn("Yahoo FinancialData/History failed:", e);
+                return null;
+            })
         ]);
+
+        // Extract Analyst Data
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const financialData = quoteSummaryResult?.financialData;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const upgradeHistory = quoteSummaryResult?.upgradeDowngradeHistory?.history;
+
+        // Process Individual Analyst Targets from History
+        const uniqueFirms = new Set();
+        const analystHistory = [];
+
+        if (Array.isArray(upgradeHistory)) {
+            // Sort by date new to old (should be default, but ensure it)
+            const sortedHistory = [...upgradeHistory].sort((a, b) =>
+                new Date(b.epochGradeDate).getTime() - new Date(a.epochGradeDate).getTime()
+            );
+
+            for (const item of sortedHistory) {
+                if (item.currentPriceTarget && item.firm && !uniqueFirms.has(item.firm)) {
+                    uniqueFirms.add(item.firm);
+                    analystHistory.push({
+                        firm: item.firm,
+                        target: item.currentPriceTarget,
+                        date: item.epochGradeDate,
+                        action: item.action
+                    });
+                }
+            }
+            console.log(`[StockAPI] Found ${analystHistory.length} unique analyst targets for ${symbol} from ${upgradeHistory.length} history items.`);
+        } else {
+            console.log(`[StockAPI] No upgrade history found for ${symbol}`);
+        }
 
         // 4. Calculate Derived Metrics
         let calculatedYield = quote.dividendYield;
@@ -250,6 +288,14 @@ export async function POST(req: Request) {
             forwardPE: quote.forwardPE,
             dividendYield: calculatedYield,
             geminiMetrics,
+            priceTargets: financialData ? {
+                low: financialData.targetLowPrice,
+                high: financialData.targetHighPrice,
+                mean: financialData.targetMeanPrice,
+                median: financialData.targetMedianPrice,
+                numberOfAnalysts: financialData.numberOfAnalystOpinions,
+            } : null,
+            analystHistory: analystHistory, // Add processed individual targets
             history: history.map((day: any) => ({
                 date: day.date.toISOString(),
                 close: day.close
