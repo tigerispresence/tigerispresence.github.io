@@ -80,7 +80,16 @@ function MarketStatus({ data, loading }: MarketStatusProps) {
         fearGreed: { current: 50, changePercent: 0, date: null }
     };
 
-    const displayData = data || defaultData;
+    // Robust merge to handle partial API failures (e.g. missing usdkrw)
+    const displayData = {
+        indices: {
+            vix: data?.indices?.vix || defaultData.indices.vix,
+            sp500: data?.indices?.sp500 || defaultData.indices.sp500,
+            nasdaq: data?.indices?.nasdaq || defaultData.indices.nasdaq,
+            usdkrw: data?.indices?.usdkrw || defaultData.indices.usdkrw,
+        },
+        fearGreed: data?.fearGreed || defaultData.fearGreed
+    };
 
     if (loading) return <div className="animate-pulse h-32 bg-gray-900/50 rounded-3xl mb-8"></div>;
 
