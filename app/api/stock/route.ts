@@ -308,9 +308,9 @@ export async function POST(req: Request) {
 
         // 5. Save to Cache
         try {
-            // Only cache if we actually got history data
+            // Only cache if we actually got history data AND valid price
             // This prevents caching "empty" fetches (e.g. caused by IP bans or errors)
-            if (responseData.history.length > 0) {
+            if (responseData.history.length > 0 && responseData.currentPrice && responseData.currentPrice > 0) {
                 if (!fs.existsSync(CACHE_DIR)) {
                     fs.mkdirSync(CACHE_DIR, { recursive: true });
                 }

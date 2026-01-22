@@ -137,14 +137,22 @@ export async function GET() {
 
         // 5. Save to Cache
         try {
-            if (!fs.existsSync(path.dirname(CACHE_FILE))) {
-                fs.mkdirSync(path.dirname(CACHE_FILE), { recursive: true });
+            // Only cache if we have at least one valid index data
+            // This prevents caching "0" values when Yahoo API fails completely
+            const hasValidData = responseData.indices.sp500.current > 0 || responseData.indices.vix.current > 0;
+
+            if (hasValidData) {
+                if (!fs.existsSync(path.dirname(CACHE_FILE))) {
+                    fs.mkdirSync(path.dirname(CACHE_FILE), { recursive: true });
+                }
+                fs.writeFileSync(CACHE_FILE, JSON.stringify({
+                    timestamp: Date.now(),
+                    data: responseData
+                }, null, 2));
+                console.log("Cached market data");
+            } else {
+                console.warn("Skipping cache write: Market data contains all zeros (likely API failure)");
             }
-            fs.writeFileSync(CACHE_FILE, JSON.stringify({
-                timestamp: Date.now(),
-                data: responseData
-            }, null, 2));
-            console.log("Cached market data");
         } catch (e) {
             console.error("Failed to write to cache:", e);
         }
