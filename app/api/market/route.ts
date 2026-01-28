@@ -137,11 +137,13 @@ export async function GET() {
 
         // 5. Save to Cache
         try {
-            // Only cache if we have at least one valid index data
-            // This prevents caching "0" values when Yahoo API fails completely
-            const hasValidData = responseData.indices.sp500.current > 0 || responseData.indices.vix.current > 0;
+            // Only cache if we have at least one valid index data AND valid Fear & Greed data
+            // This prevents caching "0" values when Yahoo API fails completely,
+            // and prevents caching default "50" value when Gemini API fails.
+            const hasValidIndices = responseData.indices.sp500.current > 0 || responseData.indices.vix.current > 0;
+            const hasValidFearGreed = responseData.fearGreed.date !== null;
 
-            if (hasValidData) {
+            if (hasValidIndices && hasValidFearGreed) {
                 if (!fs.existsSync(path.dirname(CACHE_FILE))) {
                     fs.mkdirSync(path.dirname(CACHE_FILE), { recursive: true });
                 }
