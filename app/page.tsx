@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 import SearchArea from "@/components/SearchArea";
 import StockDashboard, { StockData } from "@/components/StockDashboard";
 import MarketStatus, { MarketData } from "@/components/MarketStatus";
+import StockHeatmap from "@/components/StockHeatmap";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Home() {
@@ -186,6 +187,9 @@ export default function Home() {
 
         {/* Market Status Section */}
         <MarketStatus data={marketData} loading={marketLoading} />
+
+        {/* Stock Heatmap */}
+        <StockHeatmap />
 
         <div className="w-full max-w-2xl relative z-20">
           <SearchArea onSearch={handleSearch} isLoading={loading} />

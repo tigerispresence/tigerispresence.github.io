@@ -149,7 +149,7 @@ function MarketStatus({ data, loading }: MarketStatusProps) {
                             <div className={`text-2xl font-bold ${getFearGreedColor(displayData.fearGreed.current)}`}>
                                 {displayData.fearGreed.current}
                             </div>
-                            {displayData.fearGreed.changePercent !== undefined && (
+                            {displayData.fearGreed.changePercent !== undefined && displayData.fearGreed.changePercent !== null && (
                                 <span className={`text-sm mb-1 ${getChangeColor(displayData.fearGreed.changePercent)}`}>
                                     {displayData.fearGreed.changePercent > 0 ? '+' : ''}{displayData.fearGreed.changePercent.toFixed(1)}%
                                 </span>
