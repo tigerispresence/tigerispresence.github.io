@@ -204,7 +204,7 @@ export async function POST(req: Request) {
             }
         })();
 
-        const [history, dividends, geminiMetrics, quoteSummaryResult] = await Promise.all([
+        const [history, dividends, geminiMetrics, quoteSummaryResult, seasonalityHistory] = await Promise.all([
             yahooFinance.historical(symbol, {
                 period1: startDate,
                 period2: endDate,
@@ -223,9 +223,17 @@ export async function POST(req: Request) {
                 return [] as any[];
             }),
             metricsPromise,
-            yahooFinance.quoteSummary(symbol, { modules: ['financialData', 'upgradeDowngradeHistory'] }).catch((e: any) => {
+            yahooFinance.quoteSummary(symbol, { modules: ['financialData', 'upgradeDowngradeHistory', 'earningsHistory', 'incomeStatementHistoryQuarterly'] }).catch((e: any) => {
                 console.warn("Yahoo FinancialData/History failed:", e);
                 return null;
+            }),
+            yahooFinance.historical(symbol, {
+                period1: new Date(new Date().setFullYear(new Date().getFullYear() - 10)), // 10 years for seasonality
+                period2: new Date(),
+                interval: '1mo'
+            }).catch((e: any) => {
+                console.warn("Yahoo Seasonality History failed:", e);
+                return [] as any[];
             })
         ]);
 
@@ -235,7 +243,16 @@ export async function POST(req: Request) {
         const financialData = quoteSummaryResult?.financialData;
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
+        const earnings = quoteSummaryResult?.earnings;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         const upgradeHistory = quoteSummaryResult?.upgradeDowngradeHistory?.history;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const earningsHistory = quoteSummaryResult?.earningsHistory?.history;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const incomeStatementHistory = quoteSummaryResult?.incomeStatementHistoryQuarterly?.incomeStatementHistory;
 
         // Process Individual Analyst Targets from History
         const uniqueFirms = new Set();
@@ -277,6 +294,24 @@ export async function POST(req: Request) {
             }
         }
 
+        // 5. Generate AI Thesis (Bull/Bear)
+        let aiAnalysis = null;
+        try {
+            console.log("Fetching AI Bull/Bear Thesis via Gemini...");
+            aiAnalysis = await generateJsonWithFallback(
+                `Analyze the stock "${symbol}" (${stockName}) and provide a concise Bull Case and Bear Case investment thesis.
+                 
+                 Return a JSON object with:
+                 - bullCase: string (A concise paragraph summarizing positive catalysts, max 300 chars)
+                 - bearCase: string (A concise paragraph summarizing risks/negatives, max 300 chars)
+                 
+                 Ensure the tone is objective and professional.`,
+                { tools: [{ googleSearch: {} }] as any }
+            );
+        } catch (e) {
+            console.error("AI Thesis Generation Failed", e);
+        }
+
         const responseData = {
             symbol: quote.symbol,
             name: quote.shortName || quote.longName,
@@ -303,7 +338,46 @@ export async function POST(req: Request) {
             dividends: dividends.map((div: any) => ({
                 date: div.date.toISOString(),
                 amount: div.dividends
-            }))
+            })),
+            seasonality: seasonalityHistory.map((item: any) => ({
+                date: item.date.toISOString(),
+                close: item.close
+            })),
+            financials: (earningsHistory && incomeStatementHistory) ? {
+                financialsChart: {
+                    quarterly: (() => {
+                        // Create a map of revenue by date (approximate matching by quarter)
+                        const revenueMap = new Map();
+                        incomeStatementHistory.forEach((item: any) => {
+                            const date = new Date(item.endDate);
+                            const quarterLabel = date.getFullYear() + ' Q' + Math.floor((date.getMonth() + 3) / 3);
+                            revenueMap.set(quarterLabel, item.totalRevenue);
+                        });
+
+                        return earningsHistory.map((item: any) => {
+                            // Use 'quarter' field if available, otherwise fallback to epochGradeDate
+                            const dateStr = item.quarter || item.epochGradeDate;
+                            const date = new Date(dateStr);
+                            const quarterLabel = date.getFullYear() + ' Q' + Math.floor((date.getMonth() + 3) / 3);
+                            const revenueVal = revenueMap.get(quarterLabel) || 0;
+
+                            return {
+                                date: quarterLabel,
+                                revenue: { raw: revenueVal, fmt: (revenueVal / 1e9).toFixed(2) + "B", longFmt: revenueVal.toLocaleString() },
+                                earnings: { raw: item.epsActual, fmt: item.epsActual?.toFixed(2), longFmt: item.epsActual?.toFixed(2) }
+                            };
+                        }).sort((a: any, b: any) => {
+                            // Ensure strict chronological order (Oldest -> Newest)
+                            const dateA = a.date.split(' Q');
+                            const dateB = b.date.split(' Q');
+                            return (parseInt(dateA[0]) - parseInt(dateB[0])) || (parseInt(dateA[1]) - parseInt(dateB[1]));
+                        });
+                    })(),
+                    yearly: []
+                },
+                financialCurrency: quote.currency
+            } : null,
+            aiAnalysis: aiAnalysis
         };
 
         // 5. Save to Cache

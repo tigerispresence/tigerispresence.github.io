@@ -8,6 +8,9 @@ import {
 import { motion } from "framer-motion";
 import { ArrowUp, ArrowDown, TrendingUp, Activity } from "lucide-react";
 import NewsSection from "./NewsSection";
+import SeasonalityHeatmap from "./SeasonalityHeatmap";
+import FinancialsChart from "./FinancialsChart";
+import AIInsights from "./AIInsights";
 
 export interface StockData {
     symbol: string;
@@ -45,6 +48,29 @@ export interface StockData {
         date: string;
         amount: number;
     }[];
+    seasonality?: {
+        date: string;
+        close: number;
+    }[];
+    financials?: {
+        financialsChart: {
+            quarterly: {
+                date: string;
+                revenue: { raw: number; fmt: string; longFmt: string };
+                earnings: { raw: number; fmt: string; longFmt: string };
+            }[];
+            yearly: {
+                date: number;
+                revenue: { raw: number; fmt: string; longFmt: string };
+                earnings: { raw: number; fmt: string; longFmt: string };
+            }[];
+        };
+        financialCurrency: string;
+    };
+    aiAnalysis?: {
+        bullCase: string;
+        bearCase: string;
+    };
 }
 
 interface StockDashboardProps {
@@ -460,6 +486,9 @@ const StockDashboard = memo(({ data }: StockDashboardProps) => {
                 </div>
             </div>
 
+            {/* AI Insights & Thesis */}
+            {data.aiAnalysis && <AIInsights data={data.aiAnalysis} />}
+
             {/* Analyst Price Targets (New Feature) */}
             {data.priceTargets && (
                 <motion.div
@@ -664,6 +693,20 @@ const StockDashboard = memo(({ data }: StockDashboardProps) => {
                         </ResponsiveContainer>
                     </div>
                 </motion.div>
+
+                {/* Financials Chart */}
+                {data.financials && (
+                    <div className="lg:col-span-2">
+                        <FinancialsChart data={data.financials} />
+                    </div>
+                )}
+
+                {/* Seasonality Heatmap */}
+                {data.seasonality && data.seasonality.length > 0 && (
+                    <div className="lg:col-span-2">
+                        <SeasonalityHeatmap data={data.seasonality} />
+                    </div>
+                )}
 
                 {/* Volatility Chart */}
                 <motion.div
