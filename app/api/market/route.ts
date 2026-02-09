@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from 'next/server';
 import { yahooFinance } from '@/lib/yahoo';
-import { generateJsonWithFallback } from '@/lib/gemini';
+// import { generateJsonWithFallback } from '@/lib/gemini'; // Unused
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
@@ -77,47 +77,52 @@ export async function GET() {
             }
         })();
 
-        // B. Gemini for Fear & Greed Only (Niche Data)
-        const geminiPromise = (async () => {
+        // B. CNN Fear & Greed Index (Direct Fetch)
+        const fearGreedPromise = (async () => {
             try {
-                const today = new Date().toISOString().split('T')[0];
-                const prompt = `
-                    Search for the latest "CNN Fear and Greed Index" (current score 0-100) and its daily change from yesterday.
-                    
-                    Return ONLY a JSON object:
-                    {
-                        "fearGreed": { "current": value, "date": "${today}", "changePercent": value }
+                const response = await fetch('https://production.dataviz.cnn.io/index/fearandgreed/graphdata', {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                        'Accept': 'application/json, text/plain, */*',
+                        'Referer': 'https://www.cnn.com/',
+                        'Origin': 'https://www.cnn.com',
                     }
-                    Example: "fearGreed": { "current": 45, "date": "2024-01-01", "changePercent": -2.5 }
-                `;
-
-                const newData = await generateJsonWithFallback(prompt, {
-                    tools: [{ googleSearch: {} }] as any
                 });
 
-                if (!newData?.fearGreed) throw new Error("Missing fearGreed data");
-                return newData;
+                if (!response.ok) throw new Error(`CNN API Status: ${response.status}`);
+
+                const data = await response.json();
+                const fg = data.fear_and_greed;
+
+                if (!fg) throw new Error("Missing fear_and_greed data in response");
+
+                return {
+                    fearGreed: {
+                        current: fg.score,
+                        date: fg.timestamp,
+                        changePercent: fg.score - fg.previous_close
+                    }
+                };
             } catch (error: any) {
-                console.error("Gemini Market Data Error:", error.message);
+                console.error("Fear & Greed API Error:", error.message);
                 return null;
             }
         })();
 
-        const [yahooData, geminiData] = await Promise.all([
+        const [yahooData, fngData] = await Promise.all([
             yahooPromise,
-            geminiPromise
+            fearGreedPromise
         ]);
 
         const defaultIndex = { current: 0, changePercent: 0, date: null };
 
-        // 4. Construct Final Data
         // 4. Construct Final Data (With Stale-While-Error Fallback for Fear & Greed)
-        let fearGreedData = geminiData?.fearGreed;
+        let fearGreedData = fngData?.fearGreed;
 
         if (!fearGreedData) {
             // If live fetch failed, try to reuse stale cache
             if (cachedData?.data?.fearGreed && cachedData.data.fearGreed.current !== 0) {
-                console.log("Gemini failed. Using stale Fear & Greed data from cache.");
+                console.log("Fear & Greed API failed. Using stale data from cache.");
                 fearGreedData = cachedData.data.fearGreed;
             } else {
                 // Absolute fallback
@@ -141,9 +146,9 @@ export async function GET() {
             // This prevents caching "0" values when Yahoo API fails completely,
             // and prevents caching default "50" value when Gemini API fails.
             const hasValidIndices = responseData.indices.sp500.current > 0 || responseData.indices.vix.current > 0;
-            const hasValidFearGreed = responseData.fearGreed.date !== null;
+            const hasValidFearGreed = responseData.fearGreed?.date !== null;
 
-            if (hasValidIndices && hasValidFearGreed) {
+            if (hasValidIndices && hasValidFearGreed && responseData.fearGreed) {
                 if (!fs.existsSync(path.dirname(CACHE_FILE))) {
                     fs.mkdirSync(path.dirname(CACHE_FILE), { recursive: true });
                 }
