@@ -1,27 +1,5 @@
 import YahooFinance from 'yahoo-finance2';
-import https from 'https';
-
-// Custom HTTPS Agent to mimic browser TLS behavior (JA3/JA4 fingerprinting bypass)
-// This is the Node.js equivalent of using curl_cffi in Python
-const agent = new https.Agent({
-    keepAlive: true,
-    // Modern cipher suite that mimics Chrome/Firefox order to avoid "TLS Fingerprinting" blocks
-    ciphers: [
-        'TLS_AES_128_GCM_SHA256',
-        'TLS_AES_256_GCM_SHA384',
-        'TLS_CHACHA20_POLY1305_SHA256',
-        'ECDHE-ECDSA-AES128-GCM-SHA256',
-        'ECDHE-RSA-AES128-GCM-SHA256',
-        'ECDHE-ECDSA-AES256-GCM-SHA384',
-        'ECDHE-RSA-AES256-GCM-SHA384',
-        'ECDHE-ECDSA-CHACHA20-POLY1305',
-        'ECDHE-RSA-CHACHA20-POLY1305',
-        'ECDHE-RSA-AES128-SHA',
-        'ECDHE-RSA-AES256-SHA'
-    ].join(':'),
-    honorCipherOrder: true,
-    minVersion: 'TLSv1.2'
-});
+// Custom HTTPS Agent was removed as it caused issues and is no longer used in CONFIG.
 
 // Global Config with Agent and Headers
 const CONFIG = {

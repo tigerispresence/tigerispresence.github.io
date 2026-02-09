@@ -3,7 +3,6 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { Calendar } from "lucide-react";
-import { ResponsiveContainer, Tooltip, XAxis, YAxis, Cell, ScatterChart, Scatter } from "recharts";
 
 interface SeasonalityHeatmapProps {
     data: {
@@ -17,7 +16,6 @@ export default function SeasonalityHeatmap({ data }: SeasonalityHeatmapProps) {
         if (!data || data.length < 12) return null;
 
         // Group by Year and Month
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const monthlyReturns: { year: number, month: number, return: number }[] = [];
         const monthlyStats: { [key: number]: number[] } = {};
 
@@ -61,16 +59,6 @@ export default function SeasonalityHeatmap({ data }: SeasonalityHeatmapProps) {
         if (value <= -5) return "bg-red-500";
         if (value <= -2) return "bg-red-600/80";
         return "bg-red-800/60";
-    };
-
-    const getHexColor = (value: number) => {
-        // Simple interpolation could be better, but discrete steps match the Tailwind classes above roughly
-        if (value >= 5) return "#22c55e";
-        if (value >= 2) return "#16a34a";
-        if (value > 0) return "#064e3b"; // Dark green
-        if (value <= -5) return "#ef4444";
-        if (value <= -2) return "#dc2626";
-        return "#7f1d1d"; // Dark red
     };
 
     return (

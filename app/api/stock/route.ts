@@ -243,7 +243,7 @@ export async function POST(req: Request) {
         const financialData = quoteSummaryResult?.financialData;
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        const earnings = quoteSummaryResult?.earnings;
+        // const earnings = quoteSummaryResult?.earnings; // Unused
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         const upgradeHistory = quoteSummaryResult?.upgradeDowngradeHistory?.history;
