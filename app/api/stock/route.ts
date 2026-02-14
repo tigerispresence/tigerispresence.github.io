@@ -15,7 +15,7 @@ const CACHE_DURATION = 60 * 60 * 1000; // 1 Hour Cache for Stock Data
 
 export async function POST(req: Request) {
     try {
-        const { query, range = '1y' } = await req.json();
+        const { query, range = '1y', from } = await req.json();
 
         if (!query) {
             return NextResponse.json({ error: "Query is required" }, { status: 400 });
@@ -23,22 +23,42 @@ export async function POST(req: Request) {
 
         // 1. Check Cache
         // Create a unique filename hash based on query and range
-        const cacheKey = crypto.createHash('md5').update(`${query}-${range}`).digest('hex');
+        const cacheKey = crypto.createHash('md5').update(`${query}-${range}-${from || ''}`).digest('hex');
         const cacheFilePath = path.join(CACHE_DIR, `${cacheKey}.json`);
 
         // let cachedData = null; // Unused 
         try {
             if (fs.existsSync(cacheFilePath)) {
+                // ... cache logic ...
                 const raw = fs.readFileSync(cacheFilePath, 'utf8');
-                const parsed = JSON.parse(raw);
-                if (Date.now() - parsed.timestamp < CACHE_DURATION) {
-                    console.log(`Using cached stock data for "${query}"`);
-                    return NextResponse.json(parsed.data);
+                const cached = JSON.parse(raw);
+                if (Date.now() - cached.timestamp < CACHE_DURATION) {
+                    console.log(`Using cached data for "${query}" (${range})`);
+                    return NextResponse.json(cached.data);
                 }
             }
         } catch (e) {
-            console.warn("Cache read error:", e);
+            console.warn("Failed to read cache:", e);
         }
+
+        // ... (skipping to date logic) ...
+
+        // 4. Fetch Historical Data based on Range (Still using Yahoo)
+        const endDate = new Date();
+        const startDate = new Date();
+
+        if (from) {
+            startDate.setTime(new Date(from).getTime());
+        } else {
+            switch (range) {
+                case '2y': startDate.setFullYear(endDate.getFullYear() - 2); break;
+                case '3y': startDate.setFullYear(endDate.getFullYear() - 3); break;
+                case '5y': startDate.setFullYear(endDate.getFullYear() - 5); break;
+                case '10y': startDate.setFullYear(endDate.getFullYear() - 10); break;
+                case '1y': default: startDate.setFullYear(endDate.getFullYear() - 1); break;
+            }
+        }
+
 
         // 2. Resolve Symbol
         let symbol = "";
@@ -162,17 +182,6 @@ export async function POST(req: Request) {
             } catch (e) {
                 console.error("Gemini Quote Fetch failed:", e);
             }
-        }
-
-        // 4. Fetch Historical Data based on Range (Still using Yahoo)
-        const endDate = new Date();
-        const startDate = new Date();
-        switch (range) {
-            case '2y': startDate.setFullYear(endDate.getFullYear() - 2); break;
-            case '3y': startDate.setFullYear(endDate.getFullYear() - 3); break;
-            case '5y': startDate.setFullYear(endDate.getFullYear() - 5); break;
-            case '10y': startDate.setFullYear(endDate.getFullYear() - 10); break;
-            case '1y': default: startDate.setFullYear(endDate.getFullYear() - 1); break;
         }
 
         const metricsPromise = (async () => {

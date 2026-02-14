@@ -147,7 +147,7 @@ function MarketStatus({ data, loading }: MarketStatusProps) {
                         </div>
                         <div className="flex items-end gap-2">
                             <div className={`text-2xl font-bold ${getFearGreedColor(displayData.fearGreed.current)}`}>
-                                {displayData.fearGreed.current}
+                                {displayData.fearGreed.current.toFixed(2)}
                             </div>
                             {displayData.fearGreed.changePercent !== undefined && displayData.fearGreed.changePercent !== null && (
                                 <span className={`text-sm mb-1 ${getChangeColor(displayData.fearGreed.changePercent)}`}>
