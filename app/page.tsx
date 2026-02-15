@@ -15,7 +15,10 @@ function SearchEffect({ onSearch }: { onSearch: (query: string) => void }) {
 
   useEffect(() => {
     if (queryParam) {
-      onSearch(queryParam);
+      console.log("Heatmap redirect query:", queryParam);
+      // TradingView might send "NASDAQ:AAPL", we need just "AAPL"
+      const cleanSymbol = queryParam.split(':').pop() || queryParam;
+      onSearch(cleanSymbol);
       window.history.replaceState({}, '', '/');
     }
   }, [queryParam, onSearch]);
