@@ -1,13 +1,27 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import SearchArea from "@/components/SearchArea";
 import StockDashboard, { StockData } from "@/components/StockDashboard";
 import MarketStatus, { MarketData } from "@/components/MarketStatus";
 import StockHeatmap from "@/components/StockHeatmap";
 import { motion, AnimatePresence } from "framer-motion";
+
+function SearchEffect({ onSearch }: { onSearch: (query: string) => void }) {
+  const searchParams = useSearchParams();
+  const queryParam = searchParams?.get('q');
+
+  useEffect(() => {
+    if (queryParam) {
+      onSearch(queryParam);
+      window.history.replaceState({}, '', '/');
+    }
+  }, [queryParam, onSearch]);
+
+  return null;
+}
 
 export default function Home() {
   const [loading, setLoading] = useState(false);
@@ -21,18 +35,7 @@ export default function Home() {
   const [marketData, setMarketData] = useState<MarketData | null>(null);
   const [marketLoading, setMarketLoading] = useState(true);
 
-  const searchParams = useSearchParams();
-  const queryParam = searchParams?.get('q');
 
-  // Handle URL query parameters (e.g. from Heatmap widget redirection)
-  useEffect(() => {
-    if (queryParam) {
-      // Remove query param from URL to clean it up, but search first
-      handleSearch(queryParam);
-      // Optional: clear URL history? Maybe later.
-      window.history.replaceState({}, '', '/');
-    }
-  }, [queryParam]);
 
   const fetchMarketData = useCallback(async () => {
     setMarketLoading(true);
@@ -160,6 +163,8 @@ export default function Home() {
     }
   };
 
+
+
   const handleRangeChange = async (newRange: string) => {
     setTimeRange(newRange);
     if (stockData) {
@@ -205,6 +210,10 @@ export default function Home() {
 
         {/* Stock Heatmap */}
         <StockHeatmap />
+
+        <Suspense fallback={null}>
+          <SearchEffect onSearch={handleSearch} />
+        </Suspense>
 
         <div className="w-full max-w-2xl relative z-20">
           <SearchArea onSearch={handleSearch} isLoading={loading} />
