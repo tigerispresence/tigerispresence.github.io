@@ -22,7 +22,7 @@ function StockHeatmap() {
             "blockSize": "market_cap_basic",
             "blockColor": "change",
             "locale": "en",
-            "symbolUrl": "",
+            "symbolUrl": window.location.origin + "/?q=",
             "colorTheme": "dark",
             "hasTopBar": false,
             "isDataSetEnabled": false,

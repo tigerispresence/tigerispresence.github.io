@@ -108,7 +108,7 @@ function MarketStatus({ data, loading }: MarketStatusProps) {
             className="mb-8 space-y-4"
         >
             {/* Main Indices Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
                 <MetricCard
                     title="S&P 500"
                     value={displayData.indices.sp500.current}

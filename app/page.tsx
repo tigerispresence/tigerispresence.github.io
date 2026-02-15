@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import SearchArea from "@/components/SearchArea";
 import StockDashboard, { StockData } from "@/components/StockDashboard";
 import MarketStatus, { MarketData } from "@/components/MarketStatus";
@@ -19,6 +20,19 @@ export default function Home() {
 
   const [marketData, setMarketData] = useState<MarketData | null>(null);
   const [marketLoading, setMarketLoading] = useState(true);
+
+  const searchParams = useSearchParams();
+  const queryParam = searchParams?.get('q');
+
+  // Handle URL query parameters (e.g. from Heatmap widget redirection)
+  useEffect(() => {
+    if (queryParam) {
+      // Remove query param from URL to clean it up, but search first
+      handleSearch(queryParam);
+      // Optional: clear URL history? Maybe later.
+      window.history.replaceState({}, '', '/');
+    }
+  }, [queryParam]);
 
   const fetchMarketData = useCallback(async () => {
     setMarketLoading(true);
@@ -172,7 +186,7 @@ export default function Home() {
     <main className="min-h-screen bg-black text-white selection:bg-blue-500/30">
       <div className="fixed inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
 
-      <div className="relative z-10 container mx-auto px-4 py-12 flex flex-col items-center min-h-screen">
+      <div className="relative z-10 container mx-auto px-4 py-6 md:py-12 flex flex-col items-center min-h-screen">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -247,17 +261,17 @@ export default function Home() {
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="sticky top-4 z-50 mt-4 w-full max-w-2xl mx-auto"
+            className="sticky top-2 md:top-4 z-50 mt-4 w-full max-w-2xl mx-auto"
           >
-            <div className="bg-gray-900/80 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-4 shadow-2xl flex flex-col gap-4">
+            <div className="bg-gray-900/80 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-3 md:p-4 shadow-2xl flex flex-col gap-3 md:gap-4">
               {/* Preset Buttons */}
               <div className="flex flex-wrap justify-between items-center gap-2">
-                <div className="flex gap-1 bg-gray-800/50 p-1 rounded-xl border border-gray-700/50">
+                <div className="flex gap-1 bg-gray-800/50 p-1 rounded-xl border border-gray-700/50 overflow-x-auto scrollbar-hide">
                   {['1y', '2y', '3y', '5y', '10y'].map((range) => (
                     <button
                       key={range}
                       onClick={() => handleRangeChange(range)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${timeRange === range
+                      className={`px-2.5 py-1.5 md:px-3 md:py-1.5 rounded-lg text-[10px] md:text-xs font-bold transition-all whitespace-nowrap ${timeRange === range
                         ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25'
                         : 'text-gray-400 hover:text-white hover:bg-white/5'
                         }`}
@@ -266,14 +280,14 @@ export default function Home() {
                     </button>
                   ))}
                 </div>
-                <div className="text-xs text-gray-500 font-medium px-2">
+                <div className="hidden sm:block text-xs text-gray-500 font-medium px-2">
                   {timeRange === 'custom' ? 'Custom Range' : 'Presets'}
                 </div>
               </div>
 
               {/* Slider Section */}
-              <div className="flex items-center gap-4 px-1">
-                <span className="text-xs font-medium text-gray-400 w-12">Custom</span>
+              <div className="flex items-center gap-3 px-1">
+                <span className="text-[10px] md:text-xs font-medium text-gray-400 w-8 md:w-12">Custom</span>
                 <input
                   type="range"
                   min="1"
@@ -302,9 +316,9 @@ export default function Home() {
                         .finally(() => setLoading(false));
                     }
                   }}
-                  className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500 hover:accent-blue-400"
+                  className="flex-1 h-1.5 md:h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500 hover:accent-blue-400"
                 />
-                <span className="text-xs font-medium text-blue-400 w-16 text-right">
+                <span className="text-[10px] md:text-xs font-medium text-blue-400 w-12 md:w-16 text-right whitespace-nowrap">
                   {sliderValue} mo
                 </span>
               </div>
