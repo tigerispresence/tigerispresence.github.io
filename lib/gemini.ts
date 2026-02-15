@@ -6,10 +6,10 @@ const genAI = new GoogleGenerativeAI(apiKey);
 // Models prioritized by speed/cost to minimize rate limits as requested
 // We include the user-requested models plus known working standard models as fallbacks.
 const MODELS = [
-    "gemini-3-flash-preview", // Latest requested model
-    "gemini-2.5-flash",      // Verified working (but rate limited)
-    "gemini-1.5-flash",      // Standard fallback
-    "gemini-2.0-flash-exp",  // Experimental
+    "gemini-2.5-flash",      // Latest stable flash
+    "gemini-2.0-flash",      // Previous stable flash
+    "gemini-flash-latest",   // Alias for latest flash
+    "gemini-pro-latest",     // Fallback to Pro
 ];
 
 interface GeneratorOptions {
