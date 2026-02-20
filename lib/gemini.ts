@@ -23,57 +23,68 @@ export async function generateContentWithFallback(
     prompt: string,
     options: GeneratorOptions & { validator?: (text: string) => boolean | Promise<boolean> } = {}
 ) {
-    const errors: string[] = [];
+    // Determine models to use. Running all 4 at once might hit rate limits faster,
+    // so let's try top 3 fastest models concurrently.
+    const CONCURRENT_MODELS = [
+        "gemini-2.5-flash",
+        "gemini-2.0-flash",
+        "gemini-flash-latest"
+    ];
 
-    for (const modelName of MODELS) {
+    const generateWithModel = async (modelName: string) => {
+        console.log(`Trying Gemini model: ${modelName}...`);
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const modelConfig: any = {
+            model: modelName,
+        };
+
+        if (options.systemInstruction) {
+            modelConfig.systemInstruction = options.systemInstruction;
+        }
+        if (options.tools) {
+            modelConfig.tools = options.tools;
+        }
+
+        const model = genAI.getGenerativeModel(modelConfig);
+
+        const result = await model.generateContent(prompt);
+        const response = result.response;
+        const text = response.text();
+
+        if (!text) {
+            throw new Error(`Empty response from ${modelName}`);
+        }
+
+        // Custom Validation (e.g., check if it's valid JSON)
+        if (options.validator) {
+            const isValid = await options.validator(text);
+            if (!isValid) {
+                throw new Error(`Response from ${modelName} failed validation`);
+            }
+        }
+
+        console.log(`Success with ${modelName}`);
+        return text;
+    };
+
+    try {
+        // Run requests concurrently and return the fastest successful result
+        const fastestResponse = await Promise.any(
+            CONCURRENT_MODELS.map(model => generateWithModel(model))
+        );
+        return fastestResponse;
+    } catch (aggregateError: any) {
+        // If all instances in Promise.any fail, try the ultimate fallback sequentially 
+        // just in case it was a temporary rate limit burst
+        console.warn(`Concurrent models failed. Falling back to gemini-pro-latest. Errors:`, aggregateError.errors);
+
         try {
-            console.log(`Trying Gemini model: ${modelName}...`);
-
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const modelConfig: any = {
-                model: modelName,
-            };
-
-            if (options.systemInstruction) {
-                modelConfig.systemInstruction = options.systemInstruction;
-            }
-            if (options.tools) {
-                modelConfig.tools = options.tools;
-            }
-
-            // Note: JSON mode ('response_mime_type': 'application/json') is supported in newer models
-            // but we'll stick to text generation + parsing for broadest compatibility unless specificied.
-
-            const model = genAI.getGenerativeModel(modelConfig);
-
-            const result = await model.generateContent(prompt);
-            const response = result.response;
-            const text = response.text();
-
-            if (!text) {
-                throw new Error(`Empty response from ${modelName}`);
-            }
-
-            // Custom Validation (e.g., check if it's valid JSON)
-            if (options.validator) {
-                const isValid = await options.validator(text);
-                if (!isValid) {
-                    throw new Error(`Response from ${modelName} failed validation`);
-                }
-            }
-
-            console.log(`Success with ${modelName}`);
-            return text;
-
-        } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
-            const msg = `[${modelName}] ${error.message || error}`;
-            console.warn(msg);
-            errors.push(msg);
-            continue;
+            return await generateWithModel("gemini-pro-latest");
+        } catch (finalError: any) {
+            throw new Error(`All Gemini models failed including fallback.\nErrors:\n${aggregateError.errors?.join('\n')}\nFinal fallback error: ${finalError.message}`);
         }
     }
-
-    throw new Error(`All Gemini models failed.\nErrors:\n${errors.join('\n')}`);
 }
 
 // Helper for JSON parsing with markdown cleanup
