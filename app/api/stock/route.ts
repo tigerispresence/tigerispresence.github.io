@@ -13,6 +13,8 @@ const CACHE_DIR = process.env.NODE_ENV === 'production'
     : path.resolve(process.cwd(), '.cache/stock_data');
 const CACHE_DURATION = 60 * 60 * 1000; // 1 Hour Cache for Stock Data
 
+export const maxDuration = 60; // Set Vercel max execution time to 60 seconds
+
 export async function POST(req: Request) {
     try {
         const { query, range = '1y', from } = await req.json();
@@ -213,7 +215,26 @@ export async function POST(req: Request) {
             }
         })();
 
-        const [history, dividends, geminiMetrics, quoteSummaryResult, seasonalityHistory] = await Promise.all([
+        const aiAnalysisPromise = (async () => {
+            try {
+                console.log("Fetching AI Bull/Bear Thesis via Gemini...");
+                return await generateJsonWithFallback(
+                    `Analyze the stock "${symbol}" (${stockName}) and provide a concise Bull Case and Bear Case investment thesis.
+                     
+                     Return a JSON object with:
+                     - bullCase: string (A concise paragraph summarizing positive catalysts, max 300 chars)
+                     - bearCase: string (A concise paragraph summarizing risks/negatives, max 300 chars)
+                     
+                     Ensure the tone is objective and professional.`,
+                    { tools: [{ googleSearch: {} }] as any }
+                );
+            } catch (e) {
+                console.error("AI Thesis Generation Failed", e);
+                return null;
+            }
+        })();
+
+        const [history, dividends, geminiMetrics, quoteSummaryResult, seasonalityHistory, aiAnalysis] = await Promise.all([
             yahooFinance.historical(symbol, {
                 period1: startDate,
                 period2: endDate,
@@ -243,7 +264,8 @@ export async function POST(req: Request) {
             }).catch((e: any) => {
                 console.warn("Yahoo Seasonality History failed:", e);
                 return [] as any[];
-            })
+            }),
+            aiAnalysisPromise
         ]);
 
         // Extract Analyst Data
@@ -303,23 +325,7 @@ export async function POST(req: Request) {
             }
         }
 
-        // 5. Generate AI Thesis (Bull/Bear)
-        let aiAnalysis = null;
-        try {
-            console.log("Fetching AI Bull/Bear Thesis via Gemini...");
-            aiAnalysis = await generateJsonWithFallback(
-                `Analyze the stock "${symbol}" (${stockName}) and provide a concise Bull Case and Bear Case investment thesis.
-                 
-                 Return a JSON object with:
-                 - bullCase: string (A concise paragraph summarizing positive catalysts, max 300 chars)
-                 - bearCase: string (A concise paragraph summarizing risks/negatives, max 300 chars)
-                 
-                 Ensure the tone is objective and professional.`,
-                { tools: [{ googleSearch: {} }] as any }
-            );
-        } catch (e) {
-            console.error("AI Thesis Generation Failed", e);
-        }
+        // 5. AI Thesis already generated from Promise.all
 
         const responseData = {
             symbol: quote.symbol,

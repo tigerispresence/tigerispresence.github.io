@@ -12,6 +12,7 @@ const CACHE_FILE = process.env.NODE_ENV === 'production'
 const CACHE_DURATION = 60 * 60 * 1000; // 1 Hour (Reduced from 12 hours)
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60; // Set Vercel max execution time to 60 seconds
 
 export async function GET() {
     try {

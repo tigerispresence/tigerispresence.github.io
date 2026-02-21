@@ -68,22 +68,21 @@ export async function generateContentWithFallback(
         return text;
     };
 
-    try {
-        // Run requests concurrently and return the fastest successful result
-        const fastestResponse = await Promise.any(
-            CONCURRENT_MODELS.map(model => generateWithModel(model))
-        );
-        return fastestResponse;
-    } catch (aggregateError: any) {
-        // If all instances in Promise.any fail, try the ultimate fallback sequentially 
-        // just in case it was a temporary rate limit burst
-        console.warn(`Concurrent models failed. Falling back to gemini-pro-latest. Errors:`, aggregateError.errors);
-
+    const errors: any[] = [];
+    for (const model of CONCURRENT_MODELS) {
         try {
-            return await generateWithModel("gemini-pro-latest");
-        } catch (finalError: any) {
-            throw new Error(`All Gemini models failed including fallback.\nErrors:\n${aggregateError.errors?.join('\n')}\nFinal fallback error: ${finalError.message}`);
+            return await generateWithModel(model);
+        } catch (error: any) {
+            console.warn(`Model ${model} failed:`, error.message);
+            errors.push(error);
         }
+    }
+
+    console.warn(`All preferred models failed. Falling back to gemini-pro-latest.`);
+    try {
+        return await generateWithModel("gemini-pro-latest");
+    } catch (finalError: any) {
+        throw new Error(`All Gemini models failed including fallback.\nErrors:\n${errors.map(e => e.message).join('\n')}\nFinal fallback error: ${finalError.message}`);
     }
 }
 

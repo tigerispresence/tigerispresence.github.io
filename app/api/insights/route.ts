@@ -3,6 +3,8 @@ import { yahooFinance } from '@/lib/yahoo';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { generateJsonWithFallback } from '@/lib/gemini';
 
+export const maxDuration = 60; // Set Vercel max execution time to 60 seconds
+
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const symbol = searchParams.get('symbol');
