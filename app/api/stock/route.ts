@@ -228,9 +228,12 @@ export async function POST(req: Request) {
                      Ensure the tone is objective and professional.`,
                     { tools: [{ googleSearch: {} }] as any }
                 );
-            } catch (e) {
+            } catch (e: any) {
                 console.error("AI Thesis Generation Failed", e);
-                return null;
+                return {
+                    bullCase: "Error generating insights: " + (e.message || "Unknown error"),
+                    bearCase: "Please check Vercel deployment logs and environment variables."
+                };
             }
         })();
 
