@@ -30,7 +30,7 @@ export async function GET() {
         // 2. Check if cache is valid (Freshness check AND Schema check)
         const now = Date.now();
         // Check if the cache contains the new 'indices' field (Schema Migration)
-        const hasNewSchema = cachedData?.data?.indices?.vix !== undefined;
+        const hasNewSchema = cachedData?.data?.indices?.btc !== undefined;
 
         if (cachedData && (now - cachedData.timestamp < CACHE_DURATION) && hasNewSchema) {
             console.log("Using cached market data (Fresh)");
@@ -53,7 +53,7 @@ export async function GET() {
         const yahooPromise = (async () => {
             try {
                 console.log("Fetching Market Indices via Yahoo...");
-                const results = await yahooFinance.quote(['^VIX', '^GSPC', '^IXIC', 'KRW=X']);
+                const results = await yahooFinance.quote(['^VIX', '^GSPC', '^IXIC', 'KRW=X', 'BTC-USD', '^TNX', '^TYX']);
 
                 // Helper to extract data
                 const extract = (symbol: string) => {
@@ -70,7 +70,10 @@ export async function GET() {
                     vix: extract('^VIX'),
                     sp500: extract('^GSPC'),
                     nasdaq: extract('^IXIC'),
-                    usdkrw: extract('KRW=X')
+                    usdkrw: extract('KRW=X'),
+                    btc: extract('BTC-USD'),
+                    tnx: extract('^TNX'),
+                    tyx: extract('^TYX')
                 };
             } catch (e) {
                 console.error("Yahoo Batch Fetch Failed:", e);
@@ -136,7 +139,10 @@ export async function GET() {
                 vix: yahooData?.vix || defaultIndex,
                 sp500: yahooData?.sp500 || defaultIndex,
                 nasdaq: yahooData?.nasdaq || defaultIndex,
-                usdkrw: yahooData?.usdkrw || defaultIndex
+                usdkrw: yahooData?.usdkrw || defaultIndex,
+                btc: yahooData?.btc || defaultIndex,
+                tnx: yahooData?.tnx || defaultIndex,
+                tyx: yahooData?.tyx || defaultIndex
             },
             fearGreed: fearGreedData
         };

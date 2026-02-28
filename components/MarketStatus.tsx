@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { Activity, Zap, DollarSign, BarChart2, ExternalLink } from "lucide-react";
+import { Activity, Zap, DollarSign, BarChart2, ExternalLink, Bitcoin } from "lucide-react";
 import { motion } from "framer-motion";
 
 export interface MarketData {
@@ -10,6 +10,9 @@ export interface MarketData {
         sp500: { current: number; changePercent: number; date: string | null };
         nasdaq: { current: number; changePercent: number; date: string | null };
         usdkrw: { current: number; changePercent: number; date: string | null };
+        btc: { current: number; changePercent: number; date: string | null };
+        tnx: { current: number; changePercent: number; date: string | null };
+        tyx: { current: number; changePercent: number; date: string | null };
     };
     fearGreed: { current: number; changePercent: number; date: string | null };
 }
@@ -76,6 +79,9 @@ function MarketStatus({ data, loading }: MarketStatusProps) {
             sp500: { current: 0, changePercent: 0, date: null },
             nasdaq: { current: 0, changePercent: 0, date: null },
             usdkrw: { current: 0, changePercent: 0, date: null },
+            btc: { current: 0, changePercent: 0, date: null },
+            tnx: { current: 0, changePercent: 0, date: null },
+            tyx: { current: 0, changePercent: 0, date: null },
         },
         fearGreed: { current: 50, changePercent: 0, date: null }
     };
@@ -87,6 +93,9 @@ function MarketStatus({ data, loading }: MarketStatusProps) {
             sp500: data?.indices?.sp500 || defaultData.indices.sp500,
             nasdaq: data?.indices?.nasdaq || defaultData.indices.nasdaq,
             usdkrw: data?.indices?.usdkrw || defaultData.indices.usdkrw,
+            btc: data?.indices?.btc || defaultData.indices.btc,
+            tnx: data?.indices?.tnx || defaultData.indices.tnx,
+            tyx: data?.indices?.tyx || defaultData.indices.tyx,
         },
         fearGreed: data?.fearGreed || defaultData.fearGreed
     };
@@ -108,7 +117,7 @@ function MarketStatus({ data, loading }: MarketStatusProps) {
             className="mb-8 space-y-4"
         >
             {/* Main Indices Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-3 md:gap-4">
                 <MetricCard
                     title="S&P 500"
                     value={displayData.indices.sp500.current}
@@ -130,6 +139,28 @@ function MarketStatus({ data, loading }: MarketStatusProps) {
                     prefix="₩"
                     icon={DollarSign}
                     href="https://finance.yahoo.com/quote/KRW=X"
+                />
+                <MetricCard
+                    title="Bitcoin"
+                    value={displayData.indices.btc.current}
+                    change={displayData.indices.btc.changePercent}
+                    prefix="$"
+                    icon={Bitcoin}
+                    href="https://finance.yahoo.com/quote/BTC-USD"
+                />
+                <MetricCard
+                    title="10-Yr Bond"
+                    value={displayData.indices.tnx.current}
+                    change={displayData.indices.tnx.changePercent}
+                    icon={Activity}
+                    href="https://finance.yahoo.com/quote/%5ETNX"
+                />
+                <MetricCard
+                    title="30-Yr Bond"
+                    value={displayData.indices.tyx.current}
+                    change={displayData.indices.tyx.changePercent}
+                    icon={Activity}
+                    href="https://finance.yahoo.com/quote/%5ETYX"
                 />
                 <MetricCard
                     title="VIX"
