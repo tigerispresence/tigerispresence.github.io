@@ -237,7 +237,51 @@ export async function POST(req: Request) {
             }
         })();
 
-        const [history, dividends, geminiMetrics, quoteSummaryResult, seasonalityHistory, aiAnalysis] = await Promise.all([
+        const maxPainPromise = (async () => {
+            try {
+                console.log("Fetching options data for Max Pain...");
+                const result = await yahooFinance.options(symbol);
+                if (result.options && result.options.length > 0) {
+                    const opts = result.options[0];
+                    const allStrikes = Array.from(new Set([
+                        ...opts.calls.map((c: any) => c.strike),
+                        ...opts.puts.map((p: any) => p.strike)
+                    ])).sort((a, b) => a - b);
+
+                    let minPain = Infinity;
+                    let maxPainStrike = 0;
+
+                    for (const S of allStrikes) {
+                        let currentPain = 0;
+                        for (const c of opts.calls) {
+                            if (S > c.strike) {
+                                currentPain += (S - c.strike) * (c.openInterest || 0);
+                            }
+                        }
+                        for (const p of opts.puts) {
+                            if (S < p.strike) {
+                                currentPain += (p.strike - S) * (p.openInterest || 0);
+                            }
+                        }
+
+                        if (currentPain < minPain) {
+                            minPain = currentPain;
+                            maxPainStrike = S;
+                        }
+                    }
+                    return {
+                        price: maxPainStrike,
+                        expirationDate: opts.expirationDate.toISOString()
+                    };
+                }
+                return null;
+            } catch (e) {
+                console.warn("Max Pain fetch failed:", e);
+                return null;
+            }
+        })();
+
+        const [history, dividends, geminiMetrics, quoteSummaryResult, seasonalityHistory, aiAnalysis, maxPain] = await Promise.all([
             yahooFinance.historical(symbol, {
                 period1: startDate,
                 period2: endDate,
@@ -268,7 +312,8 @@ export async function POST(req: Request) {
                 console.warn("Yahoo Seasonality History failed:", e);
                 return [] as any[];
             }),
-            aiAnalysisPromise
+            aiAnalysisPromise,
+            maxPainPromise
         ]);
 
         // Extract Analyst Data
@@ -395,7 +440,8 @@ export async function POST(req: Request) {
                 },
                 financialCurrency: quote.currency
             } : null,
-            aiAnalysis: aiAnalysis
+            aiAnalysis: aiAnalysis,
+            maxPain: maxPain
         };
 
         // 5. Save to Cache
