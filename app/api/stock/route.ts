@@ -215,27 +215,7 @@ export async function POST(req: Request) {
             }
         })();
 
-        const aiAnalysisPromise = (async () => {
-            try {
-                console.log("Fetching AI Bull/Bear Thesis via Gemini...");
-                return await generateJsonWithFallback(
-                    `Analyze the stock "${symbol}" (${stockName}) and provide a concise Bull Case and Bear Case investment thesis.
-                     
-                     Return a JSON object with:
-                     - bullCase: string (A concise paragraph summarizing positive catalysts, max 300 chars)
-                     - bearCase: string (A concise paragraph summarizing risks/negatives, max 300 chars)
-                     
-                     Ensure the tone is objective and professional.`,
-                    { tools: [{ googleSearch: {} }] as any }
-                );
-            } catch (e: any) {
-                console.error("AI Thesis Generation Failed", e);
-                return {
-                    bullCase: "Error generating insights: " + (e.message || "Unknown error"),
-                    bearCase: "Please check Vercel deployment logs and environment variables."
-                };
-            }
-        })();
+
 
         const maxPainPromise = (async () => {
             try {
@@ -281,7 +261,7 @@ export async function POST(req: Request) {
             }
         })();
 
-        const [history, dividends, geminiMetrics, quoteSummaryResult, seasonalityHistory, aiAnalysis, maxPain] = await Promise.all([
+        const [history, dividends, geminiMetrics, quoteSummaryResult, seasonalityHistory, maxPain] = await Promise.all([
             yahooFinance.historical(symbol, {
                 period1: startDate,
                 period2: endDate,
@@ -312,7 +292,6 @@ export async function POST(req: Request) {
                 console.warn("Yahoo Seasonality History failed:", e);
                 return [] as any[];
             }),
-            aiAnalysisPromise,
             maxPainPromise
         ]);
 
@@ -373,7 +352,7 @@ export async function POST(req: Request) {
             }
         }
 
-        // 5. AI Thesis already generated from Promise.all
+
 
         const responseData = {
             symbol: quote.symbol,
@@ -440,7 +419,6 @@ export async function POST(req: Request) {
                 },
                 financialCurrency: quote.currency
             } : null,
-            aiAnalysis: aiAnalysis,
             maxPain: maxPain
         };
 

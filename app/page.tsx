@@ -17,7 +17,12 @@ function SearchEffect({ onSearch }: { onSearch: (query: string) => void }) {
     if (queryParam) {
       console.log("Heatmap redirect query:", queryParam);
       // TradingView might send "NASDAQ:AAPL", we need just "AAPL"
-      const cleanSymbol = queryParam.split(':').pop() || queryParam;
+      let cleanSymbol = queryParam.split(':').pop() || queryParam;
+
+      // Fix for S&P 500 class shares (TradingView: BRK.B, Yahoo: BRK-B)
+      if (cleanSymbol.toUpperCase() === 'BRK.B') cleanSymbol = 'BRK-B';
+      if (cleanSymbol.toUpperCase() === 'BF.B') cleanSymbol = 'BF-B';
+
       onSearch(cleanSymbol);
       window.history.replaceState({}, '', '/');
     }
@@ -125,7 +130,12 @@ export default function Home() {
   }, [stockData, timeRange, fetchStockDetail]);
 
   // Handle Search Submission (matches UI request to show suggestions)
-  const handleSearch = async (query: string) => {
+  const handleSearch = async (rawQuery: string) => {
+    // Fix for manual searches hitting the same issue
+    let query = rawQuery;
+    if (query.toUpperCase() === 'BRK.B') query = 'BRK-B';
+    if (query.toUpperCase() === 'BF.B') query = 'BF-B';
+
     setLoading(true);
     setError(null);
     setStockData(null);

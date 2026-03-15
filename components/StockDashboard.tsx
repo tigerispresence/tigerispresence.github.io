@@ -67,10 +67,7 @@ export interface StockData {
         };
         financialCurrency: string;
     };
-    aiAnalysis?: {
-        bullCase: string;
-        bearCase: string;
-    };
+
     maxPain?: {
         price: number;
         expirationDate: string;
@@ -503,7 +500,7 @@ const StockDashboard = memo(({ data }: StockDashboardProps) => {
             </div>
 
             {/* AI Insights & Thesis */}
-            {data.aiAnalysis && <AIInsights data={data.aiAnalysis} />}
+            <AIInsights symbol={data.symbol} stockName={data.name} />
 
             {/* Analyst Price Targets (New Feature) */}
             {data.priceTargets && (
