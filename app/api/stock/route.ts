@@ -47,6 +47,10 @@ export async function POST(req: Request) {
 
         // 4. Fetch Historical Data based on Range (Still using Yahoo)
         const endDate = new Date();
+        // Shift endDate back slightly to avoid the "live" day which might have null close/adjclose
+        // this fixes the "Historical returned a result with SOME null values" error in v3
+        endDate.setHours(0, 0, 0, 0); 
+        
         const startDate = new Date();
 
         if (from) {
@@ -266,7 +270,7 @@ export async function POST(req: Request) {
                 period1: startDate,
                 period2: endDate,
                 interval: '1d'
-            }).catch((e: any) => {
+            }, { validateResult: false }).catch((e: any) => {
                 console.warn("Yahoo History failed:", e);
                 return [] as any[];
             }),
@@ -275,7 +279,7 @@ export async function POST(req: Request) {
                 period2: endDate,
                 interval: '1d',
                 events: 'dividends'
-            }).catch((e: any) => {
+            }, { validateResult: false }).catch((e: any) => {
                 console.warn("Yahoo Dividends failed:", e);
                 return [] as any[];
             }),
@@ -288,7 +292,7 @@ export async function POST(req: Request) {
                 period1: new Date(new Date().setFullYear(new Date().getFullYear() - 10)), // 10 years for seasonality
                 period2: new Date(),
                 interval: '1mo'
-            }).catch((e: any) => {
+            }, { validateResult: false }).catch((e: any) => {
                 console.warn("Yahoo Seasonality History failed:", e);
                 return [] as any[];
             }),
@@ -390,18 +394,22 @@ export async function POST(req: Request) {
             } : null,
             analystHistory: analystHistory, // Add processed individual targets
             recommendationTrend: currentRecommendationTrend,
-            history: history.map((day: any) => ({
-                date: day.date.toISOString(),
-                close: day.close
-            })),
+            history: history
+                .filter((day: any) => day.close !== null && day.close !== undefined)
+                .map((day: any) => ({
+                    date: day.date.toISOString(),
+                    close: day.close
+                })),
             dividends: dividends.map((div: any) => ({
                 date: div.date.toISOString(),
                 amount: div.dividends
             })),
-            seasonality: seasonalityHistory.map((item: any) => ({
-                date: item.date.toISOString(),
-                close: item.close
-            })),
+            seasonality: seasonalityHistory
+                .filter((item: any) => item.close !== null && item.close !== undefined)
+                .map((item: any) => ({
+                    date: item.date.toISOString(),
+                    close: item.close
+                })),
             financials: (earningsHistory && incomeStatementHistory) ? {
                 financialsChart: {
                     quarterly: (() => {
