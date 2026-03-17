@@ -280,7 +280,7 @@ export async function POST(req: Request) {
                 return [] as any[];
             }),
             metricsPromise,
-            yahooFinance.quoteSummary(symbol, { modules: ['financialData', 'upgradeDowngradeHistory', 'earningsHistory', 'incomeStatementHistoryQuarterly'] }).catch((e: any) => {
+            yahooFinance.quoteSummary(symbol, { modules: ['financialData', 'upgradeDowngradeHistory', 'earningsHistory', 'incomeStatementHistoryQuarterly', 'recommendationTrend'] }).catch((e: any) => {
                 console.warn("Yahoo FinancialData/History failed:", e);
                 return null;
             }),
@@ -311,6 +311,9 @@ export async function POST(req: Request) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         const incomeStatementHistory = quoteSummaryResult?.incomeStatementHistoryQuarterly?.incomeStatementHistory;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const recommendationTrend = quoteSummaryResult?.recommendationTrend?.trend;
 
         // Process Individual Analyst Targets from History
         const uniqueFirms = new Set();
@@ -336,6 +339,19 @@ export async function POST(req: Request) {
             console.log(`[StockAPI] Found ${analystHistory.length} unique analyst targets for ${symbol} from ${upgradeHistory.length} history items.`);
         } else {
             console.log(`[StockAPI] No upgrade history found for ${symbol}`);
+        }
+
+        let currentRecommendationTrend = null;
+        if (Array.isArray(recommendationTrend) && recommendationTrend.length > 0) {
+            // Usually the first item is the most recent (e.g. current month)
+            const latest = recommendationTrend[0];
+            currentRecommendationTrend = {
+                strongBuy: latest.strongBuy,
+                buy: latest.buy,
+                hold: latest.hold,
+                sell: latest.sell,
+                strongSell: latest.strongSell
+            };
         }
 
         // 4. Calculate Derived Metrics
@@ -373,6 +389,7 @@ export async function POST(req: Request) {
                 numberOfAnalysts: financialData.numberOfAnalystOpinions,
             } : null,
             analystHistory: analystHistory, // Add processed individual targets
+            recommendationTrend: currentRecommendationTrend,
             history: history.map((day: any) => ({
                 date: day.date.toISOString(),
                 close: day.close

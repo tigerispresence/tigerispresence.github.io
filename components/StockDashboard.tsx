@@ -11,6 +11,7 @@ import NewsSection from "./NewsSection";
 import SeasonalityHeatmap from "./SeasonalityHeatmap";
 import FinancialsChart from "./FinancialsChart";
 import AIInsights from "./AIInsights";
+import AnalystRatings from "./AnalystRatings";
 
 export interface StockData {
     symbol: string;
@@ -40,6 +41,13 @@ export interface StockData {
         date: string;
         action: string;
     }[];
+    recommendationTrend?: {
+        strongBuy: number;
+        buy: number;
+        hold: number;
+        sell: number;
+        strongSell: number;
+    } | null;
     history: {
         date: string;
         close: number;
@@ -599,6 +607,9 @@ const StockDashboard = memo(({ data }: StockDashboardProps) => {
                             })}
                         </div>
                     </div>
+
+                    {/* Analyst Ratings (Recommendation Trend) Sub-section */}
+                    <AnalystRatings trend={data.recommendationTrend} />
                 </motion.div>
             )}
 
