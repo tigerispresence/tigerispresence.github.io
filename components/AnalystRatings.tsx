@@ -19,7 +19,15 @@ interface AnalystRatingsProps {
 const AnalystRatings = memo(({ trend }: AnalystRatingsProps) => {
     if (!trend) return null;
 
-    const total = trend.strongBuy + trend.buy + trend.hold + trend.sell + trend.strongSell;
+    const safeTrend = {
+        strongBuy: trend.strongBuy || 0,
+        buy: trend.buy || 0,
+        hold: trend.hold || 0,
+        sell: trend.sell || 0,
+        strongSell: trend.strongSell || 0
+    };
+
+    const total = safeTrend.strongBuy + safeTrend.buy + safeTrend.hold + safeTrend.sell + safeTrend.strongSell;
 
     if (total === 0) return null;
 
@@ -43,33 +51,33 @@ const AnalystRatings = memo(({ trend }: AnalystRatingsProps) => {
             <div className="flex flex-col gap-4">
                 {/* Horizontal Stacked Bar */}
                 <div className="w-full h-8 flex rounded-full overflow-hidden shadow-inner bg-gray-800">
-                    <div className="bg-emerald-500 h-full transition-all duration-1000 ease-out" style={{ width: `${(trend.strongBuy / total) * 100}%` }} title={`Strong Buy: ${trend.strongBuy}`} />
-                    <div className="bg-emerald-400 h-full transition-all duration-1000 ease-out" style={{ width: `${(trend.buy / total) * 100}%` }} title={`Buy: ${trend.buy}`} />
-                    <div className="bg-yellow-500 h-full transition-all duration-1000 ease-out" style={{ width: `${(trend.hold / total) * 100}%` }} title={`Hold: ${trend.hold}`} />
-                    <div className="bg-orange-500 h-full transition-all duration-1000 ease-out" style={{ width: `${(trend.sell / total) * 100}%` }} title={`Sell: ${trend.sell}`} />
-                    <div className="bg-red-500 h-full transition-all duration-1000 ease-out" style={{ width: `${(trend.strongSell / total) * 100}%` }} title={`Strong Sell: ${trend.strongSell}`} />
+                    <div className="bg-emerald-500 h-full transition-all duration-1000 ease-out" style={{ width: `${(safeTrend.strongBuy / total) * 100}%` }} title={`Strong Buy: ${safeTrend.strongBuy}`} />
+                    <div className="bg-emerald-400 h-full transition-all duration-1000 ease-out" style={{ width: `${(safeTrend.buy / total) * 100}%` }} title={`Buy: ${safeTrend.buy}`} />
+                    <div className="bg-yellow-500 h-full transition-all duration-1000 ease-out" style={{ width: `${(safeTrend.hold / total) * 100}%` }} title={`Hold: ${safeTrend.hold}`} />
+                    <div className="bg-orange-500 h-full transition-all duration-1000 ease-out" style={{ width: `${(safeTrend.sell / total) * 100}%` }} title={`Sell: ${safeTrend.sell}`} />
+                    <div className="bg-red-500 h-full transition-all duration-1000 ease-out" style={{ width: `${(safeTrend.strongSell / total) * 100}%` }} title={`Strong Sell: ${safeTrend.strongSell}`} />
                 </div>
 
                 {/* Legend */}
                 <div className="grid grid-cols-5 gap-2 text-center text-sm">
                     <div className="flex flex-col items-center">
-                        <span className="text-emerald-500 font-bold">{trend.strongBuy}</span>
+                        <span className="text-emerald-500 font-bold">{safeTrend.strongBuy}</span>
                         <span className="text-emerald-500/80 text-xs">Strong Buy</span>
                     </div>
                     <div className="flex flex-col items-center">
-                        <span className="text-emerald-400 font-bold">{trend.buy}</span>
+                        <span className="text-emerald-400 font-bold">{safeTrend.buy}</span>
                         <span className="text-emerald-400/80 text-xs">Buy</span>
                     </div>
                     <div className="flex flex-col items-center">
-                        <span className="text-yellow-500 font-bold">{trend.hold}</span>
+                        <span className="text-yellow-500 font-bold">{safeTrend.hold}</span>
                         <span className="text-yellow-500/80 text-xs">Hold</span>
                     </div>
                     <div className="flex flex-col items-center">
-                        <span className="text-orange-500 font-bold">{trend.sell}</span>
+                        <span className="text-orange-500 font-bold">{safeTrend.sell}</span>
                         <span className="text-orange-500/80 text-xs">Sell</span>
                     </div>
                     <div className="flex flex-col items-center">
-                        <span className="text-red-500 font-bold">{trend.strongSell}</span>
+                        <span className="text-red-500 font-bold">{safeTrend.strongSell}</span>
                         <span className="text-red-500/80 text-xs">Strong Sell</span>
                     </div>
                 </div>
