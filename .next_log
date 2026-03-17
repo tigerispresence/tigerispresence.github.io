@@ -4691,3 +4691,600 @@ Success with gemini-flash-latest
 [StockAPI] Found 64 unique analyst targets for AMZN from 990 history items.
 Cached stock data for "AMZN"
  POST /api/stock 200 in 8.2s (compile: 795µs, render: 8.2s)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: ㅕㅜㅗ
+[Search API] Static map found 0 matches
+[Search API] Insufficient results for "ㅕㅜㅗ", trying Gemini Fallback...
+Trying Gemini model: gemini-2.0-flash-exp...
+Model gemini-2.0-flash-exp failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-1.5-flash-latest...
+Model gemini-1.5-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-flash-latest...
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: UNH
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: UNH
+ GET /api/search?q=UNH 200 in 181ms (compile: 3ms, render: 179ms)
+Searching for symbol: UNH via Yahoo...
+Using cached market data (Fresh)
+ GET /api/market 200 in 5ms (compile: 1731µs, render: 4ms)
+Yahoo found symbol: UNH
+[StockAPI] Final Date Range for UNH: 2025-03-17T22:20:33.789Z to 2026-03-16T15:00:00.000Z
+Fetching quote for UNH via Yahoo...
+ GET /api/search?q=UNH 200 in 313ms (compile: 3ms, render: 311ms)
+Yahoo provided sufficient metrics, skipping Gemini...
+Fetching risk metrics via Gemini...
+Trying Gemini model: gemini-2.0-flash-exp...
+Fetching options data for Max Pain...
+QuoteSummary financial statements submodules like incomeStatementHistoryQuarterly have provided almost no data since Nov 2024. Use `fundamentalsTimeSeries` instead.
+Model gemini-2.0-flash-exp failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-1.5-flash-latest...
+Model gemini-1.5-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-flash-latest...
+Success with gemini-flash-latest
+[StockAPI] Promise.all finished. History length: 251
+[StockAPI] Found 42 unique analyst targets for UNH from 503 history items.
+Cached stock data for "UNH"
+ POST /api/stock 200 in 6.3s (compile: 3ms, render: 6.3s)
+[Insights API] Fetching insights for: UNH via Yahoo Finance
+Trying Gemini model: gemini-2.0-flash-exp...
+[Insights API] Fetching insights for: UNH via Yahoo Finance
+Trying Gemini model: gemini-2.0-flash-exp...
+Model gemini-2.0-flash-exp failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-1.5-flash-latest...
+Model gemini-1.5-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-flash-latest...
+Model gemini-2.0-flash-exp failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-1.5-flash-latest...
+Success with gemini-flash-latest
+[Search API] Gemini fallback returned 5 items
+ GET /api/search?q=%E3%85%95%E3%85%9C%E3%85%97 200 in 10.1s (compile: 6ms, render: 10.1s)
+Model gemini-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit.  [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]}]
+All preferred models failed. Falling back to gemini-pro-latest.
+Trying Gemini model: gemini-pro-latest...
+Model gemini-1.5-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-flash-latest...
+Gemini Social Search Failed (Quota/Error): Error: All Gemini models failed including fallback.
+Errors:
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit.  [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]}]
+Final fallback error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+Please retry in 19.501187475s. [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-3.1-pro","location":"global"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerMinute-FreeTier","quotaDimensions":{"model":"gemini-3.1-pro","location":"global"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerDay-FreeTier","quotaDimensions":{"model":"gemini-3.1-pro","location":"global"}}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"19s"}]
+    at generateContentWithFallback (lib/gemini.ts:85:15)
+    at async generateJsonWithFallback (lib/gemini.ts:92:18)
+    at async (app/api/insights/route.ts:34:32)
+    at async GET (app/api/insights/route.ts:47:57)
+  83 |         return await generateWithModel("gemini-pro-latest");
+  84 |     } catch (finalError: any) {
+> 85 |         throw new Error(`All Gemini models failed including fallback.\nErrors:\n${errors.map(e => e.message).join('\n')}\nFinal fallback error: ${finalError.message}`);
+     |               ^
+  86 |     }
+  87 | }
+  88 |
+Using generic backup links for social posts.
+ GET /api/insights?symbol=UNH 200 in 468ms (compile: 5ms, render: 463ms)
+Model gemini-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit.  [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]}]
+All preferred models failed. Falling back to gemini-pro-latest.
+Trying Gemini model: gemini-pro-latest...
+Gemini Social Search Failed (Quota/Error): Error: All Gemini models failed including fallback.
+Errors:
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit.  [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]}]
+Final fallback error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+Please retry in 19.33825267s. [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerDay-FreeTier","quotaDimensions":{"model":"gemini-3.1-pro","location":"global"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerMinute-FreeTier","quotaDimensions":{"model":"gemini-3.1-pro","location":"global"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-3.1-pro","location":"global"}}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"19s"}]
+    at generateContentWithFallback (lib/gemini.ts:85:15)
+    at async generateJsonWithFallback (lib/gemini.ts:92:18)
+    at async (app/api/insights/route.ts:34:32)
+    at async GET (app/api/insights/route.ts:47:57)
+  83 |         return await generateWithModel("gemini-pro-latest");
+  84 |     } catch (finalError: any) {
+> 85 |         throw new Error(`All Gemini models failed including fallback.\nErrors:\n${errors.map(e => e.message).join('\n')}\nFinal fallback error: ${finalError.message}`);
+     |               ^
+  86 |     }
+  87 | }
+  88 |
+Using generic backup links for social posts.
+ GET /api/insights?symbol=UNH 200 in 629ms (compile: 13ms, render: 615ms)
+Using cached market data (Fresh)
+ GET /api/market 200 in 13ms (compile: 5ms, render: 8ms)
+Using cached data for "UNH" (1y)
+ POST /api/stock 200 in 14ms (compile: 5ms, render: 9ms)
+Using cached market data (Fresh)
+ GET /api/market 200 in 12ms (compile: 4ms, render: 8ms)
+Using cached data for "UNH" (1y)
+ POST /api/stock 200 in 13ms (compile: 5ms, render: 8ms)
+Using cached market data (Fresh)
+ GET /api/market 200 in 13ms (compile: 5ms, render: 8ms)
+ GET /?q=?tvwidgetsymbol=NASDAQ%3ANVDA 200 in 35ms (compile: 5ms, render: 30ms)
+ GET /grid.svg 404 in 23ms (compile: 2ms, render: 21ms)
+Using cached market data (Fresh)
+ GET /api/market 200 in 8ms (compile: 3ms, render: 5ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 425ms (compile: 54ms, render: 370ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 461ms (compile: 1412µs, render: 459ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 499ms (compile: 6ms, render: 493ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 520ms (compile: 14ms, render: 506ms)
+ GET /api/search?q=NVDA 200 in 435ms (compile: 1881µs, render: 433ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 141ms (compile: 1247µs, render: 140ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 94ms (compile: 1334µs, render: 93ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 165ms (compile: 978µs, render: 164ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 634ms (compile: 62ms, render: 572ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 119ms (compile: 1907µs, render: 117ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 143ms (compile: 7ms, render: 135ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 117ms (compile: 1398µs, render: 115ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 99ms (compile: 1074µs, render: 98ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 137ms (compile: 974µs, render: 136ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 102ms (compile: 1056µs, render: 100ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 116ms (compile: 961µs, render: 115ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 122ms (compile: 964µs, render: 121ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 110ms (compile: 1004µs, render: 109ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 107ms (compile: 1048µs, render: 105ms)
+ GET /api/search?q=NVDA 200 in 127ms (compile: 1080µs, render: 126ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 120ms (compile: 1045µs, render: 118ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 114ms (compile: 1180µs, render: 113ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 114ms (compile: 1110µs, render: 113ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 103ms (compile: 4ms, render: 99ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 114ms (compile: 1827µs, render: 112ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 117ms (compile: 1093µs, render: 116ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 147ms (compile: 3ms, render: 144ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 124ms (compile: 1132µs, render: 123ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 127ms (compile: 1178µs, render: 126ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 139ms (compile: 1250µs, render: 138ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 123ms (compile: 1008µs, render: 122ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 123ms (compile: 2ms, render: 121ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 112ms (compile: 1627µs, render: 111ms)
+ GET /api/search?q=NVDA 200 in 161ms (compile: 1061µs, render: 160ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 124ms (compile: 947µs, render: 124ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 456ms (compile: 1150µs, render: 455ms)
+ GET /api/search?q=NVDA 200 in 155ms (compile: 1408µs, render: 154ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 116ms (compile: 1410µs, render: 114ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 125ms (compile: 2ms, render: 123ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 98ms (compile: 1489µs, render: 96ms)
+ GET /api/search?q=NVDA 200 in 135ms (compile: 1292µs, render: 133ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 83ms (compile: 1358µs, render: 82ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 126ms (compile: 2ms, render: 124ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 83ms (compile: 1120µs, render: 81ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 83ms (compile: 2ms, render: 81ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 155ms (compile: 867µs, render: 154ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 127ms (compile: 4ms, render: 123ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: NVDA
+ GET /api/search?q=NVDA 200 in 130ms (compile: 961µs, render: 129ms)
+Using cached market data (Fresh)
+ GET /api/market 200 in 3ms (compile: 794µs, render: 2ms)
+ GET /api/search?q=NVDA 200 in 99ms (compile: 955µs, render: 98ms)
+Searching for symbol: NVDA via Yahoo...
+Searching for symbol: NVDA via Yahoo...
+ GET /api/search?q=NVDA 200 in 96ms (compile: 947µs, render: 95ms)
+Searching for symbol: NVDA via Yahoo...
+ GET /api/search?q=NVDA 200 in 121ms (compile: 857µs, render: 120ms)
+Searching for symbol: NVDA via Yahoo...
+ GET /api/search?q=NVDA 200 in 137ms (compile: 1048µs, render: 136ms)
+Searching for symbol: NVDA via Yahoo...
+ GET /api/search?q=NVDA 200 in 102ms (compile: 970µs, render: 101ms)
+Searching for symbol: NVDA via Yahoo...
+Yahoo found symbol: NVDA
+[StockAPI] Final Date Range for NVDA: 2025-03-17T22:48:48.645Z to 2026-03-16T15:00:00.000Z
+Fetching quote for NVDA via Yahoo...
+Yahoo found symbol: NVDA
+[StockAPI] Final Date Range for NVDA: 2025-03-17T22:48:48.701Z to 2026-03-16T15:00:00.000Z
+Fetching quote for NVDA via Yahoo...
+Yahoo found symbol: NVDA
+[StockAPI] Final Date Range for NVDA: 2025-03-17T22:48:48.648Z to 2026-03-16T15:00:00.000Z
+Fetching quote for NVDA via Yahoo...
+Yahoo found symbol: NVDA
+[StockAPI] Final Date Range for NVDA: 2025-03-17T22:48:48.654Z to 2026-03-16T15:00:00.000Z
+Fetching quote for NVDA via Yahoo...
+Yahoo found symbol: NVDA
+[StockAPI] Final Date Range for NVDA: 2025-03-17T22:48:48.718Z to 2026-03-16T15:00:00.000Z
+Fetching quote for NVDA via Yahoo...
+Yahoo found symbol: NVDA
+[StockAPI] Final Date Range for NVDA: 2025-03-17T22:48:48.709Z to 2026-03-16T15:00:00.000Z
+Fetching quote for NVDA via Yahoo...
+Yahoo provided sufficient metrics, skipping Gemini...
+Fetching risk metrics via Gemini...
+Trying Gemini model: gemini-2.0-flash-exp...
+Fetching options data for Max Pain...
+QuoteSummary financial statements submodules like incomeStatementHistoryQuarterly have provided almost no data since Nov 2024. Use `fundamentalsTimeSeries` instead.
+Yahoo provided sufficient metrics, skipping Gemini...
+Fetching risk metrics via Gemini...
+Trying Gemini model: gemini-2.0-flash-exp...
+Fetching options data for Max Pain...
+QuoteSummary financial statements submodules like incomeStatementHistoryQuarterly have provided almost no data since Nov 2024. Use `fundamentalsTimeSeries` instead.
+Yahoo provided sufficient metrics, skipping Gemini...
+Fetching risk metrics via Gemini...
+Trying Gemini model: gemini-2.0-flash-exp...
+Fetching options data for Max Pain...
+QuoteSummary financial statements submodules like incomeStatementHistoryQuarterly have provided almost no data since Nov 2024. Use `fundamentalsTimeSeries` instead.
+Yahoo provided sufficient metrics, skipping Gemini...
+Fetching risk metrics via Gemini...
+Trying Gemini model: gemini-2.0-flash-exp...
+Fetching options data for Max Pain...
+QuoteSummary financial statements submodules like incomeStatementHistoryQuarterly have provided almost no data since Nov 2024. Use `fundamentalsTimeSeries` instead.
+Yahoo provided sufficient metrics, skipping Gemini...
+Fetching risk metrics via Gemini...
+Trying Gemini model: gemini-2.0-flash-exp...
+Fetching options data for Max Pain...
+QuoteSummary financial statements submodules like incomeStatementHistoryQuarterly have provided almost no data since Nov 2024. Use `fundamentalsTimeSeries` instead.
+Yahoo provided sufficient metrics, skipping Gemini...
+Fetching risk metrics via Gemini...
+Trying Gemini model: gemini-2.0-flash-exp...
+Fetching options data for Max Pain...
+QuoteSummary financial statements submodules like incomeStatementHistoryQuarterly have provided almost no data since Nov 2024. Use `fundamentalsTimeSeries` instead.
+Model gemini-2.0-flash-exp failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-1.5-flash-latest...
+Model gemini-2.0-flash-exp failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-1.5-flash-latest...
+Model gemini-2.0-flash-exp failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-1.5-flash-latest...
+Model gemini-2.0-flash-exp failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-1.5-flash-latest...
+Model gemini-2.0-flash-exp failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-1.5-flash-latest...
+Model gemini-1.5-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-flash-latest...
+Model gemini-2.0-flash-exp failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-1.5-flash-latest...
+Model gemini-1.5-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-flash-latest...
+Model gemini-1.5-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-flash-latest...
+Model gemini-1.5-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-flash-latest...
+Model gemini-1.5-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-flash-latest...
+Model gemini-1.5-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-flash-latest...
+Success with gemini-flash-latest
+[StockAPI] Promise.all finished. History length: 251
+[StockAPI] Found 57 unique analyst targets for NVDA from 984 history items.
+Cached stock data for "NVDA"
+ POST /api/stock 200 in 5.8s (compile: 1469µs, render: 5.8s)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 8ms (compile: 2ms, render: 6ms)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 7ms (compile: 2ms, render: 5ms)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 7ms (compile: 2ms, render: 5ms)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 15ms (compile: 12ms, render: 3ms)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 3ms (compile: 785µs, render: 2ms)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 2ms (compile: 659µs, render: 1787µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 2ms (compile: 604µs, render: 1688µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 2ms (compile: 593µs, render: 1716µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 3ms (compile: 675µs, render: 1865µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 3ms (compile: 1337µs, render: 1712µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 2ms (compile: 531µs, render: 1658µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 2ms (compile: 554µs, render: 1635µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 2ms (compile: 558µs, render: 1699µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 3ms (compile: 896µs, render: 1897µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 2ms (compile: 558µs, render: 1562µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 2ms (compile: 571µs, render: 1677µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 2ms (compile: 518µs, render: 1732µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 2ms (compile: 573µs, render: 1642µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 2ms (compile: 550µs, render: 1601µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 2ms (compile: 552µs, render: 1571µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 2ms (compile: 536µs, render: 1604µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 3ms (compile: 648µs, render: 1937µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 3ms (compile: 808µs, render: 2ms)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 3ms (compile: 792µs, render: 2ms)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 3ms (compile: 831µs, render: 2ms)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 3ms (compile: 863µs, render: 2ms)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 3ms (compile: 817µs, render: 1949µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 3ms (compile: 707µs, render: 1835µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 2ms (compile: 639µs, render: 1740µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 2ms (compile: 611µs, render: 1680µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 2ms (compile: 640µs, render: 1728µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 3ms (compile: 713µs, render: 1848µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 2ms (compile: 658µs, render: 1720µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 2ms (compile: 600µs, render: 1666µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 3ms (compile: 750µs, render: 1796µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 3ms (compile: 711µs, render: 1796µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 2ms (compile: 651µs, render: 1705µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 2ms (compile: 626µs, render: 1787µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 3ms (compile: 705µs, render: 1999µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 2ms (compile: 613µs, render: 1746µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 2ms (compile: 651µs, render: 1735µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 2ms (compile: 616µs, render: 1742µs)
+Using cached market data (Fresh)
+ GET /api/market 200 in 2ms (compile: 808µs, render: 1496µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 2ms (compile: 628µs, render: 1704µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 2ms (compile: 656µs, render: 1831µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 2ms (compile: 659µs, render: 1676µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 2ms (compile: 622µs, render: 1680µs)
+Using cached data for "NVDA" (1y)
+ POST /api/stock 200 in 2ms (compile: 631µs, render: 1664µs)
+[Insights API] Fetching insights for: NVDA via Yahoo Finance
+Trying Gemini model: gemini-2.0-flash-exp...
+Model gemini-2.0-flash-exp failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-1.5-flash-latest...
+Model gemini-1.5-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-flash-latest...
+Model gemini-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit.  [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]}]
+All preferred models failed. Falling back to gemini-pro-latest.
+Trying Gemini model: gemini-pro-latest...
+Success with gemini-flash-latest
+[StockAPI] Promise.all finished. History length: 251
+[StockAPI] Found 57 unique analyst targets for NVDA from 984 history items.
+Cached stock data for "NVDA"
+ POST /api/stock 200 in 6.4s (compile: 988µs, render: 6.4s)
+[Insights API] Fetching insights for: NVDA via Yahoo Finance
+Trying Gemini model: gemini-2.0-flash-exp...
+Gemini Social Search Failed (Quota/Error): Error: All Gemini models failed including fallback.
+Errors:
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit.  [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]}]
+Final fallback error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+Please retry in 4.876809345s. [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerDay-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerMinute-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"4s"}]
+    at generateContentWithFallback (lib/gemini.ts:85:15)
+    at async generateJsonWithFallback (lib/gemini.ts:92:18)
+    at async (app/api/insights/route.ts:34:32)
+    at async GET (app/api/insights/route.ts:47:57)
+  83 |         return await generateWithModel("gemini-pro-latest");
+  84 |     } catch (finalError: any) {
+> 85 |         throw new Error(`All Gemini models failed including fallback.\nErrors:\n${errors.map(e => e.message).join('\n')}\nFinal fallback error: ${finalError.message}`);
+     |               ^
+  86 |     }
+  87 | }
+  88 |
+Using generic backup links for social posts.
+ GET /api/insights?symbol=NVDA 200 in 559ms (compile: 1656µs, render: 557ms)
+Model gemini-2.0-flash-exp failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-1.5-flash-latest...
+Model gemini-1.5-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-flash-latest...
+Model gemini-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit.  [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]}]
+All preferred models failed. Falling back to gemini-pro-latest.
+Trying Gemini model: gemini-pro-latest...
+Gemini Social Search Failed (Quota/Error): Error: All Gemini models failed including fallback.
+Errors:
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit.  [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]}]
+Final fallback error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+Please retry in 4.44936008s. [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerMinute-FreeTier","quotaDimensions":{"model":"gemini-3.1-pro","location":"global"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-3.1-pro","location":"global"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-3.1-pro","location":"global"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerDay-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"4s"}]
+    at generateContentWithFallback (lib/gemini.ts:85:15)
+    at async generateJsonWithFallback (lib/gemini.ts:92:18)
+    at async (app/api/insights/route.ts:34:32)
+    at async GET (app/api/insights/route.ts:47:57)
+  83 |         return await generateWithModel("gemini-pro-latest");
+  84 |     } catch (finalError: any) {
+> 85 |         throw new Error(`All Gemini models failed including fallback.\nErrors:\n${errors.map(e => e.message).join('\n')}\nFinal fallback error: ${finalError.message}`);
+     |               ^
+  86 |     }
+  87 | }
+  88 |
+Using generic backup links for social posts.
+ GET /api/insights?symbol=NVDA 200 in 566ms (compile: 1717µs, render: 564ms)
+Success with gemini-flash-latest
+[StockAPI] Promise.all finished. History length: 251
+[StockAPI] Found 57 unique analyst targets for NVDA from 984 history items.
+Cached stock data for "NVDA"
+ POST /api/stock 200 in 7.3s (compile: 1521µs, render: 7.3s)
+Success with gemini-flash-latest
+[StockAPI] Promise.all finished. History length: 251
+[StockAPI] Found 57 unique analyst targets for NVDA from 984 history items.
+Cached stock data for "NVDA"
+ POST /api/stock 200 in 7.5s (compile: 1144µs, render: 7.5s)
+Success with gemini-flash-latest
+[StockAPI] Promise.all finished. History length: 251
+[StockAPI] Found 57 unique analyst targets for NVDA from 984 history items.
+Cached stock data for "NVDA"
+ POST /api/stock 200 in 8.0s (compile: 1081µs, render: 8.0s)
+Success with gemini-flash-latest
+[StockAPI] Promise.all finished. History length: 251
+[StockAPI] Found 57 unique analyst targets for NVDA from 984 history items.
+Cached stock data for "NVDA"
+ POST /api/stock 200 in 8.7s (compile: 3ms, render: 8.7s)
+Searching for symbol: UNH via Yahoo...
+Yahoo found symbol: UNH
+[StockAPI] Final Date Range for UNH: 2023-03-17T22:49:47.402Z to 2026-03-16T15:00:00.000Z
+Fetching quote for UNH via Yahoo...
+Yahoo provided sufficient metrics, skipping Gemini...
+Fetching risk metrics via Gemini...
+Trying Gemini model: gemini-2.0-flash-exp...
+Fetching options data for Max Pain...
+QuoteSummary financial statements submodules like incomeStatementHistoryQuarterly have provided almost no data since Nov 2024. Use `fundamentalsTimeSeries` instead.
+Model gemini-2.0-flash-exp failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-1.5-flash-latest...
+Model gemini-1.5-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-flash-latest...
+Model gemini-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 5, model: gemini-3-flash
+Please retry in 11.652165614s. [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-3-flash","location":"global"},"quotaValue":"5"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"11s"}]
+All preferred models failed. Falling back to gemini-pro-latest.
+Trying Gemini model: gemini-pro-latest...
+Gemini risk metrics fetch failed: Error: All Gemini models failed including fallback.
+Errors:
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 5, model: gemini-3-flash
+Please retry in 11.652165614s. [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-3-flash","location":"global"},"quotaValue":"5"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"11s"}]
+Final fallback error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+Please retry in 11.557871098s. [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerDay-FreeTier","quotaDimensions":{"model":"gemini-3.1-pro","location":"global"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerMinute-FreeTier","quotaDimensions":{"model":"gemini-3.1-pro","location":"global"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-3.1-pro","location":"global"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"11s"}]
+    at generateContentWithFallback (lib/gemini.ts:85:15)
+    at async generateJsonWithFallback (lib/gemini.ts:92:18)
+    at async (app/api/stock/route.ts:235:24)
+    at async POST (app/api/stock/route.ts:288:121)
+  83 |         return await generateWithModel("gemini-pro-latest");
+  84 |     } catch (finalError: any) {
+> 85 |         throw new Error(`All Gemini models failed including fallback.\nErrors:\n${errors.map(e => e.message).join('\n')}\nFinal fallback error: ${finalError.message}`);
+     |               ^
+  86 |     }
+  87 | }
+  88 |
+[StockAPI] Promise.all finished. History length: 751
+[StockAPI] Found 42 unique analyst targets for UNH from 503 history items.
+Cached stock data for "UNH"
+ POST /api/stock 200 in 1481ms (compile: 2ms, render: 1479ms)
+Using cached data for "NASDAQ:AAPL" (1y)
+ POST /api/stock 200 in 90ms (compile: 82ms, render: 7ms)

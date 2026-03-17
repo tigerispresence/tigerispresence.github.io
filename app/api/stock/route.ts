@@ -23,9 +23,14 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Query is required" }, { status: 400 });
         }
 
+        // Clean query: Strip TradingView prefixes (e.g. NASDAQ:AAPL -> AAPL)
+        let sanitizedQuery = query.trim().split(':').pop() || query;
+        sanitizedQuery = sanitizedQuery.toUpperCase() === 'BRK.B' ? 'BRK-B' : 
+                         sanitizedQuery.toUpperCase() === 'BF.B' ? 'BF-B' : sanitizedQuery;
+
         // 1. Check Cache
         // Create a unique filename hash based on query and range
-        const cacheKey = crypto.createHash('md5').update(`${query}-${range}-${from || ''}`).digest('hex');
+        const cacheKey = crypto.createHash('md5').update(`${sanitizedQuery}-${range}-${from || ''}`).digest('hex');
         const cacheFilePath = path.join(CACHE_DIR, `${cacheKey}.json`);
 
         // let cachedData = null; // Unused 
@@ -122,11 +127,10 @@ export async function POST(req: Request) {
             try {
                 console.log(`Searching for symbol: ${query} via Gemini (Fallback)...`);
                 const searchResult = await generateJsonWithFallback(
-                    `Find the exact stock ticker symbol for "${query}". 
+                    `Find the exact stock ticker symbol for "${sanitizedQuery}". 
                      If it is a Korean company, use the format "000000.KS" or "000000.KQ". 
                      If it is a US company, use the standard ticker (e.g. AAPL).
-                     Return a JSON object: { "symbol": "string", "name": "string" }`,
-                    { tools: [{ googleSearch: {} }] as any }
+                     Return a JSON object: { "symbol": "string", "name": "string" }`
                 );
 
                 if (searchResult?.symbol) {
@@ -356,26 +360,28 @@ export async function POST(req: Request) {
         const summary = quoteSummaryResult?.summaryDetail;
 
         // Process Individual Analyst Targets from History
-        const uniqueFirms = new Set();
-        const analystHistory = [];
-
+        const uniqueFirmsMap = new Map();
+        let analystHistory = [];
+ 
         if (Array.isArray(upgradeHistory)) {
-            // Sort by date new to old (should be default, but ensure it)
-            const sortedHistory = [...upgradeHistory].sort((a, b) =>
-                new Date(b.epochGradeDate).getTime() - new Date(a.epochGradeDate).getTime()
-            );
-
-            for (const item of sortedHistory) {
-                if (item.currentPriceTarget && item.firm && !uniqueFirms.has(item.firm)) {
-                    uniqueFirms.add(item.firm);
-                    analystHistory.push({
-                        firm: item.firm,
-                        target: item.currentPriceTarget,
-                        date: item.epochGradeDate,
-                        action: item.action
-                    });
+            // Process and keep only the latest target for each firm (O(N) instead of O(N log N))
+            for (const item of upgradeHistory) {
+                if (item.currentPriceTarget && item.firm) {
+                    const existing = uniqueFirmsMap.get(item.firm);
+                    if (!existing || new Date(item.epochGradeDate).getTime() > new Date(existing.date).getTime()) {
+                        uniqueFirmsMap.set(item.firm, {
+                            firm: item.firm,
+                            target: item.currentPriceTarget,
+                            date: item.epochGradeDate,
+                            action: item.action
+                        });
+                    }
                 }
             }
+            analystHistory = Array.from(uniqueFirmsMap.values());
+            // Sort only the final unique list (O(M log M) where M is number of unique firms, usually 1/20th of N)
+            analystHistory.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            
             console.log(`[StockAPI] Found ${analystHistory.length} unique analyst targets for ${symbol} from ${upgradeHistory.length} history items.`);
         } else {
             console.log(`[StockAPI] No upgrade history found for ${symbol}`);

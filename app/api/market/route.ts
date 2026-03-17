@@ -151,7 +151,7 @@ export async function GET() {
         try {
             // Only cache if we have at least one valid index data AND valid Fear & Greed data
             // This prevents caching "0" values when Yahoo API fails completely,
-            // and prevents caching default "50" value when Gemini API fails.
+            // and prevents caching default "50" value when CNN API fails.
             const hasValidIndices = responseData.indices.sp500.current > 0 || responseData.indices.vix.current > 0;
             const hasValidFearGreed = responseData.fearGreed?.date !== null;
 
