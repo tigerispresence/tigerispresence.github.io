@@ -12,6 +12,7 @@ import SeasonalityHeatmap from "./SeasonalityHeatmap";
 import FinancialsChart from "./FinancialsChart";
 import AIInsights from "./AIInsights";
 import AnalystRatings from "./AnalystRatings";
+import RiskMetrics from "./RiskMetrics";
 
 export interface StockData {
     symbol: string;
@@ -80,6 +81,18 @@ export interface StockData {
         price: number;
         expirationDate: string;
     } | null;
+
+    riskMetrics?: {
+        beta?: number;
+        fiftyTwoWeekHigh?: number;
+        fiftyTwoWeekLow?: number;
+        marketCap?: number;
+    };
+    geminiRiskMetrics?: {
+        altmanZScore?: number;
+        piotroskiFScore?: number;
+        riskSummary?: string;
+    };
 }
 
 interface StockDashboardProps {
@@ -457,6 +470,9 @@ const StockDashboard = memo(({ data }: StockDashboardProps) => {
                     </div>
                 </div>
             </div>
+
+            {/* Risk Metrics Section */}
+            <RiskMetrics data={data} />
 
             {/* Key Statistics Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

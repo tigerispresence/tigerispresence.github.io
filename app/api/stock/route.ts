@@ -219,6 +219,28 @@ export async function POST(req: Request) {
             }
         })();
 
+        const geminiRiskMetricsPromise = (async () => {
+            try {
+                console.log("Fetching risk metrics via Gemini...");
+                const prompt = `
+                    Analyze the financial health of the stock "${symbol}" (${stockName}) and provide:
+                    1. Altman Z-Score (a measure of bankruptcy risk)
+                    2. Piotroski F-Score (a 0-9 score of financial strength)
+                    3. A very brief 1-sentence risk summary.
+
+                    Return ONLY a JSON object with keys: "altmanZScore", "piotroskiFScore", "riskSummary".
+                    Scores should be numbers.
+                    Example: { "altmanZScore": 4.5, "piotroskiFScore": 7, "riskSummary": "Strong balance sheet with low bankruptcy risk." }
+                `;
+                return await generateJsonWithFallback(prompt, {
+                    tools: [{ googleSearch: {} }] as any
+                });
+            } catch (e) {
+                console.error("Gemini risk metrics fetch failed:", e);
+                return null;
+            }
+        })();
+
 
 
         const maxPainPromise = (async () => {
@@ -265,7 +287,7 @@ export async function POST(req: Request) {
             }
         })();
 
-        const [history, dividends, geminiMetrics, quoteSummaryResult, seasonalityHistory, maxPain] = await Promise.all([
+        const [history, dividends, geminiMetrics, geminiRiskMetrics, quoteSummaryResult, seasonalityHistory, maxPain] = await Promise.all([
             yahooFinance.historical(symbol, {
                 period1: startDate,
                 period2: endDate,
@@ -284,7 +306,18 @@ export async function POST(req: Request) {
                 return [] as any[];
             }),
             metricsPromise,
-            yahooFinance.quoteSummary(symbol, { modules: ['financialData', 'upgradeDowngradeHistory', 'earningsHistory', 'incomeStatementHistoryQuarterly', 'recommendationTrend'] }).catch((e: any) => {
+            geminiRiskMetricsPromise,
+            yahooFinance.quoteSummary(symbol, { 
+                modules: [
+                    'financialData', 
+                    'upgradeDowngradeHistory', 
+                    'earningsHistory', 
+                    'incomeStatementHistoryQuarterly', 
+                    'recommendationTrend',
+                    'defaultKeyStatistics',
+                    'summaryDetail'
+                ] 
+            }).catch((e: any) => {
                 console.warn("Yahoo FinancialData/History failed:", e);
                 return null;
             }),
@@ -318,6 +351,10 @@ export async function POST(req: Request) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         const recommendationTrend = quoteSummaryResult?.recommendationTrend?.trend;
+
+        // Risk Metrics Data
+        const stats = quoteSummaryResult?.defaultKeyStatistics;
+        const summary = quoteSummaryResult?.summaryDetail;
 
         // Process Individual Analyst Targets from History
         const uniqueFirms = new Set();
@@ -385,6 +422,7 @@ export async function POST(req: Request) {
             forwardPE: quote.forwardPE,
             dividendYield: calculatedYield,
             geminiMetrics,
+            geminiRiskMetrics,
             priceTargets: financialData ? {
                 low: financialData.targetLowPrice,
                 high: financialData.targetHighPrice,
@@ -444,7 +482,13 @@ export async function POST(req: Request) {
                 },
                 financialCurrency: quote.currency
             } : null,
-            maxPain: maxPain
+            maxPain: maxPain,
+            riskMetrics: {
+                beta: stats?.beta,
+                fiftyTwoWeekHigh: summary?.fiftyTwoWeekHigh || quote?.fiftyTwoWeekHigh,
+                fiftyTwoWeekLow: summary?.fiftyTwoWeekLow || quote?.fiftyTwoWeekLow,
+                marketCap: summary?.marketCap || stats?.marketCap || quote?.marketCap,
+            }
         };
 
         // 5. Save to Cache
