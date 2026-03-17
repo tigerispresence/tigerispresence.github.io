@@ -6,10 +6,10 @@ const genAI = new GoogleGenerativeAI(apiKey);
 // Models prioritized by speed/cost to minimize rate limits as requested
 // We include the user-requested models plus known working standard models as fallbacks.
 const MODELS = [
-    "gemini-2.5-flash",      // Latest stable flash
-    "gemini-2.0-flash",      // Previous stable flash
-    "gemini-flash-latest",   // Alias for latest flash
-    "gemini-pro-latest",     // Fallback to Pro
+    "gemini-2.0-flash-exp",   // Experimental 2.0
+    "gemini-1.5-flash-latest", // Latest stable 1.5
+    "gemini-flash-latest",    // Alias for latest flash
+    "gemini-pro-latest",      // Fallback to Pro
 ];
 
 interface GeneratorOptions {
@@ -26,8 +26,8 @@ export async function generateContentWithFallback(
     // Determine models to use. Running all 4 at once might hit rate limits faster,
     // so let's try top 3 fastest models concurrently.
     const CONCURRENT_MODELS = [
-        "gemini-2.5-flash",
-        "gemini-2.0-flash",
+        "gemini-2.0-flash-exp",
+        "gemini-1.5-flash-latest",
         "gemini-flash-latest"
     ];
 

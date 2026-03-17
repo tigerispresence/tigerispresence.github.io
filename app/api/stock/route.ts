@@ -47,10 +47,6 @@ export async function POST(req: Request) {
 
         // 4. Fetch Historical Data based on Range (Still using Yahoo)
         const endDate = new Date();
-        // Shift endDate back slightly to avoid the "live" day which might have null close/adjclose
-        // this fixes the "Historical returned a result with SOME null values" error in v3
-        endDate.setHours(0, 0, 0, 0); 
-        
         const startDate = new Date();
 
         if (from) {
@@ -65,10 +61,16 @@ export async function POST(req: Request) {
             }
         }
 
+        // Shift endDate back to yesterday to avoid the "live" day which might have null close/adjclose
+        // this fixes the "Historical returned a result with SOME null values" error in v3
+        endDate.setDate(endDate.getDate() - 1);
+        endDate.setHours(0, 0, 0, 0);
+
 
         // 2. Resolve Symbol
         let symbol = "";
         let stockName = "";
+
 
 
 
@@ -140,6 +142,7 @@ export async function POST(req: Request) {
         if (!symbol) {
             return NextResponse.json({ error: "Stock not found" }, { status: 404 });
         }
+        console.log(`[StockAPI] Final Date Range for ${symbol}: ${startDate.toISOString()} to ${endDate.toISOString()}`);
 
         // 3. Fetch Quote Summary (Primary: Yahoo, Fallback: Gemini)
         let quote: any = null;
@@ -178,8 +181,7 @@ export async function POST(req: Request) {
                      - forwardPE: number or null
                      - dividendYield: number or null (e.g. 1.5 for 1.5%)
                      
-                     Ensure the data is real-time or from the latest close.`,
-                    { tools: [{ googleSearch: {} }] as any }
+                     Ensure the data is real-time or from the latest close.`
                 );
 
                 if (quoteResult) {
@@ -210,9 +212,7 @@ export async function POST(req: Request) {
                     Example: { "trailingPE": 25.4, "forwardPE": 22.1, "dividendYield": 0.85 }
                 `;
                 // Use search tool to avoid "I don't have real data" refusals
-                return await generateJsonWithFallback(prompt, {
-                    tools: [{ googleSearch: {} }] as any
-                });
+                return await generateJsonWithFallback(prompt);
             } catch (e) {
                 console.error("Gemini metrics fetch failed:", e);
                 return null;
@@ -232,9 +232,7 @@ export async function POST(req: Request) {
                     Scores should be numbers.
                     Example: { "altmanZScore": 4.5, "piotroskiFScore": 7, "riskSummary": "Strong balance sheet with low bankruptcy risk." }
                 `;
-                return await generateJsonWithFallback(prompt, {
-                    tools: [{ googleSearch: {} }] as any
-                });
+                return await generateJsonWithFallback(prompt);
             } catch (e) {
                 console.error("Gemini risk metrics fetch failed:", e);
                 return null;
@@ -331,6 +329,7 @@ export async function POST(req: Request) {
             }),
             maxPainPromise
         ]);
+        console.log(`[StockAPI] Promise.all finished. History length: ${history?.length || 0}`);
 
         // Extract Analyst Data
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
