@@ -130,7 +130,7 @@ export default function Home() {
   }, [stockData, timeRange, fetchStockDetail]);
 
   // Handle Search Submission (matches UI request to show suggestions)
-  const handleSearch = async (rawQuery: string) => {
+  const handleSearch = useCallback(async (rawQuery: string) => {
     // Fix for manual searches hitting the same issue
     let query = rawQuery;
     if (query.toUpperCase() === 'BRK.B') query = 'BRK-B';
@@ -174,11 +174,11 @@ export default function Home() {
       console.warn("Search API failed, falling back to direct fetch", e);
       await fetchStockDetail(query);
     }
-  };
+  }, [fetchStockDetail]);
 
 
 
-  const handleRangeChange = async (newRange: string) => {
+  const handleRangeChange = useCallback(async (newRange: string) => {
     setTimeRange(newRange);
     if (stockData) {
       // Just trigger fetch with new range
@@ -197,7 +197,7 @@ export default function Home() {
         setLoading(false);
       }
     }
-  };
+  }, [stockData]);
 
 
   return (
