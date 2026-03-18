@@ -6,10 +6,11 @@ const genAI = new GoogleGenerativeAI(apiKey);
 // Models prioritized by speed/cost to minimize rate limits as requested
 // We include the user-requested models plus known working standard models as fallbacks.
 const MODELS = [
-    "gemini-2.0-flash-exp",   // Experimental 2.0
-    "gemini-1.5-flash-latest", // Latest stable 1.5
-    "gemini-flash-latest",    // Alias for latest flash
-    "gemini-pro-latest",      // Fallback to Pro
+    "gemini-2.0-flash",
+    "gemini-1.5-flash-latest",
+    "gemini-1.5-flash",
+    "gemini-1.5-pro-latest",
+    "gemini-1.5-pro",
 ];
 
 interface GeneratorOptions {
@@ -23,14 +24,9 @@ export async function generateContentWithFallback(
     prompt: string,
     options: GeneratorOptions & { validator?: (text: string) => boolean | Promise<boolean> } = {}
 ) {
-    // Determine models to use. Running all 4 at once might hit rate limits faster,
-    // so let's try top 3 fastest models concurrently.
-    const CONCURRENT_MODELS = [
-        "gemini-2.0-flash-exp",
-        "gemini-1.5-flash-latest",
-        "gemini-flash-latest"
-    ];
-
+    // We try models one by one from the prioritized list.
+    const errors: any[] = [];
+    
     const generateWithModel = async (modelName: string) => {
         console.log(`Trying Gemini model: ${modelName}...`);
 
@@ -68,8 +64,7 @@ export async function generateContentWithFallback(
         return text;
     };
 
-    const errors: any[] = [];
-    for (const model of CONCURRENT_MODELS) {
+    for (const model of MODELS) {
         try {
             return await generateWithModel(model);
         } catch (error: any) {
@@ -78,12 +73,7 @@ export async function generateContentWithFallback(
         }
     }
 
-    console.warn(`All preferred models failed. Falling back to gemini-pro-latest.`);
-    try {
-        return await generateWithModel("gemini-pro-latest");
-    } catch (finalError: any) {
-        throw new Error(`All Gemini models failed including fallback.\nErrors:\n${errors.map(e => e.message).join('\n')}\nFinal fallback error: ${finalError.message}`);
-    }
+    throw new Error(`All Gemini models failed.\nErrors:\n${errors.map(e => (e as Error).message).join('\n')}`);
 }
 
 // Helper for JSON parsing with markdown cleanup

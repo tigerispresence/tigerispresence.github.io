@@ -3941,3 +3941,675 @@ Please retry in 26.829106045s. [{"@type":"type.googleapis.com/google.rpc.Help","
 [StockAPI] Found 55 unique analyst targets for AAPL from 966 history items.
 Cached stock data for "AAPL"
  POST /api/stock 200 in 1648ms (compile: 1697µs, render: 1646ms)
+ GET /?q=?tvwidgetsymbol=NASDAQ%3AAAPL 200 in 208ms (compile: 57ms, render: 150ms)
+ GET /grid.svg 404 in 26ms (compile: 5ms, render: 21ms)
+Cache missing/stale. Fetching new market data...
+Fetching Market Indices via Yahoo...
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: AAPL
+Cached market data
+ GET /api/market 200 in 302ms (compile: 3ms, render: 299ms)
+ GET /api/search?q=AAPL 200 in 330ms (compile: 5ms, render: 326ms)
+Using cached market data (Fresh)
+ GET /api/market 200 in 7ms (compile: 3ms, render: 4ms)
+Using cached data for "AAPL" (1y)
+ POST /api/stock 200 in 11ms (compile: 8ms, render: 3ms)
+[Insights API] Fetching insights for: AAPL via Yahoo Finance
+Trying Gemini model: gemini-2.0-flash-exp...
+[Insights API] Fetching insights for: AAPL via Yahoo Finance
+Trying Gemini model: gemini-2.0-flash-exp...
+Model gemini-2.0-flash-exp failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-1.5-flash-latest...
+Model gemini-2.0-flash-exp failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-1.5-flash-latest...
+Model gemini-1.5-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-flash-latest...
+Model gemini-1.5-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-flash-latest...
+Model gemini-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit.  [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]}]
+All preferred models failed. Falling back to gemini-pro-latest.
+Trying Gemini model: gemini-pro-latest...
+Model gemini-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit.  [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]}]
+All preferred models failed. Falling back to gemini-pro-latest.
+Trying Gemini model: gemini-pro-latest...
+Gemini Social Search Failed (Quota/Error): Error: All Gemini models failed including fallback.
+Errors:
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit.  [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]}]
+Final fallback error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+Please retry in 5.948806718s. [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerDay-FreeTier","quotaDimensions":{"model":"gemini-3.1-pro","location":"global"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-3.1-pro","location":"global"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerMinute-FreeTier","quotaDimensions":{"model":"gemini-3.1-pro","location":"global"}}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"5s"}]
+    at generateContentWithFallback (lib/gemini.ts:85:15)
+    at async generateJsonWithFallback (lib/gemini.ts:92:18)
+    at async (app/api/insights/route.ts:34:32)
+    at async GET (app/api/insights/route.ts:47:57)
+  83 |         return await generateWithModel("gemini-pro-latest");
+  84 |     } catch (finalError: any) {
+> 85 |         throw new Error(`All Gemini models failed including fallback.\nErrors:\n${errors.map(e => e.message).join('\n')}\nFinal fallback error: ${finalError.message}`);
+     |               ^
+  86 |     }
+  87 | }
+  88 |
+Using generic backup links for social posts.
+ GET /api/insights?symbol=AAPL 200 in 597ms (compile: 4ms, render: 594ms)
+Gemini Social Search Failed (Quota/Error): Error: All Gemini models failed including fallback.
+Errors:
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit.  [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]}]
+Final fallback error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+Please retry in 5.822695196s. [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerDay-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerMinute-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-3.1-pro","location":"global"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-3.1-pro","location":"global"}}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"5s"}]
+    at generateContentWithFallback (lib/gemini.ts:85:15)
+    at async generateJsonWithFallback (lib/gemini.ts:92:18)
+    at async (app/api/insights/route.ts:34:32)
+    at async GET (app/api/insights/route.ts:47:57)
+  83 |         return await generateWithModel("gemini-pro-latest");
+  84 |     } catch (finalError: any) {
+> 85 |         throw new Error(`All Gemini models failed including fallback.\nErrors:\n${errors.map(e => e.message).join('\n')}\nFinal fallback error: ${finalError.message}`);
+     |               ^
+  86 |     }
+  87 | }
+  88 |
+Using generic backup links for social posts.
+ GET /api/insights?symbol=AAPL 200 in 699ms (compile: 2ms, render: 697ms)
+Searching for symbol: AAPL via Yahoo...
+Yahoo found symbol: AAPL
+[StockAPI] Final Date Range for AAPL: 2021-03-18T02:48:27.617Z to 2026-03-16T15:00:00.000Z
+Fetching quote for AAPL via Yahoo...
+Yahoo provided sufficient metrics, skipping Gemini...
+Fetching risk metrics via Gemini...
+Trying Gemini model: gemini-2.0-flash-exp...
+Fetching options data for Max Pain...
+QuoteSummary financial statements submodules like cashflowStatementHistory, incomeStatementHistory, incomeStatementHistoryQuarterly have provided almost no data since Nov 2024. Use `fundamentalsTimeSeries` instead.
+Model gemini-2.0-flash-exp failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-1.5-flash-latest...
+Model gemini-1.5-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-flash-latest...
+Model gemini-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3-flash
+Please retry in 31.282359535s. [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-3-flash","location":"global"},"quotaValue":"20"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"31s"}]
+All preferred models failed. Falling back to gemini-pro-latest.
+Trying Gemini model: gemini-pro-latest...
+Gemini risk metrics fetch failed: Error: All Gemini models failed including fallback.
+Errors:
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3-flash
+Please retry in 31.282359535s. [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-3-flash","location":"global"},"quotaValue":"20"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"31s"}]
+Final fallback error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+Please retry in 31.171375642s. [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-3.1-pro","location":"global"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerMinute-FreeTier","quotaDimensions":{"model":"gemini-3.1-pro","location":"global"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerDay-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"31s"}]
+    at generateContentWithFallback (lib/gemini.ts:85:15)
+    at async generateJsonWithFallback (lib/gemini.ts:92:18)
+    at async (app/api/stock/route.ts:239:24)
+    at async POST (app/api/stock/route.ts:301:13)
+  83 |         return await generateWithModel("gemini-pro-latest");
+  84 |     } catch (finalError: any) {
+> 85 |         throw new Error(`All Gemini models failed including fallback.\nErrors:\n${errors.map(e => e.message).join('\n')}\nFinal fallback error: ${finalError.message}`);
+     |               ^
+  86 |     }
+  87 | }
+  88 |
+[StockAPI] Promise.all finished. History length: 1254
+[StockAPI] Found 55 unique analyst targets for AAPL from 966 history items.
+Cached stock data for "AAPL"
+ POST /api/stock 200 in 1649ms (compile: 4ms, render: 1645ms)
+Searching for symbol: AAPL via Yahoo...
+Yahoo found symbol: AAPL
+[StockAPI] Final Date Range for AAPL: 2016-03-18T02:48:54.915Z to 2026-03-16T15:00:00.000Z
+Fetching quote for AAPL via Yahoo...
+Yahoo provided sufficient metrics, skipping Gemini...
+Fetching risk metrics via Gemini...
+Trying Gemini model: gemini-2.0-flash-exp...
+Fetching options data for Max Pain...
+QuoteSummary financial statements submodules like cashflowStatementHistory, incomeStatementHistory, incomeStatementHistoryQuarterly have provided almost no data since Nov 2024. Use `fundamentalsTimeSeries` instead.
+Model gemini-2.0-flash-exp failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-1.5-flash-latest...
+Model gemini-1.5-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-flash-latest...
+Model gemini-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3-flash
+Please retry in 3.847477856s. [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-3-flash","location":"global"},"quotaValue":"20"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"3s"}]
+All preferred models failed. Falling back to gemini-pro-latest.
+Trying Gemini model: gemini-pro-latest...
+Gemini risk metrics fetch failed: Error: All Gemini models failed including fallback.
+Errors:
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3-flash
+Please retry in 3.847477856s. [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-3-flash","location":"global"},"quotaValue":"20"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"3s"}]
+Final fallback error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+Please retry in 3.736279643s. [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-3.1-pro","location":"global"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerMinute-FreeTier","quotaDimensions":{"model":"gemini-3.1-pro","location":"global"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerDay-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"3s"}]
+    at generateContentWithFallback (lib/gemini.ts:85:15)
+    at async generateJsonWithFallback (lib/gemini.ts:92:18)
+    at async (app/api/stock/route.ts:239:24)
+    at async POST (app/api/stock/route.ts:301:13)
+  83 |         return await generateWithModel("gemini-pro-latest");
+  84 |     } catch (finalError: any) {
+> 85 |         throw new Error(`All Gemini models failed including fallback.\nErrors:\n${errors.map(e => e.message).join('\n')}\nFinal fallback error: ${finalError.message}`);
+     |               ^
+  86 |     }
+  87 | }
+  88 |
+[StockAPI] Promise.all finished. History length: 2512
+[StockAPI] Found 55 unique analyst targets for AAPL from 966 history items.
+Cached stock data for "AAPL"
+ POST /api/stock 200 in 1875ms (compile: 3ms, render: 1872ms)
+Searching for symbol: AAPL via Yahoo...
+Yahoo found symbol: AAPL
+[StockAPI] Final Date Range for AAPL: 2024-03-18T02:49:02.977Z to 2026-03-16T15:00:00.000Z
+Fetching quote for AAPL via Yahoo...
+Yahoo provided sufficient metrics, skipping Gemini...
+Fetching risk metrics via Gemini...
+Trying Gemini model: gemini-2.0-flash-exp...
+Fetching options data for Max Pain...
+QuoteSummary financial statements submodules like cashflowStatementHistory, incomeStatementHistory, incomeStatementHistoryQuarterly have provided almost no data since Nov 2024. Use `fundamentalsTimeSeries` instead.
+Model gemini-2.0-flash-exp failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-1.5-flash-latest...
+Model gemini-1.5-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-flash-latest...
+Model gemini-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3-flash
+Please retry in 55.809157819s. [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3-flash"},"quotaValue":"20"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"55s"}]
+All preferred models failed. Falling back to gemini-pro-latest.
+Trying Gemini model: gemini-pro-latest...
+Gemini risk metrics fetch failed: Error: All Gemini models failed including fallback.
+Errors:
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3-flash
+Please retry in 55.809157819s. [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3-flash"},"quotaValue":"20"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"55s"}]
+Final fallback error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+Please retry in 55.651057057s. [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerDay-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerMinute-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"55s"}]
+    at generateContentWithFallback (lib/gemini.ts:85:15)
+    at async generateJsonWithFallback (lib/gemini.ts:92:18)
+    at async (app/api/stock/route.ts:239:24)
+    at async POST (app/api/stock/route.ts:301:13)
+  83 |         return await generateWithModel("gemini-pro-latest");
+  84 |     } catch (finalError: any) {
+> 85 |         throw new Error(`All Gemini models failed including fallback.\nErrors:\n${errors.map(e => e.message).join('\n')}\nFinal fallback error: ${finalError.message}`);
+     |               ^
+  86 |     }
+  87 | }
+  88 |
+[StockAPI] Promise.all finished. History length: 500
+[StockAPI] Found 55 unique analyst targets for AAPL from 966 history items.
+Cached stock data for "AAPL"
+ POST /api/stock 200 in 1928ms (compile: 3ms, render: 1925ms)
+ GET /?q=?tvwidgetsymbol=NASDAQ%3AMSFT 200 in 27ms (compile: 3ms, render: 24ms)
+ GET /grid.svg 404 in 25ms (compile: 3ms, render: 23ms)
+Using cached market data (Fresh)
+ GET /api/market 200 in 9ms (compile: 3ms, render: 6ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: MSFT
+ GET /api/search?q=MSFT 200 in 385ms (compile: 2ms, render: 383ms)
+Using cached market data (Fresh)
+ GET /api/market 200 in 6ms (compile: 3ms, render: 3ms)
+Searching for symbol: MSFT via Yahoo...
+Yahoo found symbol: MSFT
+[StockAPI] Final Date Range for MSFT: 2025-03-18T02:49:27.338Z to 2026-03-16T15:00:00.000Z
+Fetching quote for MSFT via Yahoo...
+Yahoo provided sufficient metrics, skipping Gemini...
+Fetching risk metrics via Gemini...
+Trying Gemini model: gemini-2.0-flash-exp...
+Fetching options data for Max Pain...
+QuoteSummary financial statements submodules like cashflowStatementHistory, incomeStatementHistory, incomeStatementHistoryQuarterly have provided almost no data since Nov 2024. Use `fundamentalsTimeSeries` instead.
+Model gemini-2.0-flash-exp failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-1.5-flash-latest...
+Model gemini-1.5-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-flash-latest...
+Model gemini-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3-flash
+Please retry in 31.755594857s. [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-3-flash","location":"global"},"quotaValue":"20"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"31s"}]
+All preferred models failed. Falling back to gemini-pro-latest.
+Trying Gemini model: gemini-pro-latest...
+Gemini risk metrics fetch failed: Error: All Gemini models failed including fallback.
+Errors:
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3-flash
+Please retry in 31.755594857s. [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-3-flash","location":"global"},"quotaValue":"20"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"31s"}]
+Final fallback error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+Please retry in 31.646692814s. [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerMinute-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerDay-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"31s"}]
+    at generateContentWithFallback (lib/gemini.ts:85:15)
+    at async generateJsonWithFallback (lib/gemini.ts:92:18)
+    at async (app/api/stock/route.ts:239:24)
+    at async POST (app/api/stock/route.ts:301:13)
+  83 |         return await generateWithModel("gemini-pro-latest");
+  84 |     } catch (finalError: any) {
+> 85 |         throw new Error(`All Gemini models failed including fallback.\nErrors:\n${errors.map(e => e.message).join('\n')}\nFinal fallback error: ${finalError.message}`);
+     |               ^
+  86 |     }
+  87 | }
+  88 |
+[StockAPI] Promise.all finished. History length: 250
+[StockAPI] Found 63 unique analyst targets for MSFT from 868 history items.
+Cached stock data for "MSFT"
+ POST /api/stock 200 in 1507ms (compile: 7ms, render: 1500ms)
+[Insights API] Fetching insights for: MSFT via Yahoo Finance
+Trying Gemini model: gemini-2.0-flash-exp...
+[Insights API] Fetching insights for: MSFT via Yahoo Finance
+Trying Gemini model: gemini-2.0-flash-exp...
+Model gemini-2.0-flash-exp failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-1.5-flash-latest...
+Model gemini-2.0-flash-exp failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-1.5-flash-latest...
+Model gemini-1.5-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-flash-latest...
+Model gemini-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit.  [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]}]
+All preferred models failed. Falling back to gemini-pro-latest.
+Trying Gemini model: gemini-pro-latest...
+Model gemini-1.5-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-flash-latest...
+Gemini Social Search Failed (Quota/Error): Error: All Gemini models failed including fallback.
+Errors:
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit.  [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]}]
+Final fallback error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+Please retry in 30.733458318s. [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerDay-FreeTier","quotaDimensions":{"model":"gemini-3.1-pro","location":"global"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerMinute-FreeTier","quotaDimensions":{"model":"gemini-3.1-pro","location":"global"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-3.1-pro","location":"global"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"30s"}]
+    at generateContentWithFallback (lib/gemini.ts:85:15)
+    at async generateJsonWithFallback (lib/gemini.ts:92:18)
+    at async (app/api/insights/route.ts:34:32)
+    at async GET (app/api/insights/route.ts:47:57)
+  83 |         return await generateWithModel("gemini-pro-latest");
+  84 |     } catch (finalError: any) {
+> 85 |         throw new Error(`All Gemini models failed including fallback.\nErrors:\n${errors.map(e => e.message).join('\n')}\nFinal fallback error: ${finalError.message}`);
+     |               ^
+  86 |     }
+  87 | }
+  88 |
+Using generic backup links for social posts.
+ GET /api/insights?symbol=MSFT 200 in 481ms (compile: 4ms, render: 477ms)
+Model gemini-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit.  [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]}]
+All preferred models failed. Falling back to gemini-pro-latest.
+Trying Gemini model: gemini-pro-latest...
+Gemini Social Search Failed (Quota/Error): Error: All Gemini models failed including fallback.
+Errors:
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit.  [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]}]
+Final fallback error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+Please retry in 30.530624284s. [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerDay-FreeTier","quotaDimensions":{"model":"gemini-3.1-pro","location":"global"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-3.1-pro","location":"global"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerMinute-FreeTier","quotaDimensions":{"model":"gemini-3.1-pro","location":"global"}}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"30s"}]
+    at generateContentWithFallback (lib/gemini.ts:85:15)
+    at async generateJsonWithFallback (lib/gemini.ts:92:18)
+    at async (app/api/insights/route.ts:34:32)
+    at async GET (app/api/insights/route.ts:47:57)
+  83 |         return await generateWithModel("gemini-pro-latest");
+  84 |     } catch (finalError: any) {
+> 85 |         throw new Error(`All Gemini models failed including fallback.\nErrors:\n${errors.map(e => e.message).join('\n')}\nFinal fallback error: ${finalError.message}`);
+     |               ^
+  86 |     }
+  87 | }
+  88 |
+Using generic backup links for social posts.
+ GET /api/insights?symbol=MSFT 200 in 637ms (compile: 1032µs, render: 636ms)
+Using cached market data (Fresh)
+ GET /api/market 200 in 14ms (compile: 5ms, render: 9ms)
+Using cached data for "MSFT" (1y)
+ POST /api/stock 200 in 13ms (compile: 5ms, render: 8ms)
+ GET /?q=?tvwidgetsymbol=NASDAQ%3AGOOGL 200 in 35ms (compile: 4ms, render: 32ms)
+ GET /grid.svg 404 in 24ms (compile: 4ms, render: 21ms)
+Using cached market data (Fresh)
+ GET /api/market 200 in 5ms (compile: 1673µs, render: 3ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: GOOGL
+ GET /api/search?q=GOOGL 200 in 391ms (compile: 4ms, render: 388ms)
+Using cached market data (Fresh)
+ GET /api/market 200 in 8ms (compile: 3ms, render: 6ms)
+Searching for symbol: GOOGL via Yahoo...
+Yahoo found symbol: GOOGL
+[StockAPI] Final Date Range for GOOGL: 2025-03-18T03:06:51.966Z to 2026-03-16T15:00:00.000Z
+Fetching quote for GOOGL via Yahoo...
+Yahoo provided sufficient metrics, skipping Gemini...
+Fetching risk metrics via Gemini...
+Trying Gemini model: gemini-2.0-flash-exp...
+Fetching options data for Max Pain...
+QuoteSummary financial statements submodules like cashflowStatementHistory, incomeStatementHistory, incomeStatementHistoryQuarterly have provided almost no data since Nov 2024. Use `fundamentalsTimeSeries` instead.
+Model gemini-2.0-flash-exp failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-1.5-flash-latest...
+Model gemini-1.5-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-flash-latest...
+Model gemini-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3-flash
+Please retry in 6.824125396s. [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3-flash"},"quotaValue":"20"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"6s"}]
+All preferred models failed. Falling back to gemini-pro-latest.
+Trying Gemini model: gemini-pro-latest...
+Gemini risk metrics fetch failed: Error: All Gemini models failed including fallback.
+Errors:
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3-flash
+Please retry in 6.824125396s. [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3-flash"},"quotaValue":"20"}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"6s"}]
+Final fallback error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+Please retry in 6.701944684s. [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerMinute-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerDay-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"6s"}]
+    at generateContentWithFallback (lib/gemini.ts:85:15)
+    at async generateJsonWithFallback (lib/gemini.ts:92:18)
+    at async (app/api/stock/route.ts:239:24)
+    at async POST (app/api/stock/route.ts:301:13)
+  83 |         return await generateWithModel("gemini-pro-latest");
+  84 |     } catch (finalError: any) {
+> 85 |         throw new Error(`All Gemini models failed including fallback.\nErrors:\n${errors.map(e => e.message).join('\n')}\nFinal fallback error: ${finalError.message}`);
+     |               ^
+  86 |     }
+  87 | }
+  88 |
+[StockAPI] Promise.all finished. History length: 250
+[StockAPI] Found 69 unique analyst targets for GOOGL from 988 history items.
+Cached stock data for "GOOGL"
+ POST /api/stock 200 in 1462ms (compile: 11ms, render: 1451ms)
+[Insights API] Fetching insights for: GOOGL via Yahoo Finance
+Trying Gemini model: gemini-2.0-flash-exp...
+[Insights API] Fetching insights for: GOOGL via Yahoo Finance
+Trying Gemini model: gemini-2.0-flash-exp...
+Model gemini-2.0-flash-exp failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-1.5-flash-latest...
+Model gemini-2.0-flash-exp failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-1.5-flash-latest...
+Model gemini-1.5-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-flash-latest...
+Model gemini-1.5-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-flash-latest...
+Model gemini-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit.  [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]}]
+All preferred models failed. Falling back to gemini-pro-latest.
+Trying Gemini model: gemini-pro-latest...
+Model gemini-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit.  [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]}]
+All preferred models failed. Falling back to gemini-pro-latest.
+Trying Gemini model: gemini-pro-latest...
+Gemini Social Search Failed (Quota/Error): Error: All Gemini models failed including fallback.
+Errors:
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit.  [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]}]
+Final fallback error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+Please retry in 6.102848402s. [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerDay-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerMinute-FreeTier","quotaDimensions":{"model":"gemini-3.1-pro","location":"global"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"6s"}]
+    at generateContentWithFallback (lib/gemini.ts:85:15)
+    at async generateJsonWithFallback (lib/gemini.ts:92:18)
+    at async (app/api/insights/route.ts:34:32)
+    at async GET (app/api/insights/route.ts:47:57)
+  83 |         return await generateWithModel("gemini-pro-latest");
+  84 |     } catch (finalError: any) {
+> 85 |         throw new Error(`All Gemini models failed including fallback.\nErrors:\n${errors.map(e => e.message).join('\n')}\nFinal fallback error: ${finalError.message}`);
+     |               ^
+  86 |     }
+  87 | }
+  88 |
+Using generic backup links for social posts.
+ GET /api/insights?symbol=GOOGL 200 in 516ms (compile: 2ms, render: 513ms)
+Gemini Social Search Failed (Quota/Error): Error: All Gemini models failed including fallback.
+Errors:
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit.  [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]}]
+Final fallback error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+Please retry in 6.013708605s. [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerMinute-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-3.1-pro","location":"global"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerDay-FreeTier","quotaDimensions":{"model":"gemini-3.1-pro","location":"global"}}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"6s"}]
+    at generateContentWithFallback (lib/gemini.ts:85:15)
+    at async generateJsonWithFallback (lib/gemini.ts:92:18)
+    at async (app/api/insights/route.ts:34:32)
+    at async GET (app/api/insights/route.ts:47:57)
+  83 |         return await generateWithModel("gemini-pro-latest");
+  84 |     } catch (finalError: any) {
+> 85 |         throw new Error(`All Gemini models failed including fallback.\nErrors:\n${errors.map(e => e.message).join('\n')}\nFinal fallback error: ${finalError.message}`);
+     |               ^
+  86 |     }
+  87 | }
+  88 |
+Using generic backup links for social posts.
+ GET /api/insights?symbol=GOOGL 200 in 586ms (compile: 12ms, render: 574ms)
+[AI Thesis API] Fetching AI Bull/Bear Thesis for: GOOGL (Alphabet Inc.) via Gemini...
+Trying Gemini model: gemini-2.0-flash-exp...
+Model gemini-2.0-flash-exp failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-1.5-flash-latest...
+Model gemini-1.5-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-flash-latest...
+Model gemini-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit.  [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]}]
+All preferred models failed. Falling back to gemini-pro-latest.
+Trying Gemini model: gemini-pro-latest...
+[AI Thesis API] Generation Failed: Error: All Gemini models failed including fallback.
+Errors:
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit.  [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]}]
+Final fallback error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+Please retry in 57.287185492s. [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerMinute-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerDay-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"57s"}]
+    at generateContentWithFallback (lib/gemini.ts:85:15)
+    at async generateJsonWithFallback (lib/gemini.ts:92:18)
+    at async GET (app/api/ai-thesis/route.ts:19:28)
+  83 |         return await generateWithModel("gemini-pro-latest");
+  84 |     } catch (finalError: any) {
+> 85 |         throw new Error(`All Gemini models failed including fallback.\nErrors:\n${errors.map(e => e.message).join('\n')}\nFinal fallback error: ${finalError.message}`);
+     |               ^
+  86 |     }
+  87 | }
+  88 |
+ GET /api/ai-thesis?symbol=GOOGL&name=Alphabet%20Inc. 500 in 605ms (compile: 4ms, render: 601ms)
+ GET / 200 in 44ms (compile: 5ms, render: 39ms)
+ GET /grid.svg 404 in 20ms (compile: 4ms, render: 17ms)
+Cache missing/stale. Fetching new market data...
+Fetching Market Indices via Yahoo...
+Cached market data
+ GET /api/market 200 in 581ms (compile: 2ms, render: 578ms)
+ GET /?q=?tvwidgetsymbol=NASDAQ%3AGOOGL 200 in 53ms (compile: 4ms, render: 49ms)
+ GET /grid.svg 404 in 16ms (compile: 1443µs, render: 15ms)
+Using cached market data (Fresh)
+ GET /api/market 200 in 4ms (compile: 1461µs, render: 2ms)
+[Search API] GEMINI_API_KEY configured: true
+[Search API] Searching for: GOOGL
+ GET /api/search?q=GOOGL 200 in 218ms (compile: 2ms, render: 216ms)
+Using cached market data (Fresh)
+ GET /api/market 200 in 21ms (compile: 8ms, render: 13ms)
+⨯ ./app/api/stock/route.ts:601:7
+Parsing ecmascript source code failed
+[0m [90m 599 |[39m         [36mreturn[39m [33mNextResponse[39m[33m.[39mjson(responseData)[33m;[39m
+ [90m 600 |[39m
+[31m[1m>[22m[39m[90m 601 |[39m     } [36mcatch[39m (error[33m:[39m any) {
+ [90m     |[39m       [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 602 |[39m         console[33m.[39merror([32m"Stock API Error:"[39m[33m,[39m error)[33m;[39m
+ [90m 603 |[39m
+ [90m 604 |[39m         [90m// Handle Rate Limits specially in error response[39m[0m
+
+Expected ',', got 'catch'
+
+
+ POST /api/stock 500 in 909ms (compile: 839ms, render: 70ms)
+ GET /api/ai-thesis?symbol=AAPL 500 in 120ms (compile: 114ms, render: 6ms)
+ GET /api/ai-thesis?symbol=AAPL 500 in 13ms (compile: 7ms, render: 6ms)
+Searching for symbol: AAPL via Yahoo...
+Yahoo found symbol: AAPL
+[StockAPI] Final Date Range for AAPL: 2025-03-18T05:36:17.779Z to 2026-03-16T15:00:00.000Z
+Fetching quote for AAPL via Yahoo...
+Fetching risk data via Gemini for AAPL...
+Trying Gemini model: gemini-2.0-flash-exp...
+Fetching options data for Max Pain...
+QuoteSummary financial statements submodules like cashflowStatementHistory, incomeStatementHistory, incomeStatementHistoryQuarterly have provided almost no data since Nov 2024. Use `fundamentalsTimeSeries` instead.
+Model gemini-2.0-flash-exp failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-1.5-flash-latest...
+Model gemini-1.5-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-flash-latest...
+Using cached market data (Fresh)
+ GET /api/market 200 in 11ms (compile: 4ms, render: 7ms)
+Success with gemini-flash-latest
+[StockAPI] Promise.all finished. History length: 250
+[StockAPI] Found 55 unique analyst targets for AAPL from 966 history items.
+Cached stock data for "AAPL"
+ POST /api/stock 200 in 5.9s (compile: 97ms, render: 5.8s)
+[AI Thesis API] Fetching AI Bull/Bear Thesis for: AAPL (AAPL) via Gemini...
+Trying Gemini model: gemini-2.0-flash-exp...
+Model gemini-2.0-flash-exp failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-1.5-flash-latest...
+Model gemini-1.5-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-flash-latest...
+Model gemini-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit.  [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]}]
+All preferred models failed. Falling back to gemini-pro-latest.
+Trying Gemini model: gemini-pro-latest...
+[AI Thesis API] Generation Failed: Error: All Gemini models failed including fallback.
+Errors:
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit.  [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]}]
+Final fallback error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+Please retry in 35.959567197s. [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerDay-FreeTier","quotaDimensions":{"model":"gemini-3.1-pro","location":"global"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier","quotaDimensions":{"model":"gemini-3.1-pro","location":"global"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerMinute-FreeTier","quotaDimensions":{"model":"gemini-3.1-pro","location":"global"}}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"35s"}]
+    at generateContentWithFallback (lib/gemini.ts:85:15)
+    at async generateJsonWithFallback (lib/gemini.ts:92:18)
+    at async GET (app/api/ai-thesis/route.ts:35:28)
+  83 |         return await generateWithModel("gemini-pro-latest");
+  84 |     } catch (finalError: any) {
+> 85 |         throw new Error(`All Gemini models failed including fallback.\nErrors:\n${errors.map(e => e.message).join('\n')}\nFinal fallback error: ${finalError.message}`);
+     |               ^
+  86 |     }
+  87 | }
+  88 |
+ GET /api/ai-thesis?symbol=AAPL 500 in 556ms (compile: 21ms, render: 535ms)
+[Insights API] Fetching insights for: AAPL via Yahoo Finance
+Trying Gemini model: gemini-2.0-flash-exp...
+Model gemini-2.0-flash-exp failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-1.5-flash-latest...
+Model gemini-1.5-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-flash-latest...
+Model gemini-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit.  [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]}]
+All preferred models failed. Falling back to gemini-pro-latest.
+Trying Gemini model: gemini-pro-latest...
+Gemini Social Search Failed (Quota/Error): Error: All Gemini models failed including fallback.
+Errors:
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit.  [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]}]
+Final fallback error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+Please retry in 35.319521298s. [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerDay-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerMinute-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"35s"}]
+    at generateContentWithFallback (lib/gemini.ts:85:15)
+    at async generateJsonWithFallback (lib/gemini.ts:92:18)
+    at async (app/api/insights/route.ts:57:32)
+    at async GET (app/api/insights/route.ts:83:57)
+  83 |         return await generateWithModel("gemini-pro-latest");
+  84 |     } catch (finalError: any) {
+> 85 |         throw new Error(`All Gemini models failed including fallback.\nErrors:\n${errors.map(e => e.message).join('\n')}\nFinal fallback error: ${finalError.message}`);
+     |               ^
+  86 |     }
+  87 | }
+  88 |
+Using generic backup links for social posts.
+ GET /api/insights?symbol=AAPL 200 in 655ms (compile: 97ms, render: 558ms)
+Using cached market data (Fresh)
+ GET /api/market 200 in 5ms (compile: 1647µs, render: 3ms)
+[AI Thesis API] Fetching AI Bull/Bear Thesis for: AAPL (AAPL) via Gemini...
+Trying Gemini model: gemini-2.0-flash-exp...
+Model gemini-2.0-flash-exp failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-1.5-flash-latest...
+Model gemini-1.5-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-flash-latest...
+Model gemini-flash-latest failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit.  [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]}]
+All preferred models failed. Falling back to gemini-pro-latest.
+Trying Gemini model: gemini-pro-latest...
+[AI Thesis API] Generation Failed: Error: All Gemini models failed including fallback.
+Errors:
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent: [404 Not Found] models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit.  [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]}]
+Final fallback error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.1-pro
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-3.1-pro
+Please retry in 5.454963368s. [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerDay-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerMinute-FreeTier","quotaDimensions":{"location":"global","model":"gemini-3.1-pro"}}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"5s"}]
+    at generateContentWithFallback (lib/gemini.ts:85:15)
+    at async generateJsonWithFallback (lib/gemini.ts:92:18)
+    at async GET (app/api/ai-thesis/route.ts:35:28)
+  83 |         return await generateWithModel("gemini-pro-latest");
+  84 |     } catch (finalError: any) {
+> 85 |         throw new Error(`All Gemini models failed including fallback.\nErrors:\n${errors.map(e => e.message).join('\n')}\nFinal fallback error: ${finalError.message}`);
+     |               ^
+  86 |     }
+  87 | }
+  88 |
+ GET /api/ai-thesis?symbol=AAPL 500 in 636ms (compile: 1509µs, render: 634ms)
+[AI Thesis API] Fetching AI Bull/Bear Thesis for: AAPL (AAPL) via Gemini...
+Trying Gemini model: gemini-2.0-flash...
+Model gemini-2.0-flash failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+Please retry in 24.338624862s. [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerMinute-FreeTier","quotaDimensions":{"location":"global","model":"gemini-2.0-flash"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-2.0-flash"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-2.0-flash"}}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"24s"}]
+Trying Gemini model: gemini-1.5-flash...
+Model gemini-1.5-flash failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent: [404 Not Found] models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Trying Gemini model: gemini-1.5-pro...
+Model gemini-1.5-pro failed: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent: [404 Not Found] models/gemini-1.5-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[AI Thesis API] Generation Failed: Error: All Gemini models failed.
+Errors:
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+Please retry in 24.338624862s. [{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Learn more about Gemini API quotas","url":"https://ai.google.dev/gemini-api/docs/rate-limits"}]},{"@type":"type.googleapis.com/google.rpc.QuotaFailure","violations":[{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_input_token_count","quotaId":"GenerateContentInputTokensPerModelPerMinute-FreeTier","quotaDimensions":{"location":"global","model":"gemini-2.0-flash"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerMinutePerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-2.0-flash"}},{"quotaMetric":"generativelanguage.googleapis.com/generate_content_free_tier_requests","quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier","quotaDimensions":{"location":"global","model":"gemini-2.0-flash"}}]},{"@type":"type.googleapis.com/google.rpc.RetryInfo","retryDelay":"24s"}]
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent: [404 Not Found] models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent: [404 Not Found] models/gemini-1.5-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+    at generateContentWithFallback (lib/gemini.ts:74:11)
+    at async generateJsonWithFallback (lib/gemini.ts:80:18)
+    at async GET (app/api/ai-thesis/route.ts:35:28)
+  72 |     }
+  73 |
+> 74 |     throw new Error(`All Gemini models failed.\nErrors:\n${errors.map(e => (e as Error).message).join('\n')}`);
+     |           ^
+  75 | }
+  76 |
+  77 | // Helper for JSON parsing with markdown cleanup
+ GET /api/ai-thesis?symbol=AAPL 500 in 605ms (compile: 26ms, render: 579ms)

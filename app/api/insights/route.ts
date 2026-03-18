@@ -1,24 +1,47 @@
 import { NextResponse } from 'next/server';
 import { yahooFinance } from '@/lib/yahoo';
+import fs from 'fs';
+import path from 'path';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { generateJsonWithFallback } from '@/lib/gemini';
 
 export const maxDuration = 60; // Set Vercel max execution time to 60 seconds
 
+const CACHE_DIR = path.join(process.cwd(), '.cache', 'insights');
+const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
-    const symbol = searchParams.get('symbol');
+    const symbol = (searchParams.get('symbol') || '').toUpperCase();
 
     if (!symbol) {
         return NextResponse.json({ error: 'Symbol is required' }, { status: 400 });
     }
 
+    const cacheFilePath = path.join(CACHE_DIR, `${symbol}_social.json`);
+
     try {
         console.log(`[Insights API] Fetching insights for: ${symbol} via Yahoo Finance`);
+
+        // 1. Check Cache for Social Posts (Gemini)
+        let cachedSocialPosts = null;
+        if (fs.existsSync(cacheFilePath)) {
+            try {
+                const cachedData = JSON.parse(fs.readFileSync(cacheFilePath, 'utf-8'));
+                if (Date.now() - cachedData.timestamp < CACHE_TTL) {
+                    console.log(`[Insights API] Using CACHED social posts for: ${symbol}`);
+                    cachedSocialPosts = cachedData.data;
+                }
+            } catch (e) {
+                console.warn("[Insights API] Cache Read Failed:", e);
+            }
+        }
 
         // Parallel Fetch: News + Analyst Sentiment + Social Posts (Gemini)
         // We isolate Gemini call so failure doesn't block other data
         const socialPostsPromise = (async () => {
+            if (cachedSocialPosts) return cachedSocialPosts;
+
             try {
                 const prompt = `
                      Find 5 specific, recent, and trending social media posts/discussions about the stock "${symbol}".
@@ -34,7 +57,20 @@ export async function GET(req: Request) {
                 const result = await generateJsonWithFallback(prompt, {
                     tools: [{ googleSearch: {} }] as any
                 });
+
                 if (result?.posts && Array.isArray(result.posts)) {
+                    // Save to Cache
+                    try {
+                        if (!fs.existsSync(CACHE_DIR)) {
+                            fs.mkdirSync(CACHE_DIR, { recursive: true });
+                        }
+                        fs.writeFileSync(cacheFilePath, JSON.stringify({
+                            timestamp: Date.now(),
+                            data: result.posts
+                        }, null, 2));
+                    } catch (cacheError) {
+                        console.error("[Insights API] Cache Write Failed:", cacheError);
+                    }
                     return result.posts;
                 }
                 return null;
@@ -89,8 +125,6 @@ export async function GET(req: Request) {
         }
 
         // 3. Trending Topics - Using Sector/Industry from Summary Profile if available (Separate call, or just simplistic fallback)
-        // Since we didn't request summaryProfile, we'll leave trending topics generic or empty for now.
-        // Or we can just use the "relatedTickers" from the news items as trending topics.
         const relatedTickers = new Set<string>();
         newsResult.news.forEach((n: any) => {
             if (n.relatedTickers) {

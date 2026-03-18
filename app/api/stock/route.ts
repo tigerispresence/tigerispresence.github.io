@@ -196,49 +196,25 @@ export async function POST(req: Request) {
             }
         }
 
-        const metricsPromise = (async () => {
-            // Optimization: If Yahoo already provided key metrics, skip Gemini to save time (avoid 8s+ delay)
-            if (quote && (quote.trailingPE || quote.forwardPE)) {
-                console.log("Yahoo provided sufficient metrics, skipping Gemini...");
-                return null;
-            }
 
+        const geminiDataPromise = (async () => {
+            // Optimization: If Yahoo already provided key metrics, we only need Risk metrics from Gemini
+            const needsMetrics = !quote || (!quote.trailingPE && !quote.forwardPE);
+            
             try {
-                console.log("Fetching additional metrics via Gemini...");
+                console.log(`Fetching ${needsMetrics ? "metrics & risk" : "risk"} data via Gemini for ${symbol}...`);
                 const prompt = `
-                    Analyze the stock "${symbol}" and provide the following financial metrics based on the most recent data available to you:
-                    1. Trailing P/E Ratio (TTM)
-                    2. Forward P/E Ratio
-                    3. Annual Dividend Yield (%)
-
-                    Return ONLY a JSON object with keys: "trailingPE", "forwardPE", "dividendYield".
-                    Values should be numbers (or null if not applicable/found).
-                    Example: { "trailingPE": 25.4, "forwardPE": 22.1, "dividendYield": 0.85 }
-                `;
-                // Use search tool to avoid "I don't have real data" refusals
-                return await generateJsonWithFallback(prompt);
-            } catch (e) {
-                console.error("Gemini metrics fetch failed:", e);
-                return null;
-            }
-        })();
-
-        const geminiRiskMetricsPromise = (async () => {
-            try {
-                console.log("Fetching risk metrics via Gemini...");
-                const prompt = `
-                    Analyze the financial health of the stock "${symbol}" (${stockName}) and provide:
-                    1. Altman Z-Score (a measure of bankruptcy risk)
-                    2. Piotroski F-Score (a 0-9 score of financial strength)
-                    3. A very brief 1-sentence risk summary.
-
-                    Return ONLY a JSON object with keys: "altmanZScore", "piotroskiFScore", "riskSummary".
-                    Scores should be numbers.
-                    Example: { "altmanZScore": 4.5, "piotroskiFScore": 7, "riskSummary": "Strong balance sheet with low bankruptcy risk." }
+                    Analyze the stock "${symbol}" (${stockName}) and provide:
+                    ${needsMetrics ? `1. Trailing P/E Ratio (TTM)\n2. Forward P/E Ratio\n3. Annual Dividend Yield (%)` : ""}
+                    4. Altman Z-Score (bankruptcy risk)
+                    5. Piotroski F-Score (0-9 financial strength)
+                    6. 1-sentence risk summary
+                    
+                    Return ONLY a JSON object with keys: ${needsMetrics ? '"trailingPE", "forwardPE", "dividendYield", ' : ""}"altmanZScore", "piotroskiFScore", "riskSummary".
                 `;
                 return await generateJsonWithFallback(prompt);
             } catch (e) {
-                console.error("Gemini risk metrics fetch failed:", e);
+                console.error("Gemini data fetch failed:", e);
                 return null;
             }
         })();
@@ -292,8 +268,7 @@ export async function POST(req: Request) {
         const [
             history, 
             dividends, 
-            geminiMetrics, 
-            geminiRiskMetrics, 
+            geminiData,
             fundamentalsTimeSeries,
             quoteSummaryResult, 
             seasonalityHistory, 
@@ -316,8 +291,7 @@ export async function POST(req: Request) {
                 console.warn("Yahoo Dividends failed:", e);
                 return [] as any[];
             }),
-            metricsPromise,
-            geminiRiskMetricsPromise,
+            geminiDataPromise,
             yahooFinance.fundamentalsTimeSeries(symbol, {
                 period1: new Date(new Date().setFullYear(new Date().getFullYear() - 3)), 
                 type: 'annual',
@@ -445,8 +419,16 @@ export async function POST(req: Request) {
             trailingPE: quote.trailingPE,
             forwardPE: quote.forwardPE,
             dividendYield: calculatedYield,
-            geminiMetrics,
-            geminiRiskMetrics,
+            geminiMetrics: geminiData ? {
+                trailingPE: geminiData.trailingPE,
+                forwardPE: geminiData.forwardPE,
+                dividendYield: geminiData.dividendYield
+            } : null,
+            geminiRiskMetrics: geminiData ? {
+                altmanZScore: geminiData.altmanZScore,
+                piotroskiFScore: geminiData.piotroskiFScore,
+                riskSummary: geminiData.riskSummary
+            } : null,
             priceTargets: financialData ? {
                 low: financialData.targetLowPrice,
                 high: financialData.targetHighPrice,
