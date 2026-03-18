@@ -14,6 +14,7 @@ import AIInsights from "./AIInsights";
 import AnalystRatings from "./AnalystRatings";
 import RiskMetrics from "./RiskMetrics";
 import SmartMoneyFlow from "./SmartMoneyFlow";
+import ShareholderYield from "./ShareholderYield";
 
 export interface StockData {
     symbol: string;
@@ -115,6 +116,14 @@ export interface StockData {
             shortRatio?: number;
             shortPreviousMonthDate?: string;
         };
+    };
+
+    shareholderYield?: {
+        buybackYield: number;
+        dividendYield: number;
+        totalYield: number;
+        payoutRatio?: number;
+        annualBuybacks: number;
     };
 }
 
@@ -499,6 +508,9 @@ const StockDashboard = memo(({ data }: StockDashboardProps) => {
 
             {/* Smart Money Flow Section */}
             <SmartMoneyFlow data={data} />
+
+            {/* Shareholder Yield Section */}
+            <ShareholderYield data={data} />
 
             {/* Key Statistics Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

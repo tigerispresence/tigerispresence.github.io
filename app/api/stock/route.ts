@@ -289,7 +289,16 @@ export async function POST(req: Request) {
             }
         })();
 
-        const [history, dividends, geminiMetrics, geminiRiskMetrics, quoteSummaryResult, seasonalityHistory, maxPain] = await Promise.all([
+        const [
+            history, 
+            dividends, 
+            geminiMetrics, 
+            geminiRiskMetrics, 
+            fundamentalsTimeSeries,
+            quoteSummaryResult, 
+            seasonalityHistory, 
+            maxPain
+        ] = await Promise.all([
             yahooFinance.historical(symbol, {
                 period1: startDate,
                 period2: endDate,
@@ -309,18 +318,24 @@ export async function POST(req: Request) {
             }),
             metricsPromise,
             geminiRiskMetricsPromise,
+            yahooFinance.fundamentalsTimeSeries(symbol, {
+                period1: new Date(new Date().setFullYear(new Date().getFullYear() - 3)), 
+                type: 'annual',
+                module: 'cash-flow'
+            }, { validateResult: false }).catch(() => []),
             yahooFinance.quoteSummary(symbol, { 
                 modules: [
-                    'financialData', 
-                    'upgradeDowngradeHistory', 
-                    'earningsHistory', 
-                    'incomeStatementHistoryQuarterly', 
+                    'financialData',
+                    'upgradeDowngradeHistory',
+                    'earningsHistory',
+                    'incomeStatementHistoryQuarterly',
                     'recommendationTrend',
                     'defaultKeyStatistics',
                     'summaryDetail',
                     'insiderTransactions',
-                    'majorHoldersBreakdown'
-                ] 
+                    'majorHoldersBreakdown',
+                    'cashflowStatementHistory'
+                ]
             }).catch((e: any) => {
                 console.warn("Yahoo FinancialData/History failed:", e);
                 return null;
@@ -496,6 +511,38 @@ export async function POST(req: Request) {
                 fiftyTwoWeekLow: summary?.fiftyTwoWeekLow || quote?.fiftyTwoWeekLow,
                 marketCap: summary?.marketCap || stats?.marketCap || quote?.marketCap,
             },
+            shareholderYield: (() => {
+                const marketCap = summary?.marketCap || stats?.marketCap || quote?.marketCap;
+                if (!marketCap) return null;
+
+                // Use annual fundamentalsTimeSeries as it provides repurchaseOfCapitalStock
+                let buybacks = 0;
+                if (Array.isArray(fundamentalsTimeSeries) && fundamentalsTimeSeries.length > 0) {
+                    // Extract the latest value from the timeseries
+                    const latest = fundamentalsTimeSeries
+                        .filter((item: any) => item.repurchaseOfCapitalStock !== undefined || item.commonStockPayments !== undefined)
+                        .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                        .pop();
+                    buybacks = Math.abs(latest?.repurchaseOfCapitalStock || latest?.commonStockPayments || 0);
+                }
+
+                // Fallback to cashflowStatementHistory if fundamentalsTimeSeries failed
+                if (buybacks === 0) {
+                    const cashflow = quoteSummaryResult?.cashflowStatementHistory?.cashflowStatements?.[0];
+                    buybacks = Math.abs(cashflow?.repurchaseOfCapitalStock || 0);
+                }
+                
+                const buybackYield = buybacks / marketCap;
+                const divYield = quote.dividendYield / 100 || stats?.trailingAnnualDividendYield || 0;
+                
+                return {
+                    buybackYield: buybackYield,
+                    dividendYield: divYield,
+                    totalYield: buybackYield + divYield,
+                    payoutRatio: stats?.payoutRatio,
+                    annualBuybacks: buybacks
+                };
+            })(),
             smartMoneyFlow: {
                 insiderTransactions: quoteSummaryResult?.insiderTransactions?.transactions?.slice(0, 10).map((t: any) => ({
                     shares: t.shares,
