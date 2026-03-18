@@ -36,7 +36,8 @@ const SmartMoneyFlow = ({ data }: SmartMoneyFlowProps) => {
     const { insiderTransactions, ownership, shortInterest } = smartMoneyFlow;
 
     // Format numbers
-    const formatValue = (val: number) => {
+    const formatValue = (val?: number) => {
+        if (val === undefined || val === null) return "0";
         if (val >= 1e9) return `${(val / 1e9).toFixed(2)}B`;
         if (val >= 1e6) return `${(val / 1e6).toFixed(2)}M`;
         if (val >= 1e3) return `${(val / 1e3).toFixed(2)}K`;
@@ -252,7 +253,7 @@ const SmartMoneyFlow = ({ data }: SmartMoneyFlowProps) => {
                                                     {t.text}
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 text-right text-slate-300">{t.shares.toLocaleString()}</td>
+                                            <td className="px-6 py-4 text-right text-slate-300">{(t.shares || 0).toLocaleString()}</td>
                                             <td className="px-6 py-4 text-right font-medium text-slate-200">${formatValue(t.value)}</td>
                                         </tr>
                                     );
