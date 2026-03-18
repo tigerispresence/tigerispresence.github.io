@@ -317,7 +317,9 @@ export async function POST(req: Request) {
                     'incomeStatementHistoryQuarterly', 
                     'recommendationTrend',
                     'defaultKeyStatistics',
-                    'summaryDetail'
+                    'summaryDetail',
+                    'insiderTransactions',
+                    'majorHoldersBreakdown'
                 ] 
             }).catch((e: any) => {
                 console.warn("Yahoo FinancialData/History failed:", e);
@@ -493,6 +495,27 @@ export async function POST(req: Request) {
                 fiftyTwoWeekHigh: summary?.fiftyTwoWeekHigh || quote?.fiftyTwoWeekHigh,
                 fiftyTwoWeekLow: summary?.fiftyTwoWeekLow || quote?.fiftyTwoWeekLow,
                 marketCap: summary?.marketCap || stats?.marketCap || quote?.marketCap,
+            },
+            smartMoneyFlow: {
+                insiderTransactions: quoteSummaryResult?.insiderTransactions?.transactions?.slice(0, 10).map((t: any) => ({
+                    shares: t.shares,
+                    value: t.value,
+                    date: t.startDate,
+                    text: t.transactionText,
+                    insiderName: t.insiderName,
+                    insiderTitle: t.insiderTitle,
+                    ownership: t.ownership
+                })) || [],
+                ownership: {
+                    insiderPercent: stats?.heldPercentInsiders,
+                    institutionPercent: stats?.heldPercentInstitutions,
+                    floatPercent: stats?.floatPercentHeld,
+                },
+                shortInterest: {
+                    shortPercentOfFloat: stats?.shortPercentOfFloat,
+                    shortRatio: stats?.shortRatio, // Days to cover
+                    shortPreviousMonthDate: stats?.shortPreviousMonthDate,
+                }
             }
         };
 

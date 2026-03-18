@@ -13,6 +13,7 @@ import FinancialsChart from "./FinancialsChart";
 import AIInsights from "./AIInsights";
 import AnalystRatings from "./AnalystRatings";
 import RiskMetrics from "./RiskMetrics";
+import SmartMoneyFlow from "./SmartMoneyFlow";
 
 export interface StockData {
     symbol: string;
@@ -92,6 +93,28 @@ export interface StockData {
         altmanZScore?: number;
         piotroskiFScore?: number;
         riskSummary?: string;
+    };
+
+    smartMoneyFlow?: {
+        insiderTransactions: Array<{
+            shares: number;
+            value: number;
+            date: string;
+            text: string;
+            insiderName: string;
+            insiderTitle: string;
+            ownership: string;
+        }>;
+        ownership: {
+            insiderPercent?: number;
+            institutionPercent?: number;
+            floatPercent?: number;
+        };
+        shortInterest: {
+            shortPercentOfFloat?: number;
+            shortRatio?: number;
+            shortPreviousMonthDate?: string;
+        };
     };
 }
 
@@ -473,6 +496,9 @@ const StockDashboard = memo(({ data }: StockDashboardProps) => {
 
             {/* Risk Metrics Section */}
             <RiskMetrics data={data} />
+
+            {/* Smart Money Flow Section */}
+            <SmartMoneyFlow data={data} />
 
             {/* Key Statistics Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
