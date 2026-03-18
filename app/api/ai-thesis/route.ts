@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { generateJsonWithFallback } from '@/lib/gemini';
+import { yahooFinance } from '@/lib/yahoo';
 import fs from 'fs';
 import path from 'path';
 
@@ -22,26 +23,58 @@ export async function GET(req: Request) {
     try {
         // 1. Check Cache
         if (fs.existsSync(cacheFilePath)) {
-            const cachedData = JSON.parse(fs.readFileSync(cacheFilePath, 'utf-8'));
-            const isExpired = Date.now() - cachedData.timestamp > CACHE_TTL;
-            if (!isExpired) {
-                console.log(`[AI Thesis API] Returning CACHED thesis for: ${symbol}`);
-                return NextResponse.json(cachedData.data);
+            try {
+                const cachedData = JSON.parse(fs.readFileSync(cacheFilePath, 'utf-8'));
+                if (Date.now() - cachedData.timestamp < CACHE_TTL) {
+                    console.log(`[AI Thesis API] Returning CACHED thesis for: ${symbol}`);
+                    return NextResponse.json(cachedData.data);
+                }
+            } catch (e) {
+                console.warn("[AI Thesis API] Cache Read Failed:", e);
             }
         }
 
-        console.log(`[AI Thesis API] Fetching AI Bull/Bear Thesis for: ${symbol} (${name}) via Gemini...`);
+        console.log(`[AI Thesis API] Fetching context for ${symbol} via Yahoo...`);
+        
+        // Fetch minimal context to avoid extra Gemini search costs
+        const quoteSummary = await yahooFinance.quoteSummary(symbol, { 
+            modules: ['price', 'summaryProfile', 'financialData'] 
+        }).catch(() => null);
 
-        const aiAnalysis = await generateJsonWithFallback(
-            `Analyze the stock "${symbol}" (${name}) and provide a concise Bull Case and Bear Case investment thesis.
+        const price = quoteSummary?.price?.regularMarketPrice;
+        const change = quoteSummary?.price?.regularMarketChangePercent;
+        const sector = quoteSummary?.summaryProfile?.sector;
+        const industry = quoteSummary?.summaryProfile?.industry;
+        const summary = quoteSummary?.summaryProfile?.longBusinessSummary?.substring(0, 500);
+
+        console.log(`[AI Thesis API] Generating thesis for: ${symbol} using context...`);
+
+        const prompt = `
+             Analyze the stock "${symbol}" (${name}).
+             Current Context:
+             - Price: ${price ? price : 'N/A'}
+             - 1D Change: ${change ? (change * 100).toFixed(2) + '%' : 'N/A'}
+             - Sector: ${sector || 'N/A'}
+             - Industry: ${industry || 'N/A'}
+             - Business Summary: ${summary || 'N/A'}
+             
+             Provide a concise Bull Case and Bear Case investment thesis based on this data and your knowledge.
+             If the context is insufficient, you may use external knowledge.
              
              Return a JSON object with:
              - bullCase: string (A concise paragraph summarizing positive catalysts, max 300 chars)
              - bearCase: string (A concise paragraph summarizing risks/negatives, max 300 chars)
              
-             Ensure the tone is objective and professional.`,
-            { tools: [{ googleSearch: {} }] as any }
-        );
+             Tone: Objective and professional.
+        `;
+
+        // Optimization: We only use tools if we absolutely have NO context
+        const options: any = {};
+        if (!summary) {
+            options.tools = [{ googleSearch: {} }];
+        }
+
+        const aiAnalysis = await generateJsonWithFallback(prompt, options);
 
         // 2. Save to Cache
         try {
@@ -61,7 +94,7 @@ export async function GET(req: Request) {
         console.error("[AI Thesis API] Generation Failed:", e);
         return NextResponse.json({
             bullCase: "Error generating insights: " + (e.message || "Unknown error"),
-            bearCase: "Please check Vercel deployment logs and environment variables."
+            bearCase: "Rate limits or API issues encountered. Please try again later."
         }, { status: 500 });
     }
 }

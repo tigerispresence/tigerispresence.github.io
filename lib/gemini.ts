@@ -6,10 +6,9 @@ const genAI = new GoogleGenerativeAI(apiKey);
 // Models prioritized by speed/cost to minimize rate limits as requested
 // We include the user-requested models plus known working standard models as fallbacks.
 const MODELS = [
+    "gemini-1.5-flash-8b",
     "gemini-2.0-flash",
-    "gemini-1.5-flash-latest",
     "gemini-1.5-flash",
-    "gemini-1.5-pro-latest",
     "gemini-1.5-pro",
 ];
 
@@ -44,7 +43,17 @@ export async function generateContentWithFallback(
 
         const model = genAI.getGenerativeModel(modelConfig);
 
-        const result = await model.generateContent(prompt);
+        // Strict JSON Mode Optimization
+        const generationConfig: any = {};
+        if (options.jsonMode) {
+            generationConfig.responseMimeType = "application/json";
+        }
+
+        const result = await model.generateContent({
+            contents: [{ role: "user", parts: [{ text: prompt }] }],
+            generationConfig
+        });
+        
         const response = result.response;
         const text = response.text();
 
@@ -76,11 +85,12 @@ export async function generateContentWithFallback(
     throw new Error(`All Gemini models failed.\nErrors:\n${errors.map(e => (e as Error).message).join('\n')}`);
 }
 
-// Helper for JSON parsing with markdown cleanup
+// Helper for JSON parsing with markdown cleanup and strict mode
 export async function generateJsonWithFallback(prompt: string, options: GeneratorOptions = {}) {
     // Validate that the output parses as JSON
     const text = await generateContentWithFallback(prompt, {
         ...options,
+        jsonMode: true,
         validator: (t) => {
             try {
                 const clean = t.replace(/```json|```/g, "").trim();

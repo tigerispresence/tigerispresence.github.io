@@ -37,26 +37,42 @@ export async function GET(req: Request) {
             }
         }
 
-        // Parallel Fetch: News + Analyst Sentiment + Social Posts (Gemini)
-        // We isolate Gemini call so failure doesn't block other data
-        const socialPostsPromise = (async () => {
+        // Parallel Fetch: News + Analyst Sentiment + Summary Profile (for context)
+        const [newsResult, quoteSummary] = await Promise.all([
+            yahooFinance.search(symbol, { newsCount: 5 }),
+            yahooFinance.quoteSummary(symbol, { modules: ['recommendationTrend', 'financialData', 'summaryProfile'] }),
+        ]);
+
+        // Process News and Summary for Gemini context
+        const newsHeaders = newsResult.news.slice(0, 3).map((n: any) => n.title).join("; ");
+        const businessSummary = quoteSummary?.summaryProfile?.longBusinessSummary?.substring(0, 300);
+
+        // Fetch Social Posts (Gemini) - using context to reduce search
+        const socialPosts = await (async () => {
             if (cachedSocialPosts) return cachedSocialPosts;
 
             try {
                 const prompt = `
-                     Find 5 specific, recent, and trending social media posts/discussions about the stock "${symbol}".
-                     Search on Reddit, X (Twitter), and StockTwits.
+                     Identify 5 recent and trending social media discussions (Reddit, X, StockTwits) for "${symbol}".
+                     Stock Context: ${businessSummary || "N/A"}
+                     Recent News: ${newsHeaders || "N/A"}
                      
+                     Focus on sentiment and specific community reactions.
                      Return a JSON object with a "posts" array:
                      {
                          "posts": [
-                             { "title": "Post Title or Short Summary", "url": "Direct Link", "source": "Reddit/X/StockTwits" }
+                             { "title": "Post Summary", "url": "Link", "source": "Reddit/X/StockTwits" }
                          ]
                      }
                  `;
-                const result = await generateJsonWithFallback(prompt, {
-                    tools: [{ googleSearch: {} }] as any
-                });
+                
+                // Only provide search if we have minimal context
+                const geminiOptions: any = {};
+                if (!newsHeaders && !businessSummary) {
+                    geminiOptions.tools = [{ googleSearch: {} }];
+                }
+
+                const result = await generateJsonWithFallback(prompt, geminiOptions);
 
                 if (result?.posts && Array.isArray(result.posts)) {
                     // Save to Cache
@@ -79,12 +95,6 @@ export async function GET(req: Request) {
                 return null;
             }
         })();
-
-        const [newsResult, quoteSummary, socialPosts] = await Promise.all([
-            yahooFinance.search(symbol, { newsCount: 5 }),
-            yahooFinance.quoteSummary(symbol, { modules: ['recommendationTrend', 'financialData'] }),
-            socialPostsPromise
-        ]);
 
         // 1. Process News
         const news = newsResult.news.map((item: any) => ({
