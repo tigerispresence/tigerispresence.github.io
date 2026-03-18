@@ -334,7 +334,9 @@ export async function POST(req: Request) {
                     'summaryDetail',
                     'insiderTransactions',
                     'majorHoldersBreakdown',
-                    'cashflowStatementHistory'
+                    'cashflowStatementHistory',
+                    'earningsTrend',
+                    'incomeStatementHistory'
                 ]
             }).catch((e: any) => {
                 console.warn("Yahoo FinancialData/History failed:", e);
@@ -563,6 +565,32 @@ export async function POST(req: Request) {
                     shortRatio: stats?.shortRatio, // Days to cover
                     shortPreviousMonthDate: stats?.shortPreviousMonthDate,
                 }
+            },
+            earningsGrowth: {
+                history: quoteSummaryResult?.earningsHistory?.history?.map((h: any) => ({
+                    quarter: h.quarter,
+                    actual: h.epsActual,
+                    estimate: h.epsEstimate,
+                    surprise: h.epsDifference,
+                    surprisePercent: h.surprisePercent,
+                    period: h.period
+                })) || [],
+                trend: quoteSummaryResult?.earningsTrend?.trend?.map((t: any) => ({
+                    period: t.period,
+                    endDate: t.endDate,
+                    growth: t.growth,
+                    earningsEstimate: t.earningsEstimate?.avg,
+                    revenueEstimate: t.revenueEstimate?.avg
+                })) || [],
+                margins: (() => {
+                    const history = quoteSummaryResult?.incomeStatementHistory?.incomeStatementHistory || [];
+                    return history.map((item: any) => ({
+                        date: item.endDate,
+                        grossMargin: item.grossProfit / item.totalRevenue,
+                        operatingMargin: item.ebit / item.totalRevenue, // Approximate operating income with EBIT
+                        netMargin: item.netIncome / item.totalRevenue
+                    }));
+                })()
             }
         };
 

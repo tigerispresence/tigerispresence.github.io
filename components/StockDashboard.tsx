@@ -15,6 +15,7 @@ import AnalystRatings from "./AnalystRatings";
 import RiskMetrics from "./RiskMetrics";
 import SmartMoneyFlow from "./SmartMoneyFlow";
 import ShareholderYield from "./ShareholderYield";
+import EarningsGrowth from "./EarningsGrowth";
 
 export interface StockData {
     symbol: string;
@@ -124,6 +125,30 @@ export interface StockData {
         totalYield: number;
         payoutRatio?: number;
         annualBuybacks: number;
+    };
+
+    earningsGrowth?: {
+        history: {
+            quarter: string;
+            actual: number;
+            estimate: number;
+            surprise: number;
+            surprisePercent: number;
+            period: string;
+        }[];
+        trend: {
+            period: string;
+            endDate: string;
+            growth: number;
+            earningsEstimate: number;
+            revenueEstimate: number;
+        }[];
+        margins: {
+            date: string;
+            grossMargin: number;
+            operatingMargin: number;
+            netMargin: number;
+        }[];
     };
 }
 
@@ -511,6 +536,9 @@ const StockDashboard = memo(({ data }: StockDashboardProps) => {
 
             {/* Shareholder Yield Section */}
             <ShareholderYield data={data} />
+
+            {/* Earnings & Growth Section */}
+            <EarningsGrowth data={data} />
 
             {/* Key Statistics Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
