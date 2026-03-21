@@ -32,16 +32,20 @@ export default function RiskMetrics({ data }: RiskMetricsProps) {
     const zScoreInfo = useMemo(() => {
         const score = geminiRiskMetrics?.altmanZScore;
         if (score === undefined || score === null) return null;
-        if (score > 3.0) return { label: "Safe", color: "text-green-400", bg: "bg-green-400/10", border: "border-green-400/20" };
-        if (score > 1.8) return { label: "Gray Zone", color: "text-yellow-400", bg: "bg-yellow-400/10", border: "border-yellow-400/20" };
+        const numScore = Number(score);
+        if (isNaN(numScore)) return null;
+        if (numScore > 3.0) return { label: "Safe", color: "text-green-400", bg: "bg-green-400/10", border: "border-green-400/20" };
+        if (numScore > 1.8) return { label: "Gray Zone", color: "text-yellow-400", bg: "bg-yellow-400/10", border: "border-yellow-400/20" };
         return { label: "Distress", color: "text-red-400", bg: "bg-red-400/10", border: "border-red-400/20" };
     }, [geminiRiskMetrics?.altmanZScore]);
 
     const fScoreInfo = useMemo(() => {
         const score = geminiRiskMetrics?.piotroskiFScore;
         if (score === undefined || score === null) return null;
-        if (score >= 7) return { label: "Strong", color: "text-green-400", bg: "bg-green-400/10", border: "border-green-400/20" };
-        if (score >= 4) return { label: "Average", color: "text-yellow-400", bg: "bg-yellow-400/10", border: "border-yellow-400/20" };
+        const numScore = Number(score);
+        if (isNaN(numScore)) return null;
+        if (numScore >= 7) return { label: "Strong", color: "text-green-400", bg: "bg-green-400/10", border: "border-green-400/20" };
+        if (numScore >= 4) return { label: "Average", color: "text-yellow-400", bg: "bg-yellow-400/10", border: "border-yellow-400/20" };
         return { label: "Weak", color: "text-red-400", bg: "bg-red-400/10", border: "border-red-400/20" };
     }, [geminiRiskMetrics?.piotroskiFScore]);
 
@@ -59,16 +63,16 @@ export default function RiskMetrics({ data }: RiskMetricsProps) {
                 </div>
                 <div className="flex items-end gap-2">
                     <span className="text-2xl font-bold text-white">
-                        {riskMetrics?.beta?.toFixed(2) || "N/A"}
+                        {riskMetrics?.beta !== undefined && riskMetrics?.beta !== null && !isNaN(Number(riskMetrics.beta)) ? Number(riskMetrics.beta).toFixed(2) : "N/A"}
                     </span>
                     <span className={`text-xs mb-1 font-medium ${
-                        !riskMetrics?.beta ? "text-slate-500" :
-                        riskMetrics.beta > 1.2 ? "text-orange-400" :
-                        riskMetrics.beta < 0.8 ? "text-emerald-400" : "text-blue-400"
+                        riskMetrics?.beta === undefined || riskMetrics?.beta === null || isNaN(Number(riskMetrics.beta)) ? "text-slate-500" :
+                        Number(riskMetrics.beta) > 1.2 ? "text-orange-400" :
+                        Number(riskMetrics.beta) < 0.8 ? "text-emerald-400" : "text-blue-400"
                     }`}>
-                        {!riskMetrics?.beta ? "" :
-                         riskMetrics.beta > 1.2 ? "High Volatility" :
-                         riskMetrics.beta < 0.8 ? "Low Volatility" : "Moderate"}
+                        {riskMetrics?.beta === undefined || riskMetrics?.beta === null || isNaN(Number(riskMetrics.beta)) ? "" :
+                         Number(riskMetrics.beta) > 1.2 ? "High Volatility" :
+                         Number(riskMetrics.beta) < 0.8 ? "Low Volatility" : "Moderate"}
                     </span>
                 </div>
             </motion.div>
@@ -114,7 +118,9 @@ export default function RiskMetrics({ data }: RiskMetricsProps) {
                 </div>
                 <div className="flex items-end gap-2">
                     <span className="text-2xl font-bold text-white">
-                        {geminiRiskMetrics?.altmanZScore?.toFixed(2) || "N/A"}
+                        {geminiRiskMetrics?.altmanZScore !== undefined && geminiRiskMetrics?.altmanZScore !== null && !isNaN(Number(geminiRiskMetrics.altmanZScore))
+                            ? Number(geminiRiskMetrics.altmanZScore).toFixed(2)
+                            : "N/A"}
                     </span>
                     {zScoreInfo && (
                         <span className={`text-xs px-2 py-0.5 rounded-full mb-1 border font-semibold ${zScoreInfo.bg} ${zScoreInfo.color} ${zScoreInfo.border}`}>
@@ -144,7 +150,9 @@ export default function RiskMetrics({ data }: RiskMetricsProps) {
                 </div>
                 <div className="flex items-end gap-2">
                     <span className="text-2xl font-bold text-white">
-                        {geminiRiskMetrics?.piotroskiFScore || "N/A"}/9
+                        {geminiRiskMetrics?.piotroskiFScore !== undefined && geminiRiskMetrics?.piotroskiFScore !== null && !isNaN(Number(geminiRiskMetrics.piotroskiFScore))
+                            ? `${Number(geminiRiskMetrics.piotroskiFScore)}/9`
+                            : "N/A"}
                     </span>
                     {fScoreInfo && (
                         <span className={`text-xs px-2 py-0.5 rounded-full mb-1 border font-semibold ${fScoreInfo.bg} ${fScoreInfo.color} ${fScoreInfo.border}`}>
