@@ -1335,7 +1335,7 @@ const StockDashboard = memo(({ data }: StockDashboardProps) => {
                             </div>
                             <div>
                                 <h3 className="text-xl font-semibold text-white">Fear & Greed Trading Simulation</h3>
-                                <p className="text-gray-400 text-sm">Strategy: Buy 1 Share when CNN Fear & Greed Index is in selected zones + <span className="text-green-400">Reinvest Dividends</span></p>
+                                <p className="text-gray-400 text-sm">Strategy: Buy 1 Share when CNN Fear & Greed Index is in selected zones + <span className="text-green-400">Reinvest Dividends</span> <span className="text-orange-400 border border-orange-500/30 bg-orange-500/10 px-1 py-0.5 rounded ml-1 text-xs">Max 1 Year Data</span></p>
                             </div>
                         </div>
 
