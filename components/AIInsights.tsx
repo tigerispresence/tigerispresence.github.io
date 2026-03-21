@@ -32,7 +32,7 @@ export default function AIInsights({ symbol, stockName }: AIInsightsProps) {
                 } else {
                     setError(json.error || "Failed to fetch AI insights");
                 }
-            } catch (err) {
+            } catch {
                 setError("An error occurred while fetching AI insights.");
             } finally {
                 setLoading(false);

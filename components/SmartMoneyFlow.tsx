@@ -203,9 +203,9 @@ const SmartMoneyFlow = ({ data }: SmartMoneyFlowProps) => {
                         </div>
                         <div>
                             <p className="text-xs text-slate-400 leading-relaxed italic">
-                                "{insiderTransactions.length > 0
+                                &quot;{insiderTransactions.length > 0
                                     ? `Latest activity involves ${insiderTransactions[0].insiderName} (${insiderTransactions[0].insiderTitle}).`
-                                    : "No recent significant insider transactions reported."}"
+                                    : "No recent significant insider transactions reported."}&quot;
                             </p>
                         </div>
                     </div>

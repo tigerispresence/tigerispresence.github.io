@@ -69,12 +69,13 @@ export async function GET(req: Request) {
         `;
 
         // Optimization: We only use tools if we absolutely have NO context
-        const options: any = {};
+        const options: { tools?: unknown[] } = {};
         if (!summary) {
             options.tools = [{ googleSearch: {} }];
         }
 
-        const aiAnalysis = await generateJsonWithFallback(prompt, options);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const aiAnalysis = await generateJsonWithFallback(prompt, options as any);
 
         // 2. Save to Cache
         try {
@@ -90,10 +91,11 @@ export async function GET(req: Request) {
         }
 
         return NextResponse.json(aiAnalysis);
-    } catch (e: any) {
+    } catch (e: unknown) {
         console.error("[AI Thesis API] Generation Failed:", e);
+        const errorMessage = e instanceof Error ? e.message : "Unknown error";
         return NextResponse.json({
-            bullCase: "Error generating insights: " + (e.message || "Unknown error"),
+            bullCase: "Error generating insights: " + errorMessage,
             bearCase: "Rate limits or API issues encountered. Please try again later."
         }, { status: 500 });
     }

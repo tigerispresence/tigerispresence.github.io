@@ -5,7 +5,7 @@ import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
     Legend, LineChart, Line, ComposedChart, Area
 } from "recharts";
-import { TrendingUp, Award, BarChart3, PieChart, Activity, Zap, Info } from "lucide-react";
+import { TrendingUp, Award, BarChart3, Activity, Zap, Info } from "lucide-react";
 
 interface EarningsGrowthProps {
     data: {
@@ -35,33 +35,41 @@ interface EarningsGrowthProps {
     };
 }
 
+const formatPercent = (val: number) => (val * 100).toFixed(1) + "%";
+
+interface CustomTooltipProps {
+    active?: boolean;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    payload?: any[];
+    label?: string;
+}
+
+const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
+    if (active && payload && payload.length) {
+        return (
+            <div className="bg-slate-900/90 backdrop-blur-md border border-slate-800 p-3 rounded-xl shadow-2xl">
+                <p className="text-xs font-bold text-slate-400 mb-2">{label}</p>
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                {payload.map((entry: any, index: number) => (
+                    <div key={index} className="flex items-center gap-2 text-xs">
+                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
+                        <span className="text-slate-300">{entry.name}:</span>
+                        <span className="text-white font-mono font-bold">
+                            {entry.name.includes("Margin") || entry.name.includes("Surprise") ? formatPercent(entry.value) : entry.value.toFixed(2)}
+                        </span>
+                    </div>
+                ))}
+            </div>
+        );
+    }
+    return null;
+};
+
 const EarningsGrowth = ({ data }: EarningsGrowthProps) => {
     const { earningsGrowth } = data;
     if (!earningsGrowth) return null;
 
     const { history, trend, margins } = earningsGrowth;
-
-    const formatPercent = (val: number) => (val * 100).toFixed(1) + "%";
-    
-    const CustomTooltip = ({ active, payload, label }: any) => {
-        if (active && payload && payload.length) {
-            return (
-                <div className="bg-slate-900/90 backdrop-blur-md border border-slate-800 p-3 rounded-xl shadow-2xl">
-                    <p className="text-xs font-bold text-slate-400 mb-2">{label}</p>
-                    {payload.map((entry: any, index: number) => (
-                        <div key={index} className="flex items-center gap-2 text-xs">
-                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-                            <span className="text-slate-300">{entry.name}:</span>
-                            <span className="text-white font-mono font-bold">
-                                {entry.name.includes("Margin") || entry.name.includes("Surprise") ? formatPercent(entry.value) : entry.value.toFixed(2)}
-                            </span>
-                        </div>
-                    ))}
-                </div>
-            );
-        }
-        return null;
-    };
 
     return (
         <div className="w-full mt-12 space-y-10">
