@@ -265,6 +265,38 @@ export async function POST(req: Request) {
             }
         })();
 
+        // Fetch Fear & Greed Historical Data (Last 1 Year)
+        const fearGreedHistoryPromise = (async () => {
+            try {
+                console.log("Fetching Fear & Greed Historical Data via CNN...");
+                const response = await fetch('https://production.dataviz.cnn.io/index/fearandgreed/graphdata', {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                        'Accept': 'application/json, text/plain, */*',
+                        'Referer': 'https://www.cnn.com/',
+                        'Origin': 'https://www.cnn.com',
+                    }
+                });
+
+                if (!response.ok) throw new Error(`CNN API Status: ${response.status}`);
+
+                const data = await response.json();
+                const historical = data?.fear_and_greed_historical?.data;
+                
+                if (Array.isArray(historical)) {
+                    return historical.map((h: any) => ({
+                        date: new Date(h.x).toISOString(),
+                        score: h.y,
+                        rating: h.rating
+                    }));
+                }
+                return null;
+            } catch (error: any) {
+                console.error("Fear & Greed History API Error:", error.message);
+                return null;
+            }
+        })();
+
         const [
             history, 
             dividends, 
@@ -272,7 +304,8 @@ export async function POST(req: Request) {
             fundamentalsTimeSeries,
             quoteSummaryResult, 
             seasonalityHistory, 
-            maxPain
+            maxPain,
+            fearGreedHistory
         ] = await Promise.all([
             yahooFinance.historical(symbol, {
                 period1: startDate,
@@ -324,7 +357,8 @@ export async function POST(req: Request) {
                 console.warn("Yahoo Seasonality History failed:", e);
                 return [] as any[];
             }),
-            maxPainPromise
+            maxPainPromise,
+            fearGreedHistoryPromise
         ]);
         console.log(`[StockAPI] Promise.all finished. History length: ${history?.length || 0}`);
 
@@ -548,6 +582,7 @@ export async function POST(req: Request) {
                     shortPreviousMonthDate: stats?.shortPreviousMonthDate,
                 }
             },
+            fearGreedHistory: fearGreedHistory || null,
             earningsGrowth: {
                 history: quoteSummaryResult?.earningsHistory?.history?.map((h: any) => ({
                     quarter: h.quarter,

@@ -23,13 +23,17 @@ export async function generateContentWithFallback(
     options: GeneratorOptions & { validator?: (text: string) => boolean | Promise<boolean> } = {}
 ) {
     // We try models one by one from the prioritized list.
-    const errors: any[] = [];
+    const errors: Error[] = [];
     
     const generateWithModel = async (modelName: string) => {
         console.log(`Trying Gemini model: ${modelName}...`);
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const modelConfig: any = {
+        const modelConfig: {
+            model: string;
+            systemInstruction?: string;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            tools?: any[];
+        } = {
             model: modelName,
         };
 
@@ -43,7 +47,9 @@ export async function generateContentWithFallback(
         const model = genAI.getGenerativeModel(modelConfig);
 
         // Strict JSON Mode Optimization
-        const generationConfig: any = {};
+        const generationConfig: {
+            responseMimeType?: string;
+        } = {};
         if (options.jsonMode) {
             generationConfig.responseMimeType = "application/json";
         }
@@ -75,13 +81,14 @@ export async function generateContentWithFallback(
     for (const model of MODELS) {
         try {
             return await generateWithModel(model);
-        } catch (error: any) {
-            console.warn(`Model ${model} failed:`, error.message);
-            errors.push(error);
+        } catch (error: unknown) {
+            const err = error as Error;
+            console.warn(`Model ${model} failed:`, err.message);
+            errors.push(err);
         }
     }
 
-    throw new Error(`All Gemini models failed.\nErrors:\n${errors.map(e => (e as Error).message).join('\n')}`);
+    throw new Error(`All Gemini models failed.\nErrors:\n${errors.map(e => e.message).join('\n')}`);
 }
 
 // Helper for JSON parsing with markdown cleanup and strict mode
