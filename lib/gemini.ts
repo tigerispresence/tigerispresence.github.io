@@ -6,10 +6,9 @@ const genAI = new GoogleGenerativeAI(apiKey);
 // Models prioritized by speed/cost to minimize rate limits as requested
 // We include the user-requested models plus known working standard models as fallbacks.
 const MODELS = [
-    "gemini-1.5-flash-8b",
+    "gemini-2.5-flash",
     "gemini-2.0-flash",
     "gemini-1.5-flash",
-    "gemini-1.5-pro",
 ];
 
 interface GeneratorOptions {
