@@ -16,147 +16,15 @@ import RiskMetrics from "./RiskMetrics";
 import SmartMoneyFlow from "./SmartMoneyFlow";
 import ShareholderYield from "./ShareholderYield";
 import EarningsGrowth from "./EarningsGrowth";
+import type { StockData } from "@/lib/types/stock";
+import { computeSeries } from "@/lib/calc/series";
+import { computeDistribution } from "@/lib/calc/distribution";
+import { downsample } from "@/lib/calc/downsample";
+import { simulateDca } from "@/lib/calc/sim/dca";
+import { simulateVolatility } from "@/lib/calc/sim/volatility";
+import { simulateFearGreed } from "@/lib/calc/sim/fearGreed";
 
-export interface StockData {
-    symbol: string;
-    name: string;
-    currentPrice: number;
-    currency: string;
-    change: number;
-    changePercent: number;
-    trailingPE?: number;
-    forwardPE?: number;
-    dividendYield?: number;
-    geminiMetrics?: {
-        trailingPE: number | null;
-        forwardPE: number | null;
-        dividendYield: number | null;
-    };
-    priceTargets?: {
-        low: number;
-        high: number;
-        mean: number;
-        median: number;
-        numberOfAnalysts: number;
-    } | null;
-    analystHistory?: {
-        firm: string;
-        target: number;
-        date: string;
-        action: string;
-    }[];
-    recommendationTrend?: {
-        strongBuy: number;
-        buy: number;
-        hold: number;
-        sell: number;
-        strongSell: number;
-    } | null;
-    history: {
-        date: string;
-        close: number;
-    }[];
-    dividends?: {
-        date: string;
-        amount: number;
-    }[];
-    seasonality?: {
-        date: string;
-        close: number;
-    }[];
-    financials?: {
-        financialsChart: {
-            quarterly: {
-                date: string;
-                revenue: { raw: number; fmt: string; longFmt: string };
-                earnings: { raw: number; fmt: string; longFmt: string };
-            }[];
-            yearly: {
-                date: number;
-                revenue: { raw: number; fmt: string; longFmt: string };
-                earnings: { raw: number; fmt: string; longFmt: string };
-            }[];
-        };
-        financialCurrency: string;
-    };
-
-    maxPain?: {
-        price: number;
-        expirationDate: string;
-    } | null;
-
-    riskMetrics?: {
-        beta?: number;
-        fiftyTwoWeekHigh?: number;
-        fiftyTwoWeekLow?: number;
-        marketCap?: number;
-    };
-    geminiRiskMetrics?: {
-        altmanZScore?: number;
-        piotroskiFScore?: number;
-        riskSummary?: string;
-    };
-
-    smartMoneyFlow?: {
-        insiderTransactions: Array<{
-            shares: number;
-            value: number;
-            date: string;
-            text: string;
-            insiderName: string;
-            insiderTitle: string;
-            ownership: string;
-        }>;
-        ownership: {
-            insiderPercent?: number;
-            institutionPercent?: number;
-            floatPercent?: number;
-        };
-        shortInterest: {
-            shortPercentOfFloat?: number;
-            shortRatio?: number;
-            shortPreviousMonthDate?: string;
-        };
-    };
-
-    shareholderYield?: {
-        buybackYield: number;
-        dividendYield: number;
-        totalYield: number;
-        payoutRatio?: number;
-        annualBuybacks: number;
-    };
-
-    earningsGrowth?: {
-        history: {
-            quarter: string;
-            actual: number;
-            estimate: number;
-            surprise: number;
-            surprisePercent: number;
-            period: string;
-        }[];
-        trend: {
-            period: string;
-            endDate: string;
-            growth: number;
-            earningsEstimate: number;
-            revenueEstimate: number;
-        }[];
-        margins: {
-            date: string;
-            grossMargin: number;
-            operatingMargin: number;
-            netMargin: number;
-        }[];
-    };
-    
-    fearGreedHistory?: {
-        date: string;
-        score: number;
-        rating: string;
-    }[] | null;
-}
+export type { StockData };
 
 interface StockDashboardProps {
     data: StockData | null;
@@ -188,425 +56,69 @@ const StockDashboard = memo(({ data }: StockDashboardProps) => {
         );
     };
 
-    const processedData = useMemo(() => {
-        if (!data || !data.history || data.history.length === 0) return [];
-
-        const history = [...data.history].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-        const period = 20;
-
-        // Pre-calculate changes for efficiency
-        const changes = history.map((day, i) => {
-            if (i === 0) return 0;
-            const prev = history[i - 1].close;
-            return ((day.close - prev) / prev) * 100;
-        });
-
-        return history.map((day, index) => {
-            const changePercent = changes[index];
-            let rollingSD = 0;
-            let sma20 = null;
-            let upperBand = null;
-            let lowerBand = null;
-
-            if (index >= period - 1) {
-                // Calculate SMA and Bollinger Bands (Price based)
-                // Access prices directly from history without slicing objects
-                let sumPrice = 0;
-                for (let k = 0; k < period; k++) {
-                    sumPrice += history[index - k].close;
-                }
-                const meanPrice = sumPrice / period;
-                sma20 = meanPrice;
-
-                let sumSqDiffPrice = 0;
-                for (let k = 0; k < period; k++) {
-                    sumSqDiffPrice += Math.pow(history[index - k].close - meanPrice, 2);
-                }
-                const sdPrice = Math.sqrt(sumSqDiffPrice / period);
-
-                upperBand = meanPrice + (2 * sdPrice);
-                lowerBand = meanPrice - (2 * sdPrice);
-
-                // Calculate Volatility (SD of Returns based)
-                // Use the pre-calculated changes array
-                let sumChange = 0;
-                // Note: The original logic skipped the very first change in the slice of 20? 
-                // "if (i === 0) return 0"
-                // Ideally, Volatility for day X should probably use returns x, x-1, ... x-19.
-                // Let's use the window of returns ending at 'index'.
-
-                // We need 20 returns. 
-                // changes[index] is return from index-1 to index.
-                const windowKernelSize = period;
-
-                // Optimize: simple loop over pre-calculated array
-                let validChangeCount = 0;
-                for (let k = 0; k < windowKernelSize; k++) {
-                    sumChange += changes[index - k];
-                    validChangeCount++;
-                }
-
-                if (validChangeCount > 0) {
-                    const meanChange = sumChange / validChangeCount;
-                    let sumSqDiffChange = 0;
-                    for (let k = 0; k < windowKernelSize; k++) {
-                        sumSqDiffChange += Math.pow(changes[index - k] - meanChange, 2);
-                    }
-                    rollingSD = Math.sqrt(sumSqDiffChange / validChangeCount);
-                }
-            }
-
-            return {
-                ...day,
-                changePercent,
-                rollingSD,
-                sma20,
-                upperBand,
-                lowerBand
-            };
-        });
-    }, [data]);
-    // Calculate Distribution Data
-    const distributionData = useMemo(() => {
-        if (!data || !data.history || data.history.length < 2) return { data: [], mean: 0, sd: 0, count1Sigma: 0, count2Sigma: 0, totalDays: 0 };
-
-        const changes = data.history.map((day, i) => {
-            if (i === 0) return 0;
-            const prev = data.history[i - 1].close;
-            return ((day.close - prev) / prev) * 100;
-        }).slice(1);
-
-        const mean = changes.reduce((a, b) => a + b, 0) / changes.length;
-        const variance = changes.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / changes.length;
-        const sd = Math.sqrt(variance);
-
-        // Calculate counts within sigma ranges
-        const count1Sigma = changes.filter(c => Math.abs(c - mean) <= sd).length;
-        const count2Sigma = changes.filter(c => Math.abs(c - mean) <= 2 * sd).length;
-
-        // Calculate Sigma Markers
-        const sigmaMarkers = [
-            mean,
-            mean + sd,
-            mean - sd,
-            mean + 2 * sd,
-            mean - 2 * sd
-        ];
-
-        // Create Bins
-        const dataMin = Math.min(...changes);
-        const dataMax = Math.max(...changes);
-        const markersMin = Math.min(...sigmaMarkers);
-        const markersMax = Math.max(...sigmaMarkers);
-
-        const binSize = 0.1;
-
-        // Range should cover both data and sigma markers
-        const min = Math.floor(Math.min(dataMin, markersMin) / binSize) * binSize;
-        const max = Math.ceil(Math.max(dataMax, markersMax) / binSize) * binSize;
-
-        const bins: { [key: string]: number } = {};
-
-        // Initialize bins
-        // Use a small epsilon to avoid floating point loop issues
-        for (let i = min; i <= max + (binSize / 2); i += binSize) {
-            bins[i.toFixed(1)] = 0;
-        }
-
-        changes.forEach(change => {
-            const bin = (Math.floor(change / binSize) * binSize).toFixed(1);
-            // Ensure bin exists (it should, given the range expansion)
-            if (bins[bin] !== undefined) bins[bin]++;
-        });
-
-        const chartData = Object.entries(bins).map(([bin, count]) => ({
-            bin: parseFloat(bin),
-            count
-        })).sort((a, b) => a.bin - b.bin);
-
-        return { data: chartData, mean, sd, count1Sigma, count2Sigma, totalDays: changes.length };
-    }, [data]);
-
-    // Calculate Trading Simulation Data
-    const simulationData = useMemo(() => {
-        if (!processedData || processedData.length === 0 || !distributionData.sd) return null;
-
-        const sigma = distributionData.sd;
-
-        let sharesReinvest = 0;
-        let totalInvested = 0;
-        let buyCount = 0;
-        let totalDividendsReinvested = 0;
-        const buyDates = new Set<string>();
-
-        // Scenario 2: No Reinvestment (Cash)
-        let sharesNoReinvest = 0;
-        let cashNoReinvest = 0;
-        // let totalDividendsCash = 0; // Unused
-
-        // Create a map for quick dividend lookup: date string (YYYY-MM-DD) -> amount
-        const dividendMap = new Map();
-        if (data?.dividends) {
-            data.dividends.forEach(d => {
-                const dateStr = new Date(d.date).toISOString().split('T')[0];
-                dividendMap.set(dateStr, d.amount);
-            });
-        }
-
-        const simHistory = processedData.map(day => {
-            const dateStr = new Date(day.date).toISOString().split('T')[0];
-
-            // 1. Check for Dividend Payment
-            if (dividendMap.has(dateStr)) {
-                const divAmount = dividendMap.get(dateStr);
-
-                // Scenario 1: Reinvest
-                const payoutReinvest = sharesReinvest * divAmount;
-                if (payoutReinvest > 0) {
-                    const sharesBought = payoutReinvest / day.close;
-                    sharesReinvest += sharesBought;
-                    totalDividendsReinvested += payoutReinvest;
-                }
-
-                // Scenario 2: Keep as Cash
-                const payoutCash = sharesNoReinvest * divAmount;
-                if (payoutCash > 0) {
-                    cashNoReinvest += payoutCash;
-                    // totalDividendsCash += payoutCash;
-                }
-            }
-
-            // 2. Check if volatility trigger is met based on selected zones
-            const change = day.changePercent;
-            const diff = change - distributionData.mean;
-            let zone = "0";
-
-            if (diff <= -2 * sigma) zone = "-2";
-            else if (diff <= -1 * sigma) zone = "-1";
-            else if (diff >= 2 * sigma) zone = "2";
-            else if (diff >= 1 * sigma) zone = "1";
-
-            if (selectedZones.includes(zone)) {
-                const sharesBought = 1; // Buy 1 share
-
-                // Both scenarios buy the same amount of stock with new capital
-                sharesReinvest += sharesBought;
-                sharesNoReinvest += sharesBought;
-
-                totalInvested += day.close;
-                buyCount++;
-                buyDates.add(day.date);
-            }
-
-            return {
-                date: day.date,
-                invested: totalInvested,
-                valueReinvest: sharesReinvest * day.close,
-                valueNoReinvest: (sharesNoReinvest * day.close) + cashNoReinvest
-            };
-        });
-
-        const currentValueReinvest = sharesReinvest * (data?.currentPrice || 0);
-        const totalReturnReinvest = totalInvested > 0 ? ((currentValueReinvest - totalInvested) / totalInvested) * 100 : 0;
-
-        return {
-            history: simHistory,
-            totalBuys: buyCount,
-            totalInvested,
-            totalDividends: totalDividendsReinvested,
-            currentValue: currentValueReinvest,
-            totalReturn: totalReturnReinvest,
-            buyDates,
-            avgPrice: buyCount > 0 ? totalInvested / buyCount : 0
-        };
-    }, [processedData, distributionData.sd, distributionData.mean, data?.currentPrice, data?.dividends, selectedZones]);
-
-    // Calculate Monthly DCA Simulation Data
-    const dcaSimulationData = useMemo(() => {
-        if (!processedData || processedData.length === 0) return null;
-
-        let shares = 0;
-        let totalInvested = 0;
-        let buyCount = 0;
-        let totalDividendsReinvested = 0;
-        let lastMonth = -1; // Track month changes
-
-        // Create a map for quick dividend lookup
-        const dividendMap = new Map();
-        if (data?.dividends) {
-            data.dividends.forEach(d => {
-                const dateStr = new Date(d.date).toISOString().split('T')[0];
-                dividendMap.set(dateStr, d.amount);
-            });
-        }
-
-        const simHistory = processedData.map(day => {
-            const dateObj = new Date(day.date);
-            const currentMonth = dateObj.getMonth();
-            const dateStr = dateObj.toISOString().split('T')[0];
-
-            // 1. Check for Dividend Payment (Reinvest)
-            if (dividendMap.has(dateStr)) {
-                const divAmount = dividendMap.get(dateStr);
-                const payout = shares * divAmount;
-                if (payout > 0) {
-                    const sharesBought = payout / day.close;
-                    shares += sharesBought;
-                    totalDividendsReinvested += payout;
-                }
-            }
-
-            // 2. Check for Monthly Buy (First trading day of the month)
-            if (currentMonth !== lastMonth) {
-                const sharesBought = 1; // Buy 1 share
-                shares += sharesBought;
-                totalInvested += day.close;
-                buyCount++;
-                lastMonth = currentMonth;
-            }
-
-            return {
-                date: day.date,
-                invested: totalInvested,
-                value: shares * day.close
-            };
-        });
-
-        const currentValue = shares * (data?.currentPrice || 0);
-        const totalReturn = totalInvested > 0 ? ((currentValue - totalInvested) / totalInvested) * 100 : 0;
-
-        return {
-            history: simHistory,
-            totalBuys: buyCount,
-            totalInvested,
-            totalDividends: totalDividendsReinvested,
-            currentValue,
-            totalReturn,
-            avgPrice: buyCount > 0 ? totalInvested / buyCount : 0
-        };
-    }, [processedData, data?.currentPrice, data?.dividends]);
-
-    // Calculate Fear & Greed Simulation Data
-    const fearGreedSimulationData = useMemo(() => {
-        if (!processedData || processedData.length === 0 || !data?.fearGreedHistory) return null;
-
-        let sharesReinvest = 0;
-        let totalInvested = 0;
-        let buyCount = 0;
-        let totalDividendsReinvested = 0;
-        const buyDates = new Set<string>();
-
-        // Cash scenario
-        let sharesNoReinvest = 0;
-        let cashNoReinvest = 0;
-
-        // Map dividends
-        const dividendMap = new Map();
-        if (data?.dividends) {
-            data.dividends.forEach(d => {
-                const dateStr = new Date(d.date).toISOString().split('T')[0];
-                dividendMap.set(dateStr, d.amount);
-            });
-        }
-
-        // Map Fear & Greed
-        const fgMap = new Map();
-        data.fearGreedHistory.forEach(fg => {
-            const dateStr = new Date(fg.date).toISOString().split('T')[0];
-            fgMap.set(dateStr, fg);
-        });
-
-        // The stock history is typically multi-year, but FG history is only 1 year.
-        // We only simulate over the period where we have BOTH stock price AND FG data.
-        // Also ensure chronological order.
-        const simHistory: {date: string, invested: number, valueReinvest: number, valueNoReinvest: number}[] = [];
-        
-        let previousFgInfo: {rating: string} | null = null; // Fallback if trading day has no FG data (e.g., weekend/holiday mismatch)
-
-        processedData.forEach(day => {
-            const dateStr = new Date(day.date).toISOString().split('T')[0];
-
-            // Only start processing once we have FG data (this handles the 1-year constraint)
-            const todayFg = fgMap.get(dateStr) || previousFgInfo;
-            if (!todayFg) return;
-            previousFgInfo = todayFg;
-
-            // 1. Dividend Check
-            if (dividendMap.has(dateStr)) {
-                const divAmount = dividendMap.get(dateStr);
-                
-                const payoutReinvest = sharesReinvest * divAmount;
-                if (payoutReinvest > 0) {
-                    sharesReinvest += payoutReinvest / day.close;
-                    totalDividendsReinvested += payoutReinvest;
-                }
-
-                const payoutCash = sharesNoReinvest * divAmount;
-                if (payoutCash > 0) {
-                    cashNoReinvest += payoutCash;
-                }
-            }
-
-            // 2. Buy Check
-            const ratingNorm = todayFg.rating.toLowerCase().replace(/_/g, ' ');
-            if (selectedFgZones.includes(ratingNorm)) {
-                sharesReinvest += 1;
-                sharesNoReinvest += 1;
-                totalInvested += day.close;
-                buyCount++;
-                buyDates.add(day.date);
-            }
-
-            simHistory.push({
-                date: day.date,
-                invested: totalInvested,
-                valueReinvest: sharesReinvest * day.close,
-                valueNoReinvest: (sharesNoReinvest * day.close) + cashNoReinvest
-            });
-        });
-
-        if (simHistory.length === 0) return null;
-
-        const currentValueReinvest = sharesReinvest * (data?.currentPrice || 0);
-        const totalReturnReinvest = totalInvested > 0 ? ((currentValueReinvest - totalInvested) / totalInvested) * 100 : 0;
-
-        return {
-            history: simHistory,
-            totalBuys: buyCount,
-            totalInvested,
-            totalDividends: totalDividendsReinvested,
-            currentValue: currentValueReinvest,
-            totalReturn: totalReturnReinvest,
-            buyDates,
-            avgPrice: buyCount > 0 ? totalInvested / buyCount : 0
-        };
-    }, [processedData, data?.currentPrice, data?.dividends, data?.fearGreedHistory, selectedFgZones]);
-
-
-    // Helper to downsample data for charts to improve performance
-    const downsample = <T,>(data: T[], limit: number) => {
-        if (!data || data.length <= limit) return data;
-        const step = Math.ceil(data.length / limit);
-        const result = [];
-        for (let i = 0; i < data.length; i += step) {
-            result.push(data[i]);
-        }
-        return result;
-    };
+    // All derivation lives in lib/calc so it can be unit tested without React.
+    const processedData = useMemo(
+        () => computeSeries(data?.history ?? []),
+        [data?.history],
+    );
+
+    const distributionData = useMemo(
+        () => computeDistribution(data?.history ?? []),
+        [data?.history],
+    );
+
+    const simulationData = useMemo(
+        () =>
+            simulateVolatility(
+                processedData,
+                distributionData,
+                { currentPrice: data?.currentPrice ?? 0, dividends: data?.dividends },
+                selectedZones,
+            ),
+        [processedData, distributionData, data?.currentPrice, data?.dividends, selectedZones],
+    );
+
+    const dcaSimulationData = useMemo(
+        () =>
+            simulateDca(processedData, {
+                currentPrice: data?.currentPrice ?? 0,
+                dividends: data?.dividends,
+            }),
+        [processedData, data?.currentPrice, data?.dividends],
+    );
+
+    const fearGreedSimulationData = useMemo(
+        () =>
+            simulateFearGreed(
+                processedData,
+                data?.fearGreedHistory,
+                { currentPrice: data?.currentPrice ?? 0, dividends: data?.dividends },
+                selectedFgZones,
+            ),
+        [processedData, data?.fearGreedHistory, data?.currentPrice, data?.dividends, selectedFgZones],
+    );
 
     const chartData = useMemo(() => {
         const downsampled = downsample(processedData, 500);
         if (!simulationData) return downsampled;
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return downsampled.map((point: any) => ({
+        return downsampled.map((point) => ({
             ...point,
-            buyPrice: simulationData.buyDates.has(point.date) ? point.close : null
+            buyPrice: simulationData.buyDates.has(point.date) ? point.close : null,
         }));
     }, [processedData, simulationData]);
-    const simulationChartData = useMemo(() => simulationData ? downsample(simulationData.history, 500) : [], [simulationData]);
-    const dcaChartData = useMemo(() => dcaSimulationData ? downsample(dcaSimulationData.history, 500) : [], [dcaSimulationData]);
-    const fearGreedChartData = useMemo(() => fearGreedSimulationData ? downsample(fearGreedSimulationData.history, 500) : [], [fearGreedSimulationData]);
+
+    const simulationChartData = useMemo(
+        () => (simulationData ? downsample(simulationData.history, 500) : []),
+        [simulationData],
+    );
+    const dcaChartData = useMemo(
+        () => (dcaSimulationData ? downsample(dcaSimulationData.history, 500) : []),
+        [dcaSimulationData],
+    );
+    const fearGreedChartData = useMemo(
+        () => (fearGreedSimulationData ? downsample(fearGreedSimulationData.history, 500) : []),
+        [fearGreedSimulationData],
+    );
 
     if (!data) return null;
 
