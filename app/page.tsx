@@ -99,16 +99,6 @@ export default function Home() {
 
       const data = await response.json();
       setStockData(data);
-
-      // Save to history (only for manual searches)
-      if (!isAutoRefresh) {
-        const history = JSON.parse(localStorage.getItem("searchHistory") || "[]");
-        if (!history.includes(symbol)) {
-          const newHistory = [symbol, ...history].slice(0, 5);
-          localStorage.setItem("searchHistory", JSON.stringify(newHistory));
-        }
-      }
-
     } catch (err: any) {
       setError(err.message);
     } finally {
