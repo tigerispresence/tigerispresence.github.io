@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { fetchInsights, fetchSocialPosts } from "@/lib/api/client";
 import { motion } from "framer-motion";
 import { Newspaper, MessageCircle, ExternalLink, TrendingUp, TrendingDown, Minus } from "lucide-react";
 
@@ -28,14 +29,32 @@ export default function NewsSection({ symbol }: { symbol: string }) {
     const [data, setData] = useState<InsightData | null>(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'news' | 'social'>('news');
+    // Social posts come from a web-search-backed model call, so they are
+    // fetched only once the user actually opens that tab.
+    const [posts, setPosts] = useState<{ title: string; url: string; source: string }[] | null>(null);
+    const [postsLoading, setPostsLoading] = useState(false);
+
+    useEffect(() => {
+        setPosts(null);
+    }, [symbol]);
+
+    useEffect(() => {
+        if (activeTab !== 'social' || posts || postsLoading) return;
+        let mounted = true;
+        setPostsLoading(true);
+        fetchSocialPosts(symbol)
+            .then(json => { if (mounted) setPosts(json.posts ?? []); })
+            .catch(() => { if (mounted) setPosts([]); })
+            .finally(() => { if (mounted) setPostsLoading(false); });
+        return () => { mounted = false; };
+    }, [activeTab, symbol, posts, postsLoading]);
 
     useEffect(() => {
         let mounted = true;
-        const fetchInsights = async () => {
+        const loadInsights = async () => {
             setLoading(true);
             try {
-                const res = await fetch(`/api/insights?symbol=${encodeURIComponent(symbol)}`);
-                const json = await res.json();
+                const json = await fetchInsights(symbol);
                 if (mounted && !json.error) {
                     setData(json);
                 }
@@ -46,7 +65,7 @@ export default function NewsSection({ symbol }: { symbol: string }) {
             }
         };
 
-        fetchInsights();
+        loadInsights();
 
         return () => { mounted = false; };
     }, [symbol]);
@@ -172,11 +191,11 @@ export default function NewsSection({ symbol }: { symbol: string }) {
                         </div>
 
                         {/* Social Posts Links */}
-                        {data.social.posts && data.social.posts.length > 0 && (
+                        {posts && posts.length > 0 && (
                             <div>
                                 <h4 className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-3">Trending Discussions</h4>
                                 <div className="space-y-3">
-                                    {data.social.posts.map((post, i) => (
+                                    {posts.map((post, i) => (
                                         <a
                                             key={i}
                                             href={post.url}

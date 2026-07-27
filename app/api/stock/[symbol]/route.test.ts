@@ -8,28 +8,23 @@ vi.mock("@/lib/server/stock/resolveSymbol", () => ({
 vi.mock("@/lib/server/stock/getStockPayload", () => ({
   getStockPayload: vi.fn(),
 }));
-vi.mock("@/lib/server/cache/fileCache", () => ({
-  FileCache: class {
-    read() {
-      return null;
-    }
-    write() {}
-  },
-}));
-
-import { POST } from "./route";
+import { GET } from "./route";
 import { resolveSymbol } from "@/lib/server/stock/resolveSymbol";
 import { getStockPayload } from "@/lib/server/stock/getStockPayload";
 
 const mockResolve = vi.mocked(resolveSymbol);
 const mockPayload = vi.mocked(getStockPayload);
 
-function post(body: unknown): Request {
-  return new Request("http://localhost/api/stock", {
-    method: "POST",
-    body: JSON.stringify(body),
-    headers: { "Content-Type": "application/json" },
-  });
+/** Invoke the handler the way Next would, with params as a promise. */
+function get(
+  symbol: string,
+  query: Record<string, string> = {},
+): Promise<Response> {
+  const params = new URLSearchParams(query);
+  const req = new Request(
+    `http://localhost/api/stock/${encodeURIComponent(symbol)}?${params}`,
+  );
+  return GET(req, { params: Promise.resolve({ symbol }) });
 }
 
 const samplePayload = {
@@ -48,20 +43,20 @@ beforeEach(() => {
 
 describe("POST /api/stock", () => {
   it("returns 400 when the query is missing", async () => {
-    const res = await POST(post({}));
+    const res = await get("");
     expect(res.status).toBe(400);
     await expect(res.json()).resolves.toMatchObject({ error: expect.any(String) });
     expect(mockResolve).not.toHaveBeenCalled();
   });
 
-  it("returns 400 when the query is not a string", async () => {
-    const res = await POST(post({ query: 42 }));
+  it("returns 400 for a whitespace-only symbol", async () => {
+    const res = await get("   ");
     expect(res.status).toBe(400);
   });
 
   it("returns 404 when the symbol cannot be resolved", async () => {
     mockResolve.mockResolvedValue(null);
-    const res = await POST(post({ query: "not a real company" }));
+    const res = await get("not a real company");
     expect(res.status).toBe(404);
   });
 
@@ -70,7 +65,7 @@ describe("POST /api/stock", () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockPayload.mockResolvedValue(samplePayload as any);
 
-    const res = await POST(post({ query: "AAPL", range: "1y" }));
+    const res = await get("AAPL", { range: "1y" });
     expect(res.status).toBe(200);
     await expect(res.json()).resolves.toMatchObject({ symbol: "AAPL", currentPrice: 190 });
   });
@@ -80,7 +75,7 @@ describe("POST /api/stock", () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockPayload.mockResolvedValue(samplePayload as any);
 
-    await POST(post({ query: "AAPL", range: "5y", from: "2020-01-01" }));
+    await get("AAPL", { range: "5y", from: "2020-01-01" });
     expect(mockPayload).toHaveBeenCalledWith(
       expect.objectContaining({ symbol: "AAPL" }),
       "5y",
@@ -93,7 +88,7 @@ describe("POST /api/stock", () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockPayload.mockResolvedValue(samplePayload as any);
 
-    await POST(post({ query: "AAPL" }));
+    await get("AAPL");
     expect(mockPayload).toHaveBeenCalledWith(expect.anything(), "1y", undefined);
   });
 
@@ -101,7 +96,7 @@ describe("POST /api/stock", () => {
     mockResolve.mockResolvedValue({ symbol: "AAPL", name: "Apple Inc.", source: "yahoo" });
     mockPayload.mockRejectedValue(new Error("Request failed with status 429"));
 
-    const res = await POST(post({ query: "AAPL" }));
+    const res = await get("AAPL");
     expect(res.status).toBe(429);
   });
 
@@ -109,17 +104,27 @@ describe("POST /api/stock", () => {
     mockResolve.mockResolvedValue({ symbol: "AAPL", name: "Apple Inc.", source: "yahoo" });
     mockPayload.mockRejectedValue(new Error("kaboom"));
 
-    const res = await POST(post({ query: "AAPL" }));
+    const res = await get("AAPL");
     expect(res.status).toBe(500);
   });
 
-  it("returns 500 rather than throwing on malformed JSON", async () => {
-    const bad = new Request("http://localhost/api/stock", {
-      method: "POST",
-      body: "{not json",
-      headers: { "Content-Type": "application/json" },
-    });
-    const res = await POST(bad);
-    expect(res.status).toBe(500);
+  it("returns 400 for an unsupported range", async () => {
+    const res = await get("AAPL", { range: "7y" });
+    expect(res.status).toBe(400);
+    expect(mockResolve).not.toHaveBeenCalled();
+  });
+
+  it("marks error responses no-store so the CDN cannot cache a failure", async () => {
+    mockResolve.mockResolvedValue(null);
+    const res = await get("nope");
+    expect(res.headers.get("cache-control")).toBe("no-store");
+  });
+
+  it("sets a CDN cache header on success", async () => {
+    mockResolve.mockResolvedValue({ symbol: "AAPL", name: "Apple Inc.", source: "yahoo" });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    mockPayload.mockResolvedValue(samplePayload as any);
+    const res = await get("AAPL");
+    expect(res.headers.get("cache-control")).toContain("s-maxage=300");
   });
 });

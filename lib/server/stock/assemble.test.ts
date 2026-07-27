@@ -15,13 +15,13 @@ function baseInput(overrides: Partial<AssembleInput> = {}): AssembleInput {
     },
     quoteSummary: null,
     history: [
-      { date: new Date("2024-01-02"), close: 185 },
-      { date: new Date("2024-01-03"), close: 190 },
+      { date: "2024-01-02T00:00:00.000Z", close: 185 },
+      { date: "2024-01-03T00:00:00.000Z", close: 190 },
     ],
     dividends: [],
     seasonality: [],
     cashFlowSeries: [],
-    options: null,
+    optionChain: null,
     fearGreedHistory: null,
     riskScores: undefined,
     ...overrides,
@@ -45,20 +45,6 @@ describe("buildStockPayload", () => {
     expect(out.currency).toBe("USD");
   });
 
-  it("drops history rows with a null close", () => {
-    const out = buildStockPayload(
-      baseInput({
-        history: [
-          { date: new Date("2024-01-02"), close: 185 },
-          { date: new Date("2024-01-03"), close: null },
-          { date: new Date("2024-01-04"), close: 195 },
-        ],
-      }),
-    );
-    expect(out.history).toHaveLength(2);
-    expect(out.history.every((p) => typeof p.close === "number")).toBe(true);
-  });
-
   it("emits ISO date strings so the payload is JSON-safe", () => {
     const out = buildStockPayload(baseInput());
     expect(out.history[0].date).toMatch(/^\d{4}-\d{2}-\d{2}T/);
@@ -70,7 +56,7 @@ describe("buildStockPayload", () => {
     const out = buildStockPayload(
       baseInput({
         quote: { symbol: "T", regularMarketPrice: 100, currency: "USD" },
-        dividends: [{ date: recent, close: null, dividends: 2 }],
+        dividends: [{ date: recent.toISOString(), amount: 2 }],
       }),
     );
     // 2 / 100 * 100 = 2%
@@ -85,7 +71,7 @@ describe("buildStockPayload", () => {
     const out = buildStockPayload(
       baseInput({
         quote: { symbol: "X", regularMarketPrice: 0, currency: "USD" },
-        dividends: [{ date: recent, close: null, dividends: 2 }],
+        dividends: [{ date: recent.toISOString(), amount: 2 }],
       }),
     );
     expect(out.dividendYield).toBeUndefined();
@@ -109,14 +95,10 @@ describe("buildStockPayload", () => {
   it("computes max pain from the front-month chain", () => {
     const out = buildStockPayload(
       baseInput({
-        options: {
-          options: [
-            {
-              expirationDate: new Date("2024-02-16"),
-              calls: [{ strike: 190, openInterest: 1000 }],
-              puts: [{ strike: 190, openInterest: 1000 }],
-            },
-          ],
+        optionChain: {
+          expirationDate: new Date("2024-02-16"),
+          calls: [{ strike: 190, openInterest: 1000 }],
+          puts: [{ strike: 190, openInterest: 1000 }],
         },
       }),
     );
@@ -126,7 +108,7 @@ describe("buildStockPayload", () => {
 
   it("returns a null max pain when there is no options chain", () => {
     // Common for Korean listings and many ETFs.
-    const out = buildStockPayload(baseInput({ options: null }));
+    const out = buildStockPayload(baseInput({ optionChain: null }));
     expect(out.maxPain).toBeNull();
   });
 

@@ -4,7 +4,12 @@ import {
   type AltmanInputs,
   type FinancialYear,
 } from "@/lib/calc/scores";
-import type { QuoteSummaryBundle, YahooQuote } from "@/lib/server/yahoo/types";
+import type {
+  IncomeStatementRow,
+  QuoteSummaryBundle,
+  YahooFundamentalsRow,
+  YahooQuote,
+} from "@/lib/server/yahoo/types";
 
 export interface RiskScores {
   altmanZScore?: number;
@@ -12,12 +17,31 @@ export interface RiskScores {
   riskSummary?: string;
 }
 
-/** Newest-first ordering; Yahoo is usually already sorted this way but not always. */
-function byEndDateDesc<T extends { endDate?: string | Date }>(rows: T[]): T[] {
-  return [...rows].sort(
-    (a, b) =>
-      new Date(b.endDate ?? 0).getTime() - new Date(a.endDate ?? 0).getTime(),
-  );
+export interface RiskInputs {
+  quoteSummary: QuoteSummaryBundle | null;
+  quote: YahooQuote | null;
+  /** fundamentalsTimeSeries, module "balance-sheet". */
+  balanceSheets: YahooFundamentalsRow[];
+  /** fundamentalsTimeSeries, module "cash-flow". */
+  cashFlows: YahooFundamentalsRow[];
+}
+
+const fiscalYear = (d: string | Date | undefined): number | null => {
+  if (!d) return null;
+  const year = new Date(d).getUTCFullYear();
+  return Number.isFinite(year) ? year : null;
+};
+
+/** Index annual rows by fiscal year so the three feeds can be aligned. */
+function byYear<T extends { date?: string | Date; endDate?: string | Date }>(
+  rows: T[],
+): Map<number, T> {
+  const map = new Map<number, T>();
+  for (const row of rows) {
+    const year = fiscalYear(row.date ?? row.endDate);
+    if (year !== null) map.set(year, row);
+  }
+  return map;
 }
 
 /** Describe the computed scores in one sentence, replacing the AI-written summary. */
@@ -35,7 +59,7 @@ export function summarizeRisk(
         : altman >= 1.81
           ? "in the grey zone"
           : "in the distress zone";
-    parts.push(`Altman Z-Score of ${altman.toFixed(2)} places it ${band}`);
+    parts.push(`an Altman Z-Score of ${altman.toFixed(2)} places it ${band}`);
   }
 
   if (piotroski !== null) {
@@ -51,64 +75,75 @@ export function summarizeRisk(
   }
 
   if (parts.length === 0) return undefined;
-  return `${parts.join("; ")}.`;
+  const sentence = parts.join("; ");
+  return `${sentence.charAt(0).toUpperCase()}${sentence.slice(1)}.`;
 }
 
 /**
- * Compute the risk scores from data already present in the quoteSummary
- * response. Replaces an LLM call that guessed at these numbers.
+ * Compute the risk scores from annual statements.
+ *
+ * Balance-sheet and cash-flow figures come from fundamentalsTimeSeries rather
+ * than quoteSummary: the quoteSummary equivalents have returned rows carrying
+ * nothing but maxAge and endDate since late 2024, so an Altman Z built on them
+ * could never produce a number. The income statement still comes from
+ * quoteSummary, which does populate it.
  */
-export function mapRiskScores(
-  quoteSummary: QuoteSummaryBundle | null,
-  quote: YahooQuote | null,
-): RiskScores | undefined {
-  if (!quoteSummary) return undefined;
+export function mapRiskScores(inputs: RiskInputs): RiskScores | undefined {
+  const { quoteSummary, quote, balanceSheets, cashFlows } = inputs;
 
-  const stats = quoteSummary.defaultKeyStatistics;
-  const balanceSheets = byEndDateDesc(
-    quoteSummary.balanceSheetHistory?.balanceSheetStatements ?? [],
-  );
-  const incomeStatements = byEndDateDesc(
-    quoteSummary.incomeStatementHistory?.incomeStatementHistory ?? [],
-  );
-  const cashflows = byEndDateDesc(
-    quoteSummary.cashflowStatementHistory?.cashflowStatements ?? [],
-  );
-
+  const stats = quoteSummary?.defaultKeyStatistics;
   const marketCap =
-    quoteSummary.summaryDetail?.marketCap ?? stats?.marketCap ?? quote?.marketCap;
+    quoteSummary?.summaryDetail?.marketCap ?? stats?.marketCap ?? quote?.marketCap;
+
+  const incomeByYear = byYear<IncomeStatementRow>(
+    quoteSummary?.incomeStatementHistory?.incomeStatementHistory ?? [],
+  );
+  const balanceByYear = byYear(balanceSheets);
+  const cashByYear = byYear(cashFlows);
+
+  // Newest first; the three feeds do not agree on ordering.
+  const years = [...balanceByYear.keys()].sort((a, b) => b - a);
+  const [latest, prior] = years;
+
+  const balance = latest !== undefined ? balanceByYear.get(latest) : undefined;
+  const income = latest !== undefined ? incomeByYear.get(latest) : undefined;
 
   const altmanInputs: AltmanInputs = {
-    totalAssets: balanceSheets[0]?.totalAssets,
-    totalLiabilities: balanceSheets[0]?.totalLiab,
-    totalCurrentAssets: balanceSheets[0]?.totalCurrentAssets,
-    totalCurrentLiabilities: balanceSheets[0]?.totalCurrentLiabilities,
-    retainedEarnings: balanceSheets[0]?.retainedEarnings,
-    ebit: incomeStatements[0]?.ebit,
-    totalRevenue: incomeStatements[0]?.totalRevenue,
+    totalAssets: balance?.totalAssets,
+    totalLiabilities: balance?.totalLiabilitiesNetMinorityInterest,
+    totalCurrentAssets: balance?.currentAssets,
+    totalCurrentLiabilities: balance?.currentLiabilities,
+    retainedEarnings: balance?.retainedEarnings,
+    ebit: income?.ebit,
+    totalRevenue: income?.totalRevenue,
     marketCap,
   };
 
-  const toYear = (index: number): FinancialYear => ({
-    totalAssets: balanceSheets[index]?.totalAssets,
-    totalCurrentAssets: balanceSheets[index]?.totalCurrentAssets,
-    totalCurrentLiabilities: balanceSheets[index]?.totalCurrentLiabilities,
-    longTermDebt: balanceSheets[index]?.longTermDebt,
-    netIncome: incomeStatements[index]?.netIncome,
-    operatingCashFlow: cashflows[index]?.totalCashFromOperatingActivities,
-    totalRevenue: incomeStatements[index]?.totalRevenue,
-    grossProfit: incomeStatements[index]?.grossProfit,
-    // Yahoo exposes only the current share count, so the issuance signal can
-    // only be evaluated when both statements carry commonStock.
-    sharesOutstanding: balanceSheets[index]?.commonStock,
-  });
+  const toYear = (year: number | undefined): FinancialYear => {
+    if (year === undefined) return {};
+    const b = balanceByYear.get(year);
+    const i = incomeByYear.get(year);
+    const c = cashByYear.get(year);
+    return {
+      totalAssets: b?.totalAssets,
+      totalCurrentAssets: b?.currentAssets,
+      totalCurrentLiabilities: b?.currentLiabilities,
+      longTermDebt: b?.longTermDebt,
+      netIncome: i?.netIncome,
+      operatingCashFlow: c?.operatingCashFlow,
+      totalRevenue: i?.totalRevenue,
+      grossProfit: i?.grossProfit,
+      sharesOutstanding: b?.shareIssued ?? b?.ordinarySharesNumber,
+    };
+  };
 
   const altman = altmanZScore(altmanInputs);
   const piotroski =
-    balanceSheets.length >= 2 ? piotroskiFScore(toYear(0), toYear(1)) : null;
+    latest !== undefined && prior !== undefined
+      ? piotroskiFScore(toYear(latest), toYear(prior))
+      : null;
 
   const summary = summarizeRisk(altman, piotroski?.score ?? null, stats?.beta);
-
   if (altman === null && piotroski === null && !summary) return undefined;
 
   return {

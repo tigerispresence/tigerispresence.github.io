@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { CACHE_HEADERS, NO_STORE } from "@/lib/server/http";
 import { KOREAN_STOCK_MAP } from "@/lib/korean_stocks";
 import { searchCandidatesWithAi } from "@/lib/server/ai/symbol";
 import { searchSymbols } from "@/lib/server/yahoo/fetchers";
@@ -68,9 +69,15 @@ export async function GET(req: Request) {
       }
     }
 
-    return NextResponse.json({ results: results.slice(0, 12) });
+    return NextResponse.json(
+      { results: results.slice(0, 12) },
+      { headers: { "Cache-Control": CACHE_HEADERS.search } },
+    );
   } catch (error) {
     console.error("[api/search]", error);
-    return NextResponse.json({ results: [] }, { status: 500 });
+    return NextResponse.json(
+      { results: [] },
+      { status: 500, headers: { "Cache-Control": NO_STORE } },
+    );
   }
 }

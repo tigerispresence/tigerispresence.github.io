@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { fetchThesis } from "@/lib/api/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { TrendingUp, TrendingDown, Brain, Loader2 } from "lucide-react";
 
@@ -25,12 +26,11 @@ export default function AIInsights({ symbol, stockName }: AIInsightsProps) {
             setLoading(true);
             setError(null);
             try {
-                const res = await fetch(`/api/ai-thesis?symbol=${encodeURIComponent(symbol)}&name=${encodeURIComponent(stockName)}`);
-                const json = await res.json();
-                if (res.ok && !json.error) {
-                    setData(json);
+                const json = await fetchThesis(symbol, stockName);
+                if (json.unavailable) {
+                    setError("AI insights are unavailable right now.");
                 } else {
-                    setError(json.error || "Failed to fetch AI insights");
+                    setData(json);
                 }
             } catch {
                 setError("An error occurred while fetching AI insights.");

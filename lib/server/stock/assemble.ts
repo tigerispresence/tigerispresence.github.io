@@ -1,10 +1,14 @@
-import type { FearGreedPoint, StockData } from "@/lib/types/stock";
+import type {
+  Dividend,
+  FearGreedPoint,
+  PricePoint,
+  StockData,
+} from "@/lib/types/stock";
 import { computeMaxPain } from "@/lib/calc/maxPain";
 import type {
   QuoteSummaryBundle,
   YahooFundamentalsRow,
-  YahooHistoryRow,
-  YahooOptionsResult,
+  YahooOptionChain,
   YahooQuote,
 } from "@/lib/server/yahoo/types";
 import { mapAnalystHistory, mapRecommendationTrend } from "./map/analysts";
@@ -20,11 +24,12 @@ export interface AssembleInput {
   resolved: { symbol: string; name: string };
   quote: YahooQuote | null;
   quoteSummary: QuoteSummaryBundle | null;
-  history: YahooHistoryRow[];
-  dividends: YahooHistoryRow[];
-  seasonality: YahooHistoryRow[];
+  /** Already normalized to ISO dates by the cache layer. */
+  history: PricePoint[];
+  dividends: Dividend[];
+  seasonality: PricePoint[];
   cashFlowSeries: YahooFundamentalsRow[];
-  options: YahooOptionsResult | null;
+  optionChain: YahooOptionChain | null;
   fearGreedHistory: FearGreedPoint[] | null;
   /** Deterministically computed; omitted when the statements are too sparse. */
   riskScores?: {
@@ -34,14 +39,6 @@ export interface AssembleInput {
   };
 }
 
-const toClosePoints = (rows: YahooHistoryRow[]) =>
-  rows
-    .filter((row) => row.close !== null && row.close !== undefined)
-    .map((row) => ({
-      date: new Date(row.date).toISOString(),
-      close: row.close as number,
-    }));
-
 /**
  * Trailing twelve month dividend yield, as a percent.
  *
@@ -50,7 +47,7 @@ const toClosePoints = (rows: YahooHistoryRow[]) =>
  * `regularMarketPrice` at 0 here and produce Infinity.
  */
 function trailingYieldPercent(
-  dividends: YahooHistoryRow[],
+  dividends: Dividend[],
   price: number | undefined,
 ): number | undefined {
   if (!price || price <= 0 || dividends.length === 0) return undefined;
@@ -60,7 +57,7 @@ function trailingYieldPercent(
 
   const lastYear = dividends
     .filter((d) => new Date(d.date) >= oneYearAgo)
-    .reduce((sum, d) => sum + (d.dividends ?? 0), 0);
+    .reduce((sum, d) => sum + d.amount, 0);
 
   if (lastYear <= 0) return undefined;
   return (lastYear / price) * 100;
@@ -81,7 +78,7 @@ export function buildStockPayload(input: AssembleInput): StockData {
     dividends,
     seasonality,
     cashFlowSeries,
-    options,
+    optionChain,
     fearGreedHistory,
     riskScores,
   } = input;
@@ -93,8 +90,9 @@ export function buildStockPayload(input: AssembleInput): StockData {
   const dividendYield =
     quote?.dividendYield ?? trailingYieldPercent(dividends, quote?.regularMarketPrice);
 
-  const chain = options?.options?.[0];
-  const maxPainStrike = chain ? computeMaxPain(chain.calls, chain.puts) : null;
+  const maxPainStrike = optionChain
+    ? computeMaxPain(optionChain.calls, optionChain.puts)
+    : null;
 
   return {
     symbol: quote?.symbol ?? resolved.symbol,
@@ -122,12 +120,9 @@ export function buildStockPayload(input: AssembleInput): StockData {
     analystHistory: mapAnalystHistory(quoteSummary?.upgradeDowngradeHistory?.history),
     recommendationTrend: mapRecommendationTrend(quoteSummary?.recommendationTrend?.trend),
 
-    history: toClosePoints(history),
-    dividends: dividends.map((d) => ({
-      date: new Date(d.date).toISOString(),
-      amount: d.dividends ?? 0,
-    })),
-    seasonality: toClosePoints(seasonality),
+    history,
+    dividends,
+    seasonality,
 
     financials:
       mapQuarterlyFinancials(
@@ -137,10 +132,10 @@ export function buildStockPayload(input: AssembleInput): StockData {
       ) ?? undefined,
 
     maxPain:
-      maxPainStrike !== null && chain
+      maxPainStrike !== null && optionChain
         ? {
             price: maxPainStrike,
-            expirationDate: new Date(chain.expirationDate).toISOString(),
+            expirationDate: new Date(optionChain.expirationDate).toISOString(),
           }
         : null,
 

@@ -15,6 +15,8 @@ interface Suggestion {
     exchange: string;
 }
 
+import { fetchSearch } from "@/lib/api/client";
+
 export default function SearchArea({ onSearch, isLoading }: SearchAreaProps) {
     const [query, setQuery] = useState("");
     const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -41,8 +43,8 @@ export default function SearchArea({ onSearch, isLoading }: SearchAreaProps) {
 
     const fetchSuggestions = async (q: string) => {
         try {
-            const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
-            const data = await res.json();
+            // Typeahead: no deep search, so this never triggers a model call.
+            const data = await fetchSearch(q);
             if (data.results) setSuggestions(data.results);
         } catch (e) {
             console.error("Suggestion fetch error:", e);

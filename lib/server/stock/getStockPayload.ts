@@ -1,14 +1,15 @@
 import type { StockData } from "@/lib/types/stock";
-import { getFearGreedHistory } from "@/lib/server/cnn/fearGreed";
 import {
-  getCashFlowTimeSeries,
-  getDailyHistory,
-  getDividendHistory,
-  getMonthlyHistory,
-  getOptions,
-  getQuote,
-  getQuoteSummary,
-} from "@/lib/server/yahoo/fetchers";
+  cachedBalanceSheet,
+  cachedCashFlow,
+  cachedDividends,
+  cachedFearGreedHistory,
+  cachedHistory,
+  cachedOptionChain,
+  cachedQuote,
+  cachedQuoteSummary,
+  cachedSeasonality,
+} from "@/lib/server/cache/stock";
 import { buildStockPayload } from "./assemble";
 import { rangeToDates } from "./dateRange";
 import { mapRiskScores } from "./map/risk";
@@ -21,8 +22,7 @@ import type { ResolvedSymbol } from "./resolveSymbol";
  * round-trip on every single lookup — for the Altman Z and Piotroski F scores,
  * which are closed-form formulas over figures already present in the
  * quoteSummary response, and for a quote fallback that fabricated a price of
- * zero when Yahoo failed. Both are now computed in code, so the slowest step
- * here is the slowest Yahoo call.
+ * zero when Yahoo failed. Both are now computed in code.
  */
 export async function getStockPayload(
   resolved: ResolvedSymbol,
@@ -30,6 +30,10 @@ export async function getStockPayload(
   from?: string,
 ): Promise<StockData> {
   const { period1, period2 } = rangeToDates(range, from);
+  // Cache keys are derived from arguments, so pass stable ISO strings rather
+  // than Date objects.
+  const fromIso = period1.toISOString();
+  const toIso = period2.toISOString();
 
   const [
     quote,
@@ -38,17 +42,19 @@ export async function getStockPayload(
     seasonality,
     cashFlowSeries,
     quoteSummary,
-    options,
+    optionChain,
     fearGreedHistory,
+    balanceSheets,
   ] = await Promise.all([
-    getQuote(resolved.symbol),
-    getDailyHistory(resolved.symbol, period1, period2),
-    getDividendHistory(resolved.symbol, period1, period2),
-    getMonthlyHistory(resolved.symbol),
-    getCashFlowTimeSeries(resolved.symbol),
-    getQuoteSummary(resolved.symbol),
-    getOptions(resolved.symbol),
-    getFearGreedHistory(),
+    cachedQuote(resolved.symbol),
+    cachedHistory(resolved.symbol, fromIso, toIso),
+    cachedDividends(resolved.symbol, fromIso, toIso),
+    cachedSeasonality(resolved.symbol),
+    cachedCashFlow(resolved.symbol),
+    cachedQuoteSummary(resolved.symbol),
+    cachedOptionChain(resolved.symbol),
+    cachedFearGreedHistory(),
+    cachedBalanceSheet(resolved.symbol),
   ]);
 
   return buildStockPayload({
@@ -59,8 +65,13 @@ export async function getStockPayload(
     dividends,
     seasonality,
     cashFlowSeries,
-    options,
+    optionChain,
     fearGreedHistory,
-    riskScores: mapRiskScores(quoteSummary, quote),
+    riskScores: mapRiskScores({
+      quoteSummary,
+      quote,
+      balanceSheets,
+      cashFlows: cashFlowSeries,
+    }),
   });
 }

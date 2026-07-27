@@ -24,6 +24,18 @@ import type {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const yf = yahooFinance as any;
 
+/**
+ * Skip yahoo-finance2's response schema validation.
+ *
+ * Yahoo changes its payloads faster than the library's schemas track them, and
+ * a drifted field currently makes `search` throw outright rather than return
+ * partial data. That failure was silent: every symbol lookup fell through to
+ * the AI fallback, so the app appeared to work while paying for a model call
+ * on a request Yahoo could answer. The historical() calls already used this
+ * escape hatch; it is now applied consistently.
+ */
+const VALIDATION_OFF = { validateResult: false } as const;
+
 const QUOTE_SUMMARY_MODULES = [
   "financialData",
   "upgradeDowngradeHistory",
@@ -44,7 +56,7 @@ const QUOTE_SUMMARY_MODULES = [
 
 export async function getQuote(symbol: string): Promise<YahooQuote | null> {
   try {
-    return (await yf.quote(symbol)) as YahooQuote;
+    return (await yf.quote(symbol, {}, VALIDATION_OFF)) as YahooQuote;
   } catch (e) {
     console.warn(`[yahoo] quote failed for ${symbol}:`, e);
     return null;
@@ -55,9 +67,11 @@ export async function getQuoteSummary(
   symbol: string,
 ): Promise<QuoteSummaryBundle | null> {
   try {
-    return (await yf.quoteSummary(symbol, {
-      modules: [...QUOTE_SUMMARY_MODULES],
-    })) as QuoteSummaryBundle;
+    return (await yf.quoteSummary(
+      symbol,
+      { modules: [...QUOTE_SUMMARY_MODULES] },
+      VALIDATION_OFF,
+    )) as QuoteSummaryBundle;
   } catch (e) {
     console.warn(`[yahoo] quoteSummary failed for ${symbol}:`, e);
     return null;
@@ -121,30 +135,48 @@ export async function getOptions(
   symbol: string,
 ): Promise<YahooOptionsResult | null> {
   try {
-    return (await yf.options(symbol)) as YahooOptionsResult;
+    return (await yf.options(symbol, {}, VALIDATION_OFF)) as YahooOptionsResult;
   } catch (e) {
     console.warn(`[yahoo] options failed for ${symbol}:`, e);
     return null;
   }
 }
 
-/** Annual cash-flow time series, used for the buyback yield. */
-export async function getCashFlowTimeSeries(
+/**
+ * Annual fundamentals time series.
+ *
+ * This is the only working source for balance-sheet and cash-flow figures:
+ * quoteSummary's balanceSheetHistory and cashflowStatementHistory modules have
+ * returned essentially empty rows (just maxAge and endDate) since late 2024,
+ * which the library itself warns about.
+ */
+async function getFundamentalsTimeSeries(
   symbol: string,
-  years = 3,
+  module: "balance-sheet" | "cash-flow" | "financials",
+  years: number,
 ): Promise<YahooFundamentalsRow[]> {
   try {
     const period1 = new Date();
     period1.setFullYear(period1.getFullYear() - years);
     return (await yf.fundamentalsTimeSeries(
       symbol,
-      { period1, type: "annual", module: "cash-flow" },
-      { validateResult: false },
+      { period1, type: "annual", module },
+      VALIDATION_OFF,
     )) as YahooFundamentalsRow[];
   } catch (e) {
-    console.warn(`[yahoo] cash-flow series failed for ${symbol}:`, e);
+    console.warn(`[yahoo] ${module} series failed for ${symbol}:`, e);
     return [];
   }
+}
+
+/** Used for the buyback yield and the Piotroski cash-flow signals. */
+export function getCashFlowTimeSeries(symbol: string, years = 4) {
+  return getFundamentalsTimeSeries(symbol, "cash-flow", years);
+}
+
+/** Used for the Altman Z-Score and the Piotroski leverage/liquidity signals. */
+export function getBalanceSheetTimeSeries(symbol: string, years = 4) {
+  return getFundamentalsTimeSeries(symbol, "balance-sheet", years);
 }
 
 export interface SearchOptions {
@@ -159,7 +191,11 @@ export async function searchSymbols(
   options: SearchOptions = {},
 ): Promise<YahooSearchQuote[]> {
   try {
-    const result = await yf.search(query, { newsCount: 0, ...options });
+    const result = await yf.search(
+      query,
+      { newsCount: 0, ...options },
+      VALIDATION_OFF,
+    );
     return (result?.quotes ?? []) as YahooSearchQuote[];
   } catch (e) {
     console.warn(`[yahoo] search failed for "${query}":`, e);

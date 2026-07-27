@@ -59,8 +59,19 @@ export interface YahooSearchQuote {
 
 export interface YahooFundamentalsRow {
   date: string | Date;
+  // cash-flow module
   repurchaseOfCapitalStock?: number;
   commonStockPayments?: number;
+  operatingCashFlow?: number;
+  // balance-sheet module
+  totalAssets?: number;
+  totalLiabilitiesNetMinorityInterest?: number;
+  currentAssets?: number;
+  currentLiabilities?: number;
+  retainedEarnings?: number;
+  longTermDebt?: number;
+  shareIssued?: number;
+  ordinarySharesNumber?: number;
 }
 
 // --- quoteSummary modules -------------------------------------------------

@@ -4,7 +4,9 @@
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import SearchArea from "@/components/SearchArea";
-import StockDashboard, { StockData } from "@/components/StockDashboard";
+import StockDashboard from "@/components/StockDashboard";
+import type { StockData } from "@/lib/types/stock";
+import { fetchMarket, fetchSearch, fetchStock } from "@/lib/api/client";
 import MarketStatus, { MarketData } from "@/components/MarketStatus";
 import StockHeatmap from "@/components/StockHeatmap";
 import { motion, AnimatePresence } from "framer-motion";
@@ -48,9 +50,7 @@ export default function Home() {
   const fetchMarketData = useCallback(async () => {
     setMarketLoading(true);
     try {
-      const res = await fetch("/api/market");
-      const json = await res.json();
-      // Check for new schema (indices)
+      const json = await fetchMarket();
       if (json.indices) {
         setMarketData(json);
       }
@@ -84,20 +84,7 @@ export default function Home() {
       // Refresh market data on manual search only
       if (!isAutoRefresh) fetchMarketData();
 
-      const response = await fetch("/api/stock", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ query: symbol, range: timeRange }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to fetch stock data");
-      }
-
-      const data = await response.json();
+      const data = await fetchStock(symbol, { range: timeRange });
       setStockData(data);
     } catch (err: any) {
       setError(err.message);
@@ -133,8 +120,8 @@ export default function Home() {
 
     // 1. First check for candidates
     try {
-      const searchRes = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-      const searchData = await searchRes.json();
+      // Explicit submit, so the AI fallback is allowed here.
+      const searchData = await fetchSearch(query, { deep: true });
       const results = searchData.results || [];
 
       // Logic A: Exact Symbol Match -> Load Immediately
@@ -174,12 +161,7 @@ export default function Home() {
       // Just trigger fetch with new range
       setLoading(true);
       try {
-        const response = await fetch("/api/stock", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query: stockData.symbol, range: newRange }),
-        });
-        const data = await response.json();
+        const data = await fetchStock(stockData.symbol, { range: newRange });
         setStockData(data);
       } catch (err) {
         console.error(err);
@@ -317,12 +299,7 @@ export default function Home() {
                     setTimeRange('custom');
                     if (stockData) {
                       setLoading(true);
-                      fetch("/api/stock", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ query: stockData.symbol, from: fromDate, range: 'custom' }),
-                      })
-                        .then(res => res.json())
+                      fetchStock(stockData.symbol, { range: 'custom', from: fromDate })
                         .then(data => setStockData(data))
                         .catch(err => console.error(err))
                         .finally(() => setLoading(false));
