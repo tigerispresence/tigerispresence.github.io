@@ -1,19 +1,8 @@
-import Anthropic from "@anthropic-ai/sdk";
-import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
-import type { z } from "zod";
-import { AI_MODEL, anthropic, isAiConfigured } from "./client";
+import { z } from "zod";
+import { getProvider } from "./client";
+import type { AiResult } from "./provider";
 
-export type AiFailureReason =
-  | "not_configured"
-  | "refusal"
-  | "rate_limit"
-  | "timeout"
-  | "invalid"
-  | "unavailable";
-
-export type AiResult<T> =
-  | { ok: true; data: T }
-  | { ok: false; reason: AiFailureReason; message: string };
+export type { AiResult, AiFailureReason } from "./provider";
 
 export interface GenerateOptions<S extends z.ZodType> {
   schema: S;
@@ -25,116 +14,82 @@ export interface GenerateOptions<S extends z.ZodType> {
   effort?: "low" | "medium" | "high";
 }
 
-/** Map a thrown SDK error to a failure reason. */
-export function classifyAiError(error: unknown): {
-  reason: AiFailureReason;
-  message: string;
-} {
-  const message = error instanceof Error ? error.message : String(error);
-
-  if (error instanceof Anthropic.RateLimitError) return { reason: "rate_limit", message };
-  if (error instanceof Anthropic.APIConnectionTimeoutError) return { reason: "timeout", message };
-  if (error instanceof Anthropic.AuthenticationError) return { reason: "unavailable", message };
-  if (error instanceof Anthropic.PermissionDeniedError) return { reason: "unavailable", message };
-  if (error instanceof Anthropic.APIError) return { reason: "unavailable", message };
-
-  return { reason: "unavailable", message };
-}
-
 /**
- * Run a web search and return the model's free-text findings.
+ * Generate schema-validated JSON, whichever provider is configured.
  *
- * Kept as a separate first step because structured outputs and citations are
- * mutually exclusive, and the server-side search tool attaches citations to the
- * text blocks it produces. Asking for both in one call risks a 400, so search
- * and extraction are split: this call gathers, the next one shapes.
- */
-async function gatherWithWebSearch(
-  prompt: string,
-  system: string | undefined,
-  maxUses: number,
-  maxTokens: number,
-): Promise<string> {
-  const response = await anthropic.messages.create({
-    model: AI_MODEL,
-    max_tokens: maxTokens,
-    ...(system ? { system } : {}),
-    tools: [
-      { type: "web_search_20260209", name: "web_search", max_uses: maxUses },
-    ],
-    messages: [{ role: "user", content: prompt }],
-  });
-
-  return response.content
-    .filter((block): block is Anthropic.TextBlock => block.type === "text")
-    .map((block) => block.text)
-    .join("\n");
-}
-
-/**
- * Generate schema-validated JSON.
+ * Returns a discriminated result rather than throwing: every call site has a
+ * deterministic fallback, so an AI outage should degrade one panel rather than
+ * fail the request.
  *
- * Returns a discriminated result rather than throwing: every call site here has
- * a deterministic fallback, and an AI outage should degrade one panel rather
- * than fail the request.
+ * Web search runs as a separate call from extraction on both providers.
+ * Structured output and grounded search pull against each other — Claude's
+ * structured outputs are incompatible with the citations its search tool
+ * attaches, and Gemini's JSON mode conflicts with the googleSearch tool. One
+ * call gathers, the next shapes.
  */
 export async function generateStructured<S extends z.ZodType>(
   options: GenerateOptions<S>,
 ): Promise<AiResult<z.infer<S>>> {
-  if (!isAiConfigured()) {
+  const provider = getProvider();
+  if (!provider) {
     return {
       ok: false,
       reason: "not_configured",
-      message: "ANTHROPIC_API_KEY is not set",
+      message: "Set GEMINI_API_KEY or ANTHROPIC_API_KEY",
     };
   }
 
-  // Opus 5 reasons by default and max_tokens covers thinking plus the visible
-  // response, so these budgets are well above the size of the JSON itself.
   const maxTokens = options.maxTokens ?? 4096;
   const effort = options.effort ?? "low";
 
-  try {
-    let prompt = options.prompt;
+  let prompt = options.prompt;
 
-    if (options.webSearch) {
-      const findings = await gatherWithWebSearch(
-        options.prompt,
-        options.system,
-        options.webSearch.maxUses ?? 5,
-        Math.max(maxTokens, 8192),
-      );
-      prompt = `${options.prompt}\n\nResearch findings:\n${findings}`;
-    }
-
-    const response = await anthropic.messages.parse({
-      model: AI_MODEL,
-      max_tokens: maxTokens,
-      ...(options.system ? { system: options.system } : {}),
-      output_config: { effort, format: zodOutputFormat(options.schema) },
-      messages: [{ role: "user", content: prompt }],
+  if (options.webSearch) {
+    const findings = await provider.searchWeb({
+      prompt: options.prompt,
+      system: options.system,
+      maxUses: options.webSearch.maxUses ?? 5,
+      maxTokens: Math.max(maxTokens, 8192),
     });
-
-    // Order matters: a refusal and a truncation both leave parsed_output null,
-    // and conflating them makes the failure impossible to diagnose.
-    if (response.stop_reason === "refusal") {
-      return {
-        ok: false,
-        reason: "refusal",
-        message: response.stop_details?.explanation ?? "Request was declined",
-      };
+    // Search is best-effort: without findings the model still answers from
+    // its own knowledge, which beats failing the panel outright.
+    if (findings.ok && findings.data.trim()) {
+      prompt = `${options.prompt}\n\nResearch findings:\n${findings.data}`;
     }
-    if (response.stop_reason === "max_tokens") {
-      return { ok: false, reason: "invalid", message: "Response was truncated" };
-    }
-    if (!response.parsed_output) {
-      return { ok: false, reason: "invalid", message: "Response did not match schema" };
-    }
-
-    return { ok: true, data: response.parsed_output };
-  } catch (error) {
-    const { reason, message } = classifyAiError(error);
-    console.error(`[ai] generation failed (${reason}):`, message);
-    return { ok: false, reason, message };
   }
+
+  const jsonSchema = z.toJSONSchema(options.schema) as Record<string, unknown>;
+
+  const raw = await provider.generateJson({
+    prompt,
+    system: options.system,
+    jsonSchema,
+    maxTokens,
+    effort,
+  });
+  if (!raw.ok) return raw;
+
+  // Zod is the contract, not the provider's own validation: it is the only
+  // check that holds identically across providers.
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw.data);
+  } catch {
+    return {
+      ok: false,
+      reason: "invalid",
+      message: "Response was not valid JSON",
+    };
+  }
+
+  const result = options.schema.safeParse(parsed);
+  if (!result.success) {
+    return {
+      ok: false,
+      reason: "invalid",
+      message: `Response did not match schema: ${result.error.message.slice(0, 200)}`,
+    };
+  }
+
+  return { ok: true, data: result.data };
 }

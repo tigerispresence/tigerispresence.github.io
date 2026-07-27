@@ -1,20 +1,45 @@
-import Anthropic from "@anthropic-ai/sdk";
+import type { AiProvider } from "./provider";
+import { createClaudeProvider } from "./providers/claude";
+import { createGeminiProvider } from "./providers/gemini";
 
 /**
- * Anthropic client.
+ * Provider selection.
  *
- * The key is read from ANTHROPIC_API_KEY by the SDK. It is deliberately NOT
- * prefixed NEXT_PUBLIC_ — that prefix inlines a value into the browser bundle,
- * which is how the previous Gemini key ended up publicly readable.
+ * Whichever key is present wins; GEMINI_API_KEY takes precedence when both are
+ * set, and AI_PROVIDER forces one explicitly. Switching providers is therefore
+ * an environment change, not a code change.
+ *
+ * Neither key may be prefixed NEXT_PUBLIC_ — that inlines the value into the
+ * browser bundle, which is how the original Gemini key ended up public.
  */
-export const anthropic = new Anthropic({
-  maxRetries: 2,
-  timeout: 45_000,
-});
+export type ProviderName = "gemini" | "claude";
 
-export const AI_MODEL = "claude-opus-5";
+export function configuredProviderName(): ProviderName | null {
+  const forced = process.env.AI_PROVIDER?.trim().toLowerCase();
+  if (forced === "gemini") return process.env.GEMINI_API_KEY ? "gemini" : null;
+  if (forced === "claude") return process.env.ANTHROPIC_API_KEY ? "claude" : null;
 
-/** True when a key is configured; call sites degrade instead of throwing. */
+  if (process.env.GEMINI_API_KEY) return "gemini";
+  if (process.env.ANTHROPIC_API_KEY) return "claude";
+  return null;
+}
+
+/**
+ * Built per call rather than memoized at module load: reading the key lazily
+ * keeps an unset environment from throwing at import time, which would take
+ * down routes that never touch AI.
+ */
+export function getProvider(): AiProvider | null {
+  switch (configuredProviderName()) {
+    case "gemini":
+      return createGeminiProvider(process.env.GEMINI_API_KEY!);
+    case "claude":
+      return createClaudeProvider(process.env.ANTHROPIC_API_KEY!);
+    default:
+      return null;
+  }
+}
+
 export function isAiConfigured(): boolean {
-  return Boolean(process.env.ANTHROPIC_API_KEY);
+  return configuredProviderName() !== null;
 }
