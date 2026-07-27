@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from 'next/server';
 import { yahooFinance } from '@/lib/server/yahoo/client';
-// import { generateJsonWithFallback } from '@/lib/gemini'; // Unused
 import fs from 'fs';
 import path from 'path';
 import os from 'os';

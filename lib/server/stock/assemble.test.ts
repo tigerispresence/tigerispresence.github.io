@@ -23,7 +23,7 @@ function baseInput(overrides: Partial<AssembleInput> = {}): AssembleInput {
     cashFlowSeries: [],
     options: null,
     fearGreedHistory: null,
-    aiMetrics: null,
+    riskScores: undefined,
     ...overrides,
   };
 }
@@ -91,10 +91,19 @@ describe("buildStockPayload", () => {
     expect(out.dividendYield).toBeUndefined();
   });
 
-  it("omits AI blocks entirely when no AI data is present", () => {
-    const out = buildStockPayload(baseInput({ aiMetrics: null }));
-    expect(out.geminiMetrics).toBeUndefined();
-    expect(out.geminiRiskMetrics).toBeUndefined();
+  it("omits risk scores when they could not be computed", () => {
+    const out = buildStockPayload(baseInput({ riskScores: undefined }));
+    expect(out.riskScores).toBeUndefined();
+  });
+
+  it("passes through computed risk scores", () => {
+    const out = buildStockPayload(
+      baseInput({
+        riskScores: { altmanZScore: 3.07, piotroskiFScore: 7, riskSummary: "ok" },
+      }),
+    );
+    expect(out.riskScores?.altmanZScore).toBeCloseTo(3.07, 6);
+    expect(out.riskScores?.piotroskiFScore).toBe(7);
   });
 
   it("computes max pain from the front-month chain", () => {

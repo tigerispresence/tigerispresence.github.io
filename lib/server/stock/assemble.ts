@@ -26,15 +26,12 @@ export interface AssembleInput {
   cashFlowSeries: YahooFundamentalsRow[];
   options: YahooOptionsResult | null;
   fearGreedHistory: FearGreedPoint[] | null;
-  /** Optional AI-derived extras; omitted entirely when unavailable. */
-  aiMetrics?: {
-    trailingPE?: number | null;
-    forwardPE?: number | null;
-    dividendYield?: number | null;
+  /** Deterministically computed; omitted when the statements are too sparse. */
+  riskScores?: {
     altmanZScore?: number;
     piotroskiFScore?: number;
     riskSummary?: string;
-  } | null;
+  };
 }
 
 const toClosePoints = (rows: YahooHistoryRow[]) =>
@@ -86,7 +83,7 @@ export function buildStockPayload(input: AssembleInput): StockData {
     cashFlowSeries,
     options,
     fearGreedHistory,
-    aiMetrics,
+    riskScores,
   } = input;
 
   const stats = quoteSummary?.defaultKeyStatistics;
@@ -110,20 +107,7 @@ export function buildStockPayload(input: AssembleInput): StockData {
     forwardPE: quote?.forwardPE,
     dividendYield,
 
-    geminiMetrics: aiMetrics
-      ? {
-          trailingPE: aiMetrics.trailingPE ?? null,
-          forwardPE: aiMetrics.forwardPE ?? null,
-          dividendYield: aiMetrics.dividendYield ?? null,
-        }
-      : undefined,
-    geminiRiskMetrics: aiMetrics
-      ? {
-          altmanZScore: aiMetrics.altmanZScore,
-          piotroskiFScore: aiMetrics.piotroskiFScore,
-          riskSummary: aiMetrics.riskSummary,
-        }
-      : undefined,
+    riskScores,
 
     priceTargets: quoteSummary?.financialData
       ? {

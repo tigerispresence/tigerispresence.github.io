@@ -13,7 +13,7 @@ interface RiskMetricsProps {
             fiftyTwoWeekLow?: number;
             marketCap?: number;
         };
-        geminiRiskMetrics?: {
+        riskScores?: {
             altmanZScore?: number;
             piotroskiFScore?: number;
             riskSummary?: string;
@@ -22,7 +22,7 @@ interface RiskMetricsProps {
 }
 
 export default function RiskMetrics({ data }: RiskMetricsProps) {
-    const { currentPrice, riskMetrics, geminiRiskMetrics } = data;
+    const { currentPrice, riskMetrics, riskScores } = data;
 
     const mdd = useMemo(() => {
         if (!currentPrice || !riskMetrics?.fiftyTwoWeekHigh) return null;
@@ -30,24 +30,24 @@ export default function RiskMetrics({ data }: RiskMetricsProps) {
     }, [currentPrice, riskMetrics]);
 
     const zScoreInfo = useMemo(() => {
-        const score = geminiRiskMetrics?.altmanZScore;
+        const score = riskScores?.altmanZScore;
         if (score === undefined || score === null) return null;
         const numScore = Number(score);
         if (isNaN(numScore)) return null;
         if (numScore > 3.0) return { label: "Safe", color: "text-green-400", bg: "bg-green-400/10", border: "border-green-400/20" };
         if (numScore > 1.8) return { label: "Gray Zone", color: "text-yellow-400", bg: "bg-yellow-400/10", border: "border-yellow-400/20" };
         return { label: "Distress", color: "text-red-400", bg: "bg-red-400/10", border: "border-red-400/20" };
-    }, [geminiRiskMetrics?.altmanZScore]);
+    }, [riskScores?.altmanZScore]);
 
     const fScoreInfo = useMemo(() => {
-        const score = geminiRiskMetrics?.piotroskiFScore;
+        const score = riskScores?.piotroskiFScore;
         if (score === undefined || score === null) return null;
         const numScore = Number(score);
         if (isNaN(numScore)) return null;
         if (numScore >= 7) return { label: "Strong", color: "text-green-400", bg: "bg-green-400/10", border: "border-green-400/20" };
         if (numScore >= 4) return { label: "Average", color: "text-yellow-400", bg: "bg-yellow-400/10", border: "border-yellow-400/20" };
         return { label: "Weak", color: "text-red-400", bg: "bg-red-400/10", border: "border-red-400/20" };
-    }, [geminiRiskMetrics?.piotroskiFScore]);
+    }, [riskScores?.piotroskiFScore]);
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -118,8 +118,8 @@ export default function RiskMetrics({ data }: RiskMetricsProps) {
                 </div>
                 <div className="flex items-end gap-2">
                     <span className="text-2xl font-bold text-white">
-                        {geminiRiskMetrics?.altmanZScore !== undefined && geminiRiskMetrics?.altmanZScore !== null && !isNaN(Number(geminiRiskMetrics.altmanZScore))
-                            ? Number(geminiRiskMetrics.altmanZScore).toFixed(2)
+                        {riskScores?.altmanZScore !== undefined && riskScores?.altmanZScore !== null && !isNaN(Number(riskScores.altmanZScore))
+                            ? Number(riskScores.altmanZScore).toFixed(2)
                             : "N/A"}
                     </span>
                     {zScoreInfo && (
@@ -150,8 +150,8 @@ export default function RiskMetrics({ data }: RiskMetricsProps) {
                 </div>
                 <div className="flex items-end gap-2">
                     <span className="text-2xl font-bold text-white">
-                        {geminiRiskMetrics?.piotroskiFScore !== undefined && geminiRiskMetrics?.piotroskiFScore !== null && !isNaN(Number(geminiRiskMetrics.piotroskiFScore))
-                            ? `${Number(geminiRiskMetrics.piotroskiFScore)}/9`
+                        {riskScores?.piotroskiFScore !== undefined && riskScores?.piotroskiFScore !== null && !isNaN(Number(riskScores.piotroskiFScore))
+                            ? `${Number(riskScores.piotroskiFScore)}/9`
                             : "N/A"}
                     </span>
                     {fScoreInfo && (

@@ -35,13 +35,9 @@ export interface StockData {
   change: number;
   changePercent: number;
   trailingPE?: number;
+  /** Percent (1.5 means 1.5%). Note shareholderYield.dividendYield is a fraction. */
   forwardPE?: number;
   dividendYield?: number;
-  geminiMetrics?: {
-    trailingPE: number | null;
-    forwardPE: number | null;
-    dividendYield: number | null;
-  };
   priceTargets?: {
     low: number;
     high: number;
@@ -92,7 +88,11 @@ export interface StockData {
     fiftyTwoWeekLow?: number;
     marketCap?: number;
   };
-  geminiRiskMetrics?: {
+  /**
+   * Computed from the balance sheet and income statement — not model output.
+   * Absent when Yahoo's coverage is too sparse to compute honestly.
+   */
+  riskScores?: {
     altmanZScore?: number;
     piotroskiFScore?: number;
     riskSummary?: string;

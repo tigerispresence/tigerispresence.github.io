@@ -1,5 +1,5 @@
 import { KOREAN_STOCK_MAP } from "@/lib/korean_stocks";
-import { generateJsonWithFallback } from "@/lib/gemini";
+import { resolveSymbolWithAi } from "@/lib/server/ai/symbol";
 import { normalizeSymbol } from "@/lib/utils/symbols";
 import { searchSymbols } from "@/lib/server/yahoo/fetchers";
 
@@ -57,23 +57,13 @@ export async function resolveFromYahoo(
 export async function resolveFromAi(
   query: string,
 ): Promise<ResolvedSymbol | null> {
-  try {
-    const result = await generateJsonWithFallback(
-      `Find the exact stock ticker symbol for "${query}".
-       If it is a Korean company, use the format "000000.KS" or "000000.KQ".
-       If it is a US company, use the standard ticker (e.g. AAPL).
-       Return a JSON object: { "symbol": "string", "name": "string" }`,
-    );
-    if (!result?.symbol) return null;
-    return {
-      symbol: result.symbol,
-      name: result.name ?? result.symbol,
-      source: "ai",
-    };
-  } catch (e) {
-    console.error("[resolveSymbol] AI fallback failed:", e);
-    return null;
-  }
+  const result = await resolveSymbolWithAi(query);
+  if (!result.ok || !result.data.symbol) return null;
+  return {
+    symbol: result.data.symbol,
+    name: result.data.name || result.data.symbol,
+    source: "ai",
+  };
 }
 
 /**

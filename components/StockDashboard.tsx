@@ -174,33 +174,18 @@ const StockDashboard = memo(({ data }: StockDashboardProps) => {
                     <div className="text-white font-bold text-2xl">
                         {data.trailingPE ? data.trailingPE.toFixed(2) : <span className="text-gray-600 text-lg">N/A</span>}
                     </div>
-                    {data.geminiMetrics?.trailingPE && (
-                        <div className="text-xs text-blue-400 mt-1 flex items-center gap-1 opacity-80">
-                            <span>G: {data.geminiMetrics.trailingPE.toFixed(2)}</span>
-                        </div>
-                    )}
                 </div>
                 <div className="bg-gray-900/50 backdrop-blur-xl border border-gray-800 rounded-2xl p-4 flex flex-col items-center justify-center relative group">
                     <div className="text-gray-400 text-sm font-medium uppercase tracking-wider mb-1">Forward PER</div>
                     <div className="text-white font-bold text-2xl">
                         {data.forwardPE ? data.forwardPE.toFixed(2) : <span className="text-gray-600 text-lg">N/A</span>}
                     </div>
-                    {data.geminiMetrics?.forwardPE && (
-                        <div className="text-xs text-blue-400 mt-1 flex items-center gap-1 opacity-80">
-                            <span>G: {data.geminiMetrics.forwardPE.toFixed(2)}</span>
-                        </div>
-                    )}
                 </div>
                 <div className="bg-gray-900/50 backdrop-blur-xl border border-gray-800 rounded-2xl p-4 flex flex-col items-center justify-center relative group">
                     <div className="text-gray-400 text-sm font-medium uppercase tracking-wider mb-1">Dividend Yield</div>
                     <div className="text-white font-bold text-2xl">
                         {data.dividendYield ? `${data.dividendYield.toFixed(2)}%` : <span className="text-gray-600 text-lg">N/A</span>}
                     </div>
-                    {data.geminiMetrics?.dividendYield && (
-                        <div className="text-xs text-blue-400 mt-1 flex items-center gap-1 opacity-80">
-                            <span>G: {data.geminiMetrics.dividendYield.toFixed(2)}%</span>
-                        </div>
-                    )}
                 </div>
                 {/* Max Pain Card */}
                 <div className="bg-gray-900/50 backdrop-blur-xl border border-gray-800 rounded-2xl p-4 flex flex-col items-center justify-center relative group">
