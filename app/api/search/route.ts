@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { yahooFinance } from '@/lib/yahoo';
+import { yahooFinance } from '@/lib/server/yahoo/client';
 import { generateJsonWithFallback } from '@/lib/gemini';
 
 import { KOREAN_STOCK_MAP } from '@/lib/korean_stocks';

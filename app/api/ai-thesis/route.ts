@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { generateJsonWithFallback } from '@/lib/gemini';
-import { yahooFinance } from '@/lib/yahoo';
+import { yahooFinance } from '@/lib/server/yahoo/client';
 import fs from 'fs';
 import path from 'path';
 

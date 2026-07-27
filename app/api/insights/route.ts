@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { yahooFinance } from '@/lib/yahoo';
+import { yahooFinance } from '@/lib/server/yahoo/client';
 import fs from 'fs';
 import path from 'path';
 /* eslint-disable @typescript-eslint/no-explicit-any */

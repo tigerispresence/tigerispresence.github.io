@@ -13,7 +13,8 @@ export default defineConfig({
         test: {
           name: "node",
           environment: "node",
-          include: ["lib/**/*.test.ts"],
+          // Route handlers are server code and belong here, not in jsdom.
+          include: ["lib/**/*.test.ts", "app/api/**/*.test.ts"],
         },
       },
       {
@@ -23,7 +24,7 @@ export default defineConfig({
           name: "dom",
           environment: "jsdom",
           setupFiles: ["./vitest.setup.ts"],
-          include: ["{components,hooks,app}/**/*.test.{ts,tsx}"],
+          include: ["{components,hooks}/**/*.test.{ts,tsx}", "app/**/*.test.tsx"],
         },
       },
     ],
