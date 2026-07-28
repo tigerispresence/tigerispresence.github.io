@@ -47,6 +47,8 @@ export interface YahooOptionChain {
 
 export interface YahooOptionsResult {
   options?: YahooOptionChain[];
+  /** Every listed expiry, ascending. */
+  expirationDates?: (string | Date)[];
 }
 
 export interface YahooSearchQuote {

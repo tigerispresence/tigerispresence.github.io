@@ -46,8 +46,25 @@ describe("computeMaxPain", () => {
     expect(computeMaxPain(calls, puts)).toBe(80);
   });
 
-  it("treats missing open interest as zero", () => {
-    const result = computeMaxPain([{ strike: 50 }], [{ strike: 60 }]);
+  it("returns null when the whole chain has no open interest", () => {
+    // Regression test: freshly listed weeklies routinely carry zero OI on every
+    // contract. Pain is then 0 at every strike and the scan returned whichever
+    // it saw first — the lowest — which rendered as a max pain far below the
+    // traded price (210 for a stock at 337).
+    expect(computeMaxPain([{ strike: 50 }], [{ strike: 60 }])).toBeNull();
+    expect(
+      computeMaxPain(
+        [{ strike: 200, openInterest: 0 }, { strike: 210, openInterest: 0 }],
+        [{ strike: 200, openInterest: 0 }],
+      ),
+    ).toBeNull();
+  });
+
+  it("still computes when only one side carries open interest", () => {
+    const result = computeMaxPain(
+      [{ strike: 100, openInterest: 500 }],
+      [{ strike: 110, openInterest: 0 }],
+    );
     expect(result).not.toBeNull();
   });
 

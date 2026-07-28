@@ -1,4 +1,5 @@
 import { yahooFinance } from "./client";
+import { MIN_MEANINGFUL_OPEN_INTEREST } from "@/lib/calc/maxPain";
 import type {
   QuoteSummaryBundle,
   YahooFundamentalsRow,
@@ -131,11 +132,51 @@ export async function getMonthlyHistory(
   }
 }
 
+/** Prefer a chain that clears the meaningful-liquidity bar. */
+const MIN_CHAIN_OPEN_INTEREST = MIN_MEANINGFUL_OPEN_INTEREST;
+
+function chainOpenInterest(result: YahooOptionsResult | null): number {
+  const chain = result?.options?.[0];
+  if (!chain) return 0;
+  const sum = (legs: { openInterest?: number }[]) =>
+    legs.reduce((total, leg) => total + (leg.openInterest ?? 0), 0);
+  return sum(chain.calls) + sum(chain.puts);
+}
+
+/**
+ * Front-month options chain.
+ *
+ * Yahoo returns the *nearest* expiry by default, which for a freshly listed
+ * weekly is often a full chain with zero open interest — useless for max pain,
+ * and previously the cause of a max-pain price far below where the stock
+ * traded. When that happens, fall back to the first expiry at least three
+ * weeks out, which is typically a monthly and carries real open interest.
+ */
 export async function getOptions(
   symbol: string,
 ): Promise<YahooOptionsResult | null> {
   try {
-    return (await yf.options(symbol, {}, VALIDATION_OFF)) as YahooOptionsResult;
+    const nearest = (await yf.options(
+      symbol,
+      {},
+      VALIDATION_OFF,
+    )) as YahooOptionsResult;
+
+    if (chainOpenInterest(nearest) >= MIN_CHAIN_OPEN_INTEREST) return nearest;
+
+    const threeWeeksOut = Date.now() + 21 * 24 * 60 * 60 * 1000;
+    const monthly = nearest.expirationDates?.find(
+      (d) => new Date(d).getTime() > threeWeeksOut,
+    );
+    if (!monthly) return nearest;
+
+    const later = (await yf.options(
+      symbol,
+      { date: new Date(monthly) },
+      VALIDATION_OFF,
+    )) as YahooOptionsResult;
+
+    return chainOpenInterest(later) > 0 ? later : nearest;
   } catch (e) {
     console.warn(`[yahoo] options failed for ${symbol}:`, e);
     return null;

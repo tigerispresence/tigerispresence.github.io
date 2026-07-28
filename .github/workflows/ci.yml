@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # yahoo-finance2 v4 requires Node >= 22; matches the Vercel default.
+          node-version: "22"
+          cache: npm
+
+      - run: npm ci
+
+      # typecheck + lint + tests. No API key needed: every network seam is
+      # mocked, and the app is designed to run without an AI provider.
+      - run: npm run check
+
+      - run: npm run build

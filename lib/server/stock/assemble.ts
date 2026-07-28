@@ -4,7 +4,10 @@ import type {
   PricePoint,
   StockData,
 } from "@/lib/types/stock";
-import { computeMaxPain } from "@/lib/calc/maxPain";
+import {
+  computeMaxPain,
+  MIN_MEANINGFUL_OPEN_INTEREST,
+} from "@/lib/calc/maxPain";
 import type {
   QuoteSummaryBundle,
   YahooFundamentalsRow,
@@ -91,7 +94,11 @@ export function buildStockPayload(input: AssembleInput): StockData {
     quote?.dividendYield ?? trailingYieldPercent(dividends, quote?.regularMarketPrice);
 
   const maxPainStrike = optionChain
-    ? computeMaxPain(optionChain.calls, optionChain.puts)
+    ? computeMaxPain(
+        optionChain.calls,
+        optionChain.puts,
+        MIN_MEANINGFUL_OPEN_INTEREST,
+      )
     : null;
 
   return {
