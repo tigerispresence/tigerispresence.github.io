@@ -5,6 +5,7 @@ import {
 } from "recharts";
 import { motion } from "framer-motion";
 import { Activity } from "lucide-react";
+import { SIM_KEY } from "@/lib/calc/sim/types";
 import { useStockData } from "../StockDataContext";
 
 export default function FearGreedSimulationChart() {
@@ -104,7 +105,7 @@ export default function FearGreedSimulationChart() {
                           </defs>
                           <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" vertical={false} />
                           <XAxis
-                              dataKey="date"
+                              dataKey={SIM_KEY.date}
                               stroke="#6b7280"
                               tickFormatter={(str) => {
                                   const date = new Date(str);
@@ -129,7 +130,7 @@ export default function FearGreedSimulationChart() {
                           <Legend />
                           <Area
                               type="monotone"
-                              dataKey="valueReinvest"
+                              dataKey={SIM_KEY.valueReinvest}
                               name="With Reinvestment"
                               stroke="none"
                               fill="url(#colorFgValueReinvest)"
@@ -137,7 +138,7 @@ export default function FearGreedSimulationChart() {
                           />
                           <Area
                               type="monotone"
-                              dataKey="valueNoReinvest"
+                              dataKey={SIM_KEY.valueNoReinvest}
                               name="Without Reinvestment"
                               stroke="none"
                               fill="url(#colorFgValueNoReinvest)"
@@ -146,7 +147,7 @@ export default function FearGreedSimulationChart() {
 
                           <Line
                               type="monotone"
-                              dataKey="valueNoReinvest"
+                              dataKey={SIM_KEY.valueNoReinvest}
                               stroke="#f97316"
                               strokeWidth={2}
                               dot={false}
@@ -155,7 +156,7 @@ export default function FearGreedSimulationChart() {
                           />
                           <Line
                               type="monotone"
-                              dataKey="valueReinvest"
+                              dataKey={SIM_KEY.valueReinvest}
                               stroke="#10b981"
                               strokeWidth={2}
                               dot={false}
@@ -165,7 +166,7 @@ export default function FearGreedSimulationChart() {
 
                           <Line
                               type="step"
-                              dataKey="invested"
+                              dataKey={SIM_KEY.invested}
                               name="Invested Capital"
                               stroke="#9ca3af"
                               strokeWidth={2}

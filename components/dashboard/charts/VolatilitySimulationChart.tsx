@@ -5,6 +5,7 @@ import {
 } from "recharts";
 import { TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
+import { SIM_KEY } from "@/lib/calc/sim/types";
 import { useStockData } from "../StockDataContext";
 
 export default function VolatilitySimulationChart() {
@@ -104,7 +105,7 @@ export default function VolatilitySimulationChart() {
                           </defs>
                           <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" vertical={false} />
                           <XAxis
-                              dataKey="date"
+                              dataKey={SIM_KEY.date}
                               stroke="#6b7280"
                               tickFormatter={(str) => {
                                   const date = new Date(str);
@@ -130,7 +131,7 @@ export default function VolatilitySimulationChart() {
                           {/* Areas for Fill (Gradient) - Green behind Blue */}
                           <Area
                               type="monotone"
-                              dataKey="valueReinvest"
+                              dataKey={SIM_KEY.valueReinvest}
                               name="With Reinvestment"
                               stroke="none"
                               fill="url(#colorValueReinvest)"
@@ -138,7 +139,7 @@ export default function VolatilitySimulationChart() {
                           />
                           <Area
                               type="monotone"
-                              dataKey="valueNoReinvest"
+                              dataKey={SIM_KEY.valueNoReinvest}
                               name="Without Reinvestment"
                               stroke="none"
                               fill="url(#colorValueNoReinvest)"
@@ -148,7 +149,7 @@ export default function VolatilitySimulationChart() {
                           {/* Lines for Stroke - Green on top of Blue */}
                           <Line
                               type="monotone"
-                              dataKey="valueNoReinvest"
+                              dataKey={SIM_KEY.valueNoReinvest}
                               stroke="#3b82f6"
                               strokeWidth={2}
                               dot={false}
@@ -157,7 +158,7 @@ export default function VolatilitySimulationChart() {
                           />
                           <Line
                               type="monotone"
-                              dataKey="valueReinvest"
+                              dataKey={SIM_KEY.valueReinvest}
                               stroke="#10b981"
                               strokeWidth={2}
                               dot={false}
@@ -167,7 +168,7 @@ export default function VolatilitySimulationChart() {
 
                           <Line
                               type="step"
-                              dataKey="invested"
+                              dataKey={SIM_KEY.invested}
                               name="Invested Capital"
                               stroke="#9ca3af"
                               strokeWidth={2}

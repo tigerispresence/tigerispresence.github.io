@@ -27,3 +27,18 @@ export interface SimContext {
   /** Live quote. Falls back to the last close when non-positive. */
   currentPrice: number;
 }
+
+/**
+ * Chart `dataKey` values for a SimPoint.
+ *
+ * Recharts takes `dataKey` as a plain string, so a rename on SimPoint leaves
+ * the charts compiling while silently plotting `undefined` — which is exactly
+ * how the DCA chart lost its portfolio-value series. `satisfies` ties these to
+ * the interface, so the next rename is a type error rather than a blank chart.
+ */
+export const SIM_KEY = {
+  date: "date",
+  invested: "invested",
+  valueReinvest: "valueReinvest",
+  valueNoReinvest: "valueNoReinvest",
+} as const satisfies Record<keyof SimPoint, keyof SimPoint>;

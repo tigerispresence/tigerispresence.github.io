@@ -5,6 +5,7 @@ import {
 } from "recharts";
 import { TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
+import { SIM_KEY } from "@/lib/calc/sim/types";
 import { useStockData } from "../StockDataContext";
 
 export default function DcaSimulationChart() {
@@ -72,7 +73,7 @@ export default function DcaSimulationChart() {
                           </defs>
                           <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" vertical={false} />
                           <XAxis
-                              dataKey="date"
+                              dataKey={SIM_KEY.date}
                               stroke="#6b7280"
                               tickFormatter={(str) => {
                                   const date = new Date(str);
@@ -93,7 +94,7 @@ export default function DcaSimulationChart() {
                           <Legend />
                           <Area
                               type="monotone"
-                              dataKey="value"
+                              dataKey={SIM_KEY.valueReinvest}
                               name="Portfolio Value"
                               stroke="#3b82f6"
                               fill="url(#colorDcaValue)"
@@ -101,7 +102,7 @@ export default function DcaSimulationChart() {
                           />
                           <Area
                               type="monotone"
-                              dataKey="invested"
+                              dataKey={SIM_KEY.invested}
                               name="Total Invested"
                               stroke="#9ca3af" // Gray line for invested amount
                               fill="none"

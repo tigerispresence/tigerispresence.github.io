@@ -64,6 +64,25 @@ describe("simulateDca", () => {
     expect(result.totalReturn).toBeCloseTo(0, 10);
   });
 
+  it("populates the reinvested series the chart plots", () => {
+    // Regression test: unifying the three simulations onto one SimPoint
+    // renamed DCA's `value` field to `valueReinvest`, but the chart kept
+    // asking for `value`. It resolved to undefined, so the portfolio-value
+    // area rendered empty while the invested line still drew.
+    const series = computeSeries(flat100);
+    const result = simulateDca(series, { currentPrice: 100 })!;
+
+    expect(result.history.length).toBeGreaterThan(0);
+    for (const point of result.history) {
+      expect(point).toHaveProperty("valueReinvest");
+      expect(point).toHaveProperty("valueNoReinvest");
+      expect(Number.isFinite(point.valueReinvest)).toBe(true);
+    }
+    // Once the first monthly buy lands the series must be non-zero, otherwise
+    // the chart is a flat line at the axis.
+    expect(result.history[result.history.length - 1].valueReinvest).toBeGreaterThan(0);
+  });
+
   it("falls back to the last close when the live quote is missing", () => {
     // Regression test: a failed upstream quote used to surface as
     // currentPrice = 0, valuing the portfolio at zero and reporting -100%.
