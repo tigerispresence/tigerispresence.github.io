@@ -127,12 +127,6 @@ export default function PriceBollingerChart() {
                           name="Price"
                       />
                       <Scatter
-                          dataKey="buyPrice"
-                          name="Volatility Buy"
-                          fill="#10b981"
-                          shape="circle"
-                      />
-                      <Scatter
                           dataKey="bullishSignal"
                           name="SMA 20 crosses above 60"
                           fill="#22c55e"

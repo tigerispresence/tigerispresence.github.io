@@ -17,7 +17,6 @@ import {
 
 /** A price point annotated with the markers the scatter overlays read. */
 export interface ChartPoint extends SeriesPoint {
-  buyPrice?: number | null;
   bullishSignal?: number | null;
   bearishSignal?: number | null;
 }
@@ -104,13 +103,11 @@ export function useStockAnalytics(
       }
     }
 
-    const withSignals = withCrossoverMarkers(points, crossovers);
-    if (!volatilitySim) return withSignals;
-    return withSignals.map((point) => ({
-      ...point,
-      buyPrice: volatilitySim.buyDates.has(point.date) ? point.close : null,
-    }));
-  }, [series, volatilitySim, crossovers]);
+    return withCrossoverMarkers(points, crossovers);
+    // No dependency on volatilitySim: the price chart no longer reflects the
+    // strategy's buy days, so changing the sigma-zone selection does not make
+    // it recompute.
+  }, [series, crossovers]);
 
   const volatilityChart = useMemo(
     () => (volatilitySim ? downsample(volatilitySim.history, CHART_POINT_LIMIT) : []),
