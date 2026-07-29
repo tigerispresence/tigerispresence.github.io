@@ -9,15 +9,24 @@ import { simulateDca } from "@/lib/calc/sim/dca";
 import { simulateVolatility } from "@/lib/calc/sim/volatility";
 import { simulateFearGreed } from "@/lib/calc/sim/fearGreed";
 import type { SimPoint, SimulationResult } from "@/lib/calc/sim/types";
+import {
+  detectCrossovers,
+  withCrossoverMarkers,
+  type CrossoverSignal,
+} from "@/lib/calc/signals";
 
-/** A price point annotated with the day the strategy bought, for the scatter overlay. */
+/** A price point annotated with the markers the scatter overlays read. */
 export interface ChartPoint extends SeriesPoint {
   buyPrice?: number | null;
+  bullishSignal?: number | null;
+  bearishSignal?: number | null;
 }
 
 export interface StockAnalytics {
   series: SeriesPoint[];
   distribution: DistributionResult;
+  /** 20/60 moving-average crossovers, computed on the full series. */
+  crossovers: CrossoverSignal[];
   volatilitySim: SimulationResult | null;
   dcaSim: SimulationResult | null;
   fearGreedSim: SimulationResult | null;
@@ -72,14 +81,36 @@ export function useStockAnalytics(
     [series, data?.fearGreedHistory, context, selectedFgZones],
   );
 
+  const crossovers = useMemo(() => detectCrossovers(series), [series]);
+
   const priceChart = useMemo<ChartPoint[]>(() => {
-    const points = downsample(series, CHART_POINT_LIMIT);
-    if (!volatilitySim) return points;
-    return points.map((point) => ({
+    const kept = downsample(series, CHART_POINT_LIMIT);
+
+    // Downsampling takes every Nth session, so a crossover can land on a
+    // dropped one and its marker would silently disappear on long ranges.
+    // Re-insert any signal session the thinning removed.
+    let points = kept;
+    if (kept.length < series.length && crossovers.length > 0) {
+      const present = new Set(kept.map((p) => p.date));
+      const missing = crossovers
+        .filter((s) => !present.has(s.date))
+        .map((s) => series.find((p) => p.date === s.date))
+        .filter((p): p is SeriesPoint => p !== undefined);
+
+      if (missing.length > 0) {
+        points = [...kept, ...missing].sort(
+          (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+        );
+      }
+    }
+
+    const withSignals = withCrossoverMarkers(points, crossovers);
+    if (!volatilitySim) return withSignals;
+    return withSignals.map((point) => ({
       ...point,
       buyPrice: volatilitySim.buyDates.has(point.date) ? point.close : null,
     }));
-  }, [series, volatilitySim]);
+  }, [series, volatilitySim, crossovers]);
 
   const volatilityChart = useMemo(
     () => (volatilitySim ? downsample(volatilitySim.history, CHART_POINT_LIMIT) : []),
@@ -97,6 +128,7 @@ export function useStockAnalytics(
   return {
     series,
     distribution,
+    crossovers,
     volatilitySim,
     dcaSim,
     fearGreedSim,

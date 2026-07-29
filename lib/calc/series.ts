@@ -1,39 +1,69 @@
 import type { PricePoint } from "@/lib/types/stock";
 
+/** Simple moving average windows drawn on the price chart. */
+export const SMA_PERIODS = [5, 10, 20, 60, 120] as const;
+export type SmaPeriod = (typeof SMA_PERIODS)[number];
+
+/** The period Bollinger bands are built from. */
+export const BAND_PERIOD = 20;
+
 export interface SeriesPoint extends PricePoint {
   /** Percent change vs the previous close. 0 for the first point (no prior close). */
   changePercent: number;
-  /** Standard deviation of the trailing `period` daily returns, in percent. 0 until enough real returns exist. */
+  /** Standard deviation of the trailing 20 daily returns, in percent. */
   rollingSD: number;
+  sma5: number | null;
+  sma10: number | null;
   sma20: number | null;
+  sma60: number | null;
+  sma120: number | null;
   upperBand: number | null;
   lowerBand: number | null;
 }
 
-export const DEFAULT_PERIOD = 20;
+export const DEFAULT_PERIOD = BAND_PERIOD;
 
 /**
- * Compute daily returns, a simple moving average, Bollinger bands (±2σ of
- * price) and rolling return volatility.
+ * Rolling simple moving average.
+ *
+ * Null until `period` closes are available, so a partial window is never drawn
+ * as though it were a full one.
+ */
+function movingAverages(
+  closes: readonly number[],
+  period: number,
+): (number | null)[] {
+  const out: (number | null)[] = new Array(closes.length).fill(null);
+  let sum = 0;
+  for (let i = 0; i < closes.length; i++) {
+    sum += closes[i];
+    if (i >= period) sum -= closes[i - period];
+    if (i >= period - 1) out[i] = sum / period;
+  }
+  return out;
+}
+
+/**
+ * Compute daily returns, simple moving averages, Bollinger bands (±2σ of
+ * price over 20 sessions) and rolling return volatility.
  *
  * Sorted ascending by date internally, so callers need not pre-sort.
  *
  * Note on the volatility window: `changes[0]` is a placeholder zero, because
- * the first point has no prior close to compare against. The previous
- * implementation summed a full `period`-wide window starting at
- * `index === period - 1`, which pulled that placeholder in and reported a
- * volatility biased toward zero for the first real data point. We now require
- * a full window of *real* returns before reporting any.
+ * the first point has no prior close to compare against. A full window of
+ * *real* returns is required before any volatility is reported, otherwise the
+ * first value is biased toward zero.
  */
 export function computeSeries(
   history: readonly PricePoint[],
-  period: number = DEFAULT_PERIOD,
+  bandPeriod: number = BAND_PERIOD,
 ): SeriesPoint[] {
   if (!history || history.length === 0) return [];
 
   const sorted = [...history].sort(
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
   );
+  const closes = sorted.map((p) => p.close);
 
   const changes = sorted.map((day, i) => {
     if (i === 0) return 0;
@@ -42,47 +72,53 @@ export function computeSeries(
     return ((day.close - prev) / prev) * 100;
   });
 
+  const smas = Object.fromEntries(
+    SMA_PERIODS.map((p) => [p, movingAverages(closes, p)]),
+  ) as Record<SmaPeriod, (number | null)[]>;
+
+  // Bands share the 20-period mean, so reuse it rather than recomputing.
+  const bandMean =
+    bandPeriod === BAND_PERIOD ? smas[BAND_PERIOD] : movingAverages(closes, bandPeriod);
+
   return sorted.map((day, index) => {
-    let rollingSD = 0;
-    let sma20: number | null = null;
     let upperBand: number | null = null;
     let lowerBand: number | null = null;
 
-    if (index >= period - 1) {
-      let sumPrice = 0;
-      for (let k = 0; k < period; k++) sumPrice += sorted[index - k].close;
-      const meanPrice = sumPrice / period;
-
+    const mean = bandMean[index];
+    if (mean !== null) {
       let sumSqDiff = 0;
-      for (let k = 0; k < period; k++) {
-        sumSqDiff += (sorted[index - k].close - meanPrice) ** 2;
+      for (let k = 0; k < bandPeriod; k++) {
+        sumSqDiff += (closes[index - k] - mean) ** 2;
       }
-      const sdPrice = Math.sqrt(sumSqDiff / period);
-
-      sma20 = meanPrice;
-      upperBand = meanPrice + 2 * sdPrice;
-      lowerBand = meanPrice - 2 * sdPrice;
+      const sd = Math.sqrt(sumSqDiff / bandPeriod);
+      upperBand = mean + 2 * sd;
+      lowerBand = mean - 2 * sd;
     }
 
     // Real returns live at changes[1..]. A full window ending at `index`
-    // therefore needs index - period + 1 >= 1.
-    if (index >= period) {
+    // therefore needs index - bandPeriod + 1 >= 1.
+    let rollingSD = 0;
+    if (index >= bandPeriod) {
       let sumChange = 0;
-      for (let k = 0; k < period; k++) sumChange += changes[index - k];
-      const meanChange = sumChange / period;
+      for (let k = 0; k < bandPeriod; k++) sumChange += changes[index - k];
+      const meanChange = sumChange / bandPeriod;
 
       let sumSqDiffChange = 0;
-      for (let k = 0; k < period; k++) {
+      for (let k = 0; k < bandPeriod; k++) {
         sumSqDiffChange += (changes[index - k] - meanChange) ** 2;
       }
-      rollingSD = Math.sqrt(sumSqDiffChange / period);
+      rollingSD = Math.sqrt(sumSqDiffChange / bandPeriod);
     }
 
     return {
       ...day,
       changePercent: changes[index],
       rollingSD,
-      sma20,
+      sma5: smas[5][index],
+      sma10: smas[10][index],
+      sma20: smas[20][index],
+      sma60: smas[60][index],
+      sma120: smas[120][index],
       upperBand,
       lowerBand,
     };

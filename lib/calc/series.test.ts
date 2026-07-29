@@ -76,6 +76,45 @@ describe("computeSeries", () => {
     expect(out[20].rollingSD).toBeGreaterThan(0);
   });
 
+  it("computes every configured SMA period", () => {
+    // 130 sessions so even the 120-day average has values.
+    const history = Array.from({ length: 130 }, (_, i) => ({
+      date: new Date(Date.UTC(2024, 0, 1 + i)).toISOString().slice(0, 10),
+      close: 100,
+    }));
+    const out = computeSeries(history);
+    const last = out[out.length - 1];
+    expect(last.sma5).toBeCloseTo(100, 10);
+    expect(last.sma10).toBeCloseTo(100, 10);
+    expect(last.sma20).toBeCloseTo(100, 10);
+    expect(last.sma60).toBeCloseTo(100, 10);
+    expect(last.sma120).toBeCloseTo(100, 10);
+  });
+
+  it("leaves each SMA null until its own window fills", () => {
+    // Drawing a partial window as a full average would misstate the trend.
+    const history = Array.from({ length: 130 }, (_, i) => ({
+      date: new Date(Date.UTC(2024, 0, 1 + i)).toISOString().slice(0, 10),
+      close: 100 + i,
+    }));
+    const out = computeSeries(history);
+    for (const [period, key] of [
+      [5, "sma5"], [10, "sma10"], [20, "sma20"], [60, "sma60"], [120, "sma120"],
+    ] as const) {
+      expect(out[period - 2][key], `${key} before window`).toBeNull();
+      expect(out[period - 1][key], `${key} at window`).not.toBeNull();
+    }
+  });
+
+  it("computes a rising SMA against a hand-checked ramp", () => {
+    // closes 1..5 -> SMA5 = 3
+    const history = Array.from({ length: 5 }, (_, i) => ({
+      date: new Date(Date.UTC(2024, 0, 1 + i)).toISOString().slice(0, 10),
+      close: i + 1,
+    }));
+    expect(computeSeries(history)[4].sma5).toBeCloseTo(3, 10);
+  });
+
   it("survives a zero close without producing Infinity or NaN", () => {
     const out = computeSeries([
       { date: "2024-01-01", close: 0 },
