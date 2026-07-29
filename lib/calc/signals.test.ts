@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import type { PricePoint } from "@/lib/types/stock";
-import { computeSeries, type SeriesPoint } from "./series";
+import { computeSeries } from "./series";
 import {
   detectCrossovers,
+  ruleLabel,
+  SIGNAL_RULES,
   withCrossoverMarkers,
-  REGIME,
-  TRIGGER,
+  type SignalKind,
+  type SignalRule,
 } from "./signals";
 
 function series(prices: number[]): PricePoint[] {
@@ -16,22 +18,16 @@ function series(prices: number[]): PricePoint[] {
 }
 
 /**
- * A long trend followed by wobbles, so the trigger pair repeatedly crosses
- * while the regime pair stays fixed by the preceding trend.
+ * A long trend followed by wobbles, so the trigger pairs cross repeatedly
+ * while the slower regime pairs stay fixed by the preceding trend.
  */
-function trendThenWobble(
-  trendLength: number,
-  slope: number,
-  wobbles: number,
-): number[] {
+function trendThenWobble(trendLength: number, slope: number, wobbles: number): number[] {
   const out: number[] = [];
   let price = 300;
   for (let i = 0; i < trendLength; i++) {
     price += slope;
     out.push(price);
   }
-  // Alternating up/down runs long enough to swing the fast average across
-  // its partner without disturbing the slower regime backdrop.
   for (let w = 0; w < wobbles; w++) {
     for (let i = 0; i < 8; i++) out.push(price + (w % 2 === 0 ? -6 : 6) * (i + 1) * 0.4);
     for (let i = 0; i < 8; i++) out.push(price + (w % 2 === 0 ? 6 : -6) * (i + 1) * 0.4);
@@ -39,14 +35,32 @@ function trendThenWobble(
   return out;
 }
 
-/** Regime at a given date, straight from the computed averages. */
-function regimeAt(points: SeriesPoint[], date: string): "below" | "above" | null {
-  const p = points.find((x) => x.date === date)!;
-  const fast = p[REGIME.fast];
-  const slow = p[REGIME.slow];
-  if (fast === null || slow === null) return null;
-  return fast < slow ? "below" : "above";
-}
+const ruleFor = (kind: SignalKind): SignalRule =>
+  SIGNAL_RULES.find((r) => r.kind === kind)!;
+
+const downtrend = () => computeSeries(series(trendThenWobble(200, -1, 6)));
+const uptrend = () => computeSeries(series(trendThenWobble(200, 1, 6)));
+
+describe("SIGNAL_RULES", () => {
+  it("configures the requested trigger and regime for each side", () => {
+    expect(ruleFor("buy")).toEqual({
+      kind: "buy",
+      trigger: { fast: "sma5", slow: "sma10" },
+      regime: { fast: "sma20", slow: "sma60", side: "below" },
+    });
+    expect(ruleFor("sell")).toEqual({
+      kind: "sell",
+      trigger: { fast: "sma10", slow: "sma20" },
+      regime: { fast: "sma60", slow: "sma120", side: "above" },
+    });
+  });
+
+  it("builds labels from the configured periods", () => {
+    // Derived so a retune cannot leave the UI describing the old rule.
+    expect(ruleLabel(ruleFor("buy"))).toBe("Buy — SMA 5 below 10, while 20 below 60");
+    expect(ruleLabel(ruleFor("sell"))).toBe("Sell — SMA 10 below 20, while 60 above 120");
+  });
+});
 
 describe("detectCrossovers", () => {
   it("returns nothing without enough history", () => {
@@ -58,116 +72,124 @@ describe("detectCrossovers", () => {
     expect(detectCrossovers(computeSeries(series(new Array(300).fill(100))))).toEqual([]);
   });
 
-  it("fires only on a downward cross of the trigger pair", () => {
-    const points = computeSeries(series(trendThenWobble(200, -1, 6)));
-    const signals = detectCrossovers(points);
-    expect(signals.length).toBeGreaterThan(0);
-
-    for (const s of signals) {
-      // The trigger condition must hold on the session it fired...
-      expect(s.fast).toBeLessThan(s.slow);
-      // ...and must not have held on the session before.
-      const i = points.findIndex((p) => p.date === s.date);
-      expect(points[i - 1][TRIGGER.fast]!).toBeGreaterThanOrEqual(
-        points[i - 1][TRIGGER.slow]!,
-      );
-    }
-  });
-
-  it("calls it a buy while the regime average is below its partner", () => {
-    // A sustained decline puts the medium average under the long one.
-    const points = computeSeries(series(trendThenWobble(200, -1, 6)));
-    const signals = detectCrossovers(points);
-
-    expect(signals.some((s) => s.kind === "buy")).toBe(true);
-    for (const s of signals.filter((s) => s.kind === "buy")) {
-      expect(s.regime).toBe("below");
-      expect(s.regimeFast).toBeLessThan(s.regimeSlow);
-    }
-  });
-
-  it("calls it a sell while the regime average is above its partner", () => {
-    // A sustained advance puts the medium average over the long one.
-    const points = computeSeries(series(trendThenWobble(200, 1, 6)));
-    const signals = detectCrossovers(points);
-
-    expect(signals.some((s) => s.kind === "sell")).toBe(true);
-    for (const s of signals.filter((s) => s.kind === "sell")) {
-      expect(s.regime).toBe("above");
-      expect(s.regimeFast).toBeGreaterThan(s.regimeSlow);
-    }
-  });
-
-  it("classifies every signal by the regime on its own session", () => {
-    // The identical trigger must flip meaning with the backdrop; this is the
-    // whole point of the rule.
-    for (const slope of [-1, 1]) {
-      const points = computeSeries(series(trendThenWobble(200, slope, 6)));
+  it("fires each signal only on a downward cross of its own trigger", () => {
+    for (const points of [downtrend(), uptrend()]) {
       for (const s of detectCrossovers(points)) {
-        const expected = regimeAt(points, s.date);
-        expect(s.regime, `slope ${slope} on ${s.date}`).toBe(expected);
-        expect(s.kind).toBe(expected === "below" ? "buy" : "sell");
+        const rule = ruleFor(s.kind);
+        expect(s.fast).toBeLessThan(s.slow);
+
+        const i = points.findIndex((p) => p.date === s.date);
+        expect(points[i - 1][rule.trigger.fast]!).toBeGreaterThanOrEqual(
+          points[i - 1][rule.trigger.slow]!,
+        );
       }
     }
   });
 
-  it("skips crosses where the regime cannot be determined", () => {
-    // The slower regime average needs its full window before anything can be
-    // classified, so no signal may predate it.
-    const points = computeSeries(series(trendThenWobble(200, -1, 6)));
-    for (const s of detectCrossovers(points)) {
-      const p = points.find((x) => x.date === s.date)!;
-      expect(p[REGIME.fast]).not.toBeNull();
-      expect(p[REGIME.slow]).not.toBeNull();
+  it("requires each rule's own regime condition to hold", () => {
+    for (const points of [downtrend(), uptrend()]) {
+      for (const s of detectCrossovers(points)) {
+        const { side } = ruleFor(s.kind).regime;
+        if (side === "below") expect(s.regimeFast).toBeLessThan(s.regimeSlow);
+        else expect(s.regimeFast).toBeGreaterThan(s.regimeSlow);
+      }
     }
   });
 
-  it("ignores the trigger average crossing back above", () => {
-    const points = computeSeries(series(trendThenWobble(200, 1, 6)));
-    const signals = detectCrossovers(points);
-    const upwardCrosses = points.filter((p, i) => {
-      if (i === 0) return false;
-      const prev = points[i - 1];
-      const vals = [prev[TRIGGER.fast], prev[TRIGGER.slow], p[TRIGGER.fast], p[TRIGGER.slow]];
-      if (vals.some((v) => v === null)) return false;
-      return prev[TRIGGER.fast]! <= prev[TRIGGER.slow]! && p[TRIGGER.fast]! > p[TRIGGER.slow]!;
-    });
-    // Upward crosses exist in this data but none of them produced a signal.
-    expect(upwardCrosses.length).toBeGreaterThan(0);
-    for (const cross of upwardCrosses) {
-      expect(signals.some((s) => s.date === cross.date)).toBe(false);
+  it("produces buys in a weak medium-term regime", () => {
+    // Sustained decline puts SMA 20 under SMA 60.
+    expect(detectCrossovers(downtrend()).some((s) => s.kind === "buy")).toBe(true);
+  });
+
+  it("produces sells in a strong long-term regime", () => {
+    // Sustained advance puts SMA 60 over SMA 120.
+    expect(detectCrossovers(uptrend()).some((s) => s.kind === "sell")).toBe(true);
+  });
+
+  it("emits a signal exactly when the trigger fires and the regime holds", () => {
+    // The regime filter is the whole point of the rule, so assert both
+    // directions: every qualifying session produces a signal, and every
+    // non-qualifying one does not. Derived from the data rather than assumed,
+    // because a long trend followed by a plateau lets the shorter regime
+    // average drift back across the longer one.
+    for (const points of [downtrend(), uptrend()]) {
+      const signals = detectCrossovers(points);
+
+      for (const rule of SIGNAL_RULES) {
+        const expected = new Set<string>();
+
+        for (let i = 1; i < points.length; i++) {
+          const prev = points[i - 1];
+          const curr = points[i];
+          const vals = [
+            prev[rule.trigger.fast], prev[rule.trigger.slow],
+            curr[rule.trigger.fast], curr[rule.trigger.slow],
+            curr[rule.regime.fast], curr[rule.regime.slow],
+          ];
+          if (vals.some((v) => v === null)) continue;
+
+          const crossed =
+            prev[rule.trigger.fast]! >= prev[rule.trigger.slow]! &&
+            curr[rule.trigger.fast]! < curr[rule.trigger.slow]!;
+          const holds =
+            rule.regime.side === "below"
+              ? curr[rule.regime.fast]! < curr[rule.regime.slow]!
+              : curr[rule.regime.fast]! > curr[rule.regime.slow]!;
+
+          if (crossed && holds) expected.add(curr.date);
+        }
+
+        const actual = new Set(
+          signals.filter((s) => s.kind === rule.kind).map((s) => s.date),
+        );
+        expect(actual, `${rule.kind} signal dates`).toEqual(expected);
+      }
+    }
+  });
+
+  it("never fires before every average it needs exists", () => {
+    for (const points of [downtrend(), uptrend()]) {
+      for (const s of detectCrossovers(points)) {
+        const rule = ruleFor(s.kind);
+        const p = points.find((x) => x.date === s.date)!;
+        for (const key of [
+          rule.trigger.fast, rule.trigger.slow,
+          rule.regime.fast, rule.regime.slow,
+        ] as const) {
+          expect(p[key], `${s.kind} needs ${key}`).not.toBeNull();
+        }
+      }
     }
   });
 
   it("marks the crossing session only, not every session below", () => {
-    const points = computeSeries(series(trendThenWobble(200, -1, 6)));
-    const signals = detectCrossovers(points);
+    const points = downtrend();
+    const buys = detectCrossovers(points).filter((s) => s.kind === "buy");
+    const rule = ruleFor("buy");
     const belowSessions = points.filter((p) => {
-      const fast = p[TRIGGER.fast];
-      const slow = p[TRIGGER.slow];
+      const fast = p[rule.trigger.fast];
+      const slow = p[rule.trigger.slow];
       return fast !== null && slow !== null && fast < slow;
     }).length;
-    expect(belowSessions).toBeGreaterThan(signals.length);
+    expect(belowSessions).toBeGreaterThan(buys.length);
   });
 
-  it("returns signals in date order", () => {
-    const dates = detectCrossovers(
-      computeSeries(series(trendThenWobble(200, -1, 6))),
-    ).map((s) => s.date);
+  it("returns signals in date order across both rules", () => {
+    const dates = detectCrossovers(downtrend()).map((s) => s.date);
     expect([...dates].sort()).toEqual(dates);
   });
 });
 
 describe("withCrossoverMarkers", () => {
-  const signal = (date: string, price: number, kind: "buy" | "sell") => ({
+  const signal = (date: string, price: number, kind: SignalKind) => ({
+    kind,
     date,
     price,
-    kind,
-    regime: (kind === "buy" ? "below" : "above") as "below" | "above",
     fast: 1,
     slow: 2,
     regimeFast: 1,
     regimeSlow: 2,
+    label: "",
   });
 
   it("routes buy and sell prices into separate fields", () => {
@@ -183,6 +205,17 @@ describe("withCrossoverMarkers", () => {
     expect(out[0].sellSignal).toBeNull();
     expect(out[1].sellSignal).toBe(11);
     expect(out[1].buySignal).toBeNull();
+  });
+
+  it("keeps both markers when the two rules fire on the same session", () => {
+    // The rules watch different pairs, so this is a real state of the data
+    // rather than a conflict to resolve.
+    const out = withCrossoverMarkers(
+      [{ date: "2024-01-01", close: 10 }],
+      [signal("2024-01-01", 10, "buy"), signal("2024-01-01", 10, "sell")],
+    );
+    expect(out[0].buySignal).toBe(10);
+    expect(out[0].sellSignal).toBe(10);
   });
 
   it("leaves both fields null on ordinary sessions", () => {
