@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { PricePoint } from "@/lib/types/stock";
 import { computeSeries } from "./series";
-import { detectCrossovers, withCrossoverMarkers } from "./signals";
+import {
+  CROSSOVER_RULES,
+  detectCrossovers,
+  withCrossoverMarkers,
+} from "./signals";
 
 function series(prices: number[]): PricePoint[] {
   return prices.map((close, i) => ({
@@ -10,14 +14,30 @@ function series(prices: number[]): PricePoint[] {
   }));
 }
 
-/** Falls for `down` sessions, then rises for `up` — forces one of each cross. */
-function vShape(down: number, up: number): number[] {
+/** Rises for `up` sessions then falls for `down` — forces averages to cross both ways. */
+function invertedV(up: number, down: number): number[] {
   const out: number[] = [];
-  for (let i = 0; i < down; i++) out.push(200 - i);
-  const floor = out[out.length - 1];
-  for (let i = 1; i <= up; i++) out.push(floor + i * 2);
+  for (let i = 0; i < up; i++) out.push(100 + i * 2);
+  const peak = out[out.length - 1];
+  for (let i = 1; i <= down; i++) out.push(peak - i * 2);
   return out;
 }
+
+describe("CROSSOVER_RULES", () => {
+  it("configures exactly the two requested rules", () => {
+    expect(CROSSOVER_RULES.map((r) => r.id)).toEqual(["sell-10-20", "buy-60-120"]);
+  });
+
+  it("maps 10-below-20 to sell and 60-below-120 to buy", () => {
+    const sell = CROSSOVER_RULES.find((r) => r.id === "sell-10-20")!;
+    expect(sell).toMatchObject({ fast: "sma10", slow: "sma20", direction: "below", kind: "sell" });
+
+    // Deliberately contrarian: the medium average dropping below the long one
+    // is read as depressed rather than as the conventional bearish signal.
+    const buy = CROSSOVER_RULES.find((r) => r.id === "buy-60-120")!;
+    expect(buy).toMatchObject({ fast: "sma60", slow: "sma120", direction: "below", kind: "buy" });
+  });
+});
 
 describe("detectCrossovers", () => {
   it("returns nothing without enough history", () => {
@@ -25,76 +45,88 @@ describe("detectCrossovers", () => {
     expect(detectCrossovers(computeSeries(series([1, 2, 3])))).toEqual([]);
   });
 
-  it("never fires before both averages exist", () => {
-    // A 60-session average needs 60 closes; the session it first appears must
-    // not be mistaken for a crossing.
-    const points = computeSeries(series(vShape(80, 120)));
-    for (const signal of detectCrossovers(points)) {
-      const index = points.findIndex((p) => p.date === signal.date);
-      expect(points[index - 1].sma20).not.toBeNull();
-      expect(points[index - 1].sma60).not.toBeNull();
-    }
-  });
-
-  it("finds a bullish cross when a downtrend reverses", () => {
-    const points = computeSeries(series(vShape(90, 140)));
-    const signals = detectCrossovers(points);
-    expect(signals.some((s) => s.kind === "bullish")).toBe(true);
-  });
-
-  it("finds a bearish cross when an uptrend reverses", () => {
-    const rising = Array.from({ length: 100 }, (_, i) => 100 + i * 2);
-    const falling = Array.from({ length: 100 }, (_, i) => 300 - i * 2);
-    const points = computeSeries(series([...rising, ...falling]));
-    const signals = detectCrossovers(points);
-    expect(signals.some((s) => s.kind === "bearish")).toBe(true);
-  });
-
-  it("records the direction consistently with the averages at the cross", () => {
-    const points = computeSeries(series(vShape(90, 140)));
-    for (const s of detectCrossovers(points)) {
-      if (s.kind === "bullish") expect(s.fast).toBeGreaterThan(s.slow);
-      else expect(s.fast).toBeLessThanOrEqual(s.slow);
-    }
-  });
-
-  it("alternates direction — no two consecutive signals of the same kind", () => {
-    // A crossover is a state change, so repeats would mean double counting.
-    const points = computeSeries(
-      series([...vShape(90, 120), ...vShape(90, 120).map((p) => p + 50)]),
-    );
-    const signals = detectCrossovers(points);
-    for (let i = 1; i < signals.length; i++) {
-      expect(signals[i].kind).not.toBe(signals[i - 1].kind);
-    }
-  });
-
   it("emits no signal on a flat series", () => {
-    const points = computeSeries(series(new Array(200).fill(100)));
-    expect(detectCrossovers(points)).toEqual([]);
+    expect(detectCrossovers(computeSeries(series(new Array(300).fill(100))))).toEqual([]);
+  });
+
+  it("fires a sell when SMA10 crosses below SMA20", () => {
+    const points = computeSeries(series(invertedV(60, 60)));
+    const sells = detectCrossovers(points).filter((s) => s.ruleId === "sell-10-20");
+    expect(sells.length).toBeGreaterThan(0);
+    for (const s of sells) {
+      expect(s.kind).toBe("sell");
+      // The defining condition must hold on the session it fired.
+      expect(s.fast).toBeLessThan(s.slow);
+    }
+  });
+
+  it("fires a buy when SMA60 crosses below SMA120", () => {
+    // Needs >120 sessions of rise before the fall so both averages exist.
+    const points = computeSeries(series(invertedV(150, 150)));
+    const buys = detectCrossovers(points).filter((s) => s.ruleId === "buy-60-120");
+    expect(buys.length).toBeGreaterThan(0);
+    for (const s of buys) {
+      expect(s.kind).toBe("buy");
+      expect(s.fast).toBeLessThan(s.slow);
+    }
+  });
+
+  it("ignores the opposite cross for each rule", () => {
+    // Both rules fire only on a downward cross, so an upward one is silent.
+    const points = computeSeries(series(invertedV(150, 150)));
+    for (const s of detectCrossovers(points)) {
+      expect(s.fast).toBeLessThan(s.slow);
+    }
+  });
+
+  it("never fires before both averages exist", () => {
+    const points = computeSeries(series(invertedV(150, 150)));
+    const rules = new Map(CROSSOVER_RULES.map((r) => [r.id, r]));
+    for (const s of detectCrossovers(points)) {
+      const rule = rules.get(s.ruleId)!;
+      const i = points.findIndex((p) => p.date === s.date);
+      expect(points[i - 1][rule.fast], `${s.ruleId} prev fast`).not.toBeNull();
+      expect(points[i - 1][rule.slow], `${s.ruleId} prev slow`).not.toBeNull();
+    }
+  });
+
+  it("marks the crossing session only, not every session the condition holds", () => {
+    // SMA10 stays below SMA20 for the whole decline; one marker, not dozens.
+    const points = computeSeries(series(invertedV(60, 60)));
+    const sells = detectCrossovers(points).filter((s) => s.ruleId === "sell-10-20");
+    const belowSessions = points.filter(
+      (p) => p.sma10 !== null && p.sma20 !== null && p.sma10 < p.sma20,
+    ).length;
+    expect(belowSessions).toBeGreaterThan(sells.length);
+  });
+
+  it("returns signals in date order across both rules", () => {
+    const points = computeSeries(series(invertedV(150, 150)));
+    const dates = detectCrossovers(points).map((s) => s.date);
+    expect([...dates].sort()).toEqual(dates);
   });
 });
 
 describe("withCrossoverMarkers", () => {
-  it("attaches a price only on signal dates", () => {
+  it("routes buy and sell prices into separate fields", () => {
     const points = [
       { date: "2024-01-01", close: 10 },
       { date: "2024-01-02", close: 11 },
     ];
     const out = withCrossoverMarkers(points, [
-      { date: "2024-01-02", price: 11, kind: "bullish", fast: 1, slow: 0 },
+      { ruleId: "buy-60-120", date: "2024-01-01", price: 10, kind: "buy", label: "", fast: 0, slow: 1 },
+      { ruleId: "sell-10-20", date: "2024-01-02", price: 11, kind: "sell", label: "", fast: 0, slow: 1 },
     ]);
-    expect(out[0].bullishSignal).toBeNull();
-    expect(out[1].bullishSignal).toBe(11);
-    expect(out[1].bearishSignal).toBeNull();
+
+    expect(out[0].buySignal).toBe(10);
+    expect(out[0].sellSignal).toBeNull();
+    expect(out[1].sellSignal).toBe(11);
+    expect(out[1].buySignal).toBeNull();
   });
 
-  it("keeps bullish and bearish in separate fields", () => {
-    const points = [{ date: "2024-01-01", close: 10 }];
-    const out = withCrossoverMarkers(points, [
-      { date: "2024-01-01", price: 10, kind: "bearish", fast: 0, slow: 1 },
-    ]);
-    expect(out[0].bearishSignal).toBe(10);
-    expect(out[0].bullishSignal).toBeNull();
+  it("leaves both fields null on ordinary sessions", () => {
+    const out = withCrossoverMarkers([{ date: "2024-01-01", close: 10 }], []);
+    expect(out[0].buySignal).toBeNull();
+    expect(out[0].sellSignal).toBeNull();
   });
 });

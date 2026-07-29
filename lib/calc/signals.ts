@@ -3,73 +3,128 @@ import type { SeriesPoint } from "./series";
 /**
  * Moving-average crossover signals.
  *
- * These are mechanical technical-analysis markers, not investment advice: a
+ * These are mechanical technical-analysis markers, not investment advice. A
  * signal fires purely because one moving average crossed another on that
  * session. Crossovers lag by construction — the averages only cross after the
  * move has happened — and they whipsaw in sideways markets. Treat them as a
  * description of trend change, not a prediction.
  *
- * The pair is 20 over 60 sessions: roughly one month against one quarter. It
- * is the medium-term analogue of the classic 50/200 "golden cross", chosen
- * here because 20 and 60 are already drawn on the chart, and because a 120-day
- * average needs half a year of history before it produces anything at all.
+ * Markers fire on the *crossing session*, not on every session the condition
+ * holds. A condition like "SMA10 is below SMA20" is true for long stretches;
+ * drawing a triangle on each of those sessions would put hundreds of markers
+ * on the chart and bury the moment the relationship actually changed.
  */
 
-export type SignalKind = "bullish" | "bearish";
+export type SignalKind = "buy" | "sell";
+
+/** Which SMA fields a rule compares. Tied to SeriesPoint so renames break the build. */
+type SmaKey = Extract<keyof SeriesPoint, `sma${string}`>;
+
+export interface CrossoverRule {
+  id: string;
+  fast: SmaKey;
+  slow: SmaKey;
+  /**
+   * Which direction of cross fires the marker: "below" means the fast average
+   * crossing down through the slow one.
+   */
+  direction: "below" | "above";
+  kind: SignalKind;
+  label: string;
+}
+
+/**
+ * The configured rules.
+ *
+ * Note these take opposite stances by design. The 10/20 rule is
+ * trend-following: short-term momentum rolling over is read as weakness. The
+ * 60/120 rule is mean-reverting: the medium-term average falling below the
+ * long-term one is read as the stock being depressed rather than as the
+ * conventional bearish "death cross".
+ */
+export const CROSSOVER_RULES: CrossoverRule[] = [
+  {
+    id: "sell-10-20",
+    fast: "sma10",
+    slow: "sma20",
+    direction: "below",
+    kind: "sell",
+    label: "SMA 10 crosses below 20",
+  },
+  {
+    id: "buy-60-120",
+    fast: "sma60",
+    slow: "sma120",
+    direction: "below",
+    kind: "buy",
+    label: "SMA 60 crosses below 120",
+  },
+];
 
 export interface CrossoverSignal {
+  ruleId: string;
   date: string;
   /** Close on the session the cross completed. */
   price: number;
   kind: SignalKind;
-  /** Short/long averages at the cross, for the tooltip. */
+  label: string;
+  /** The two averages at the cross, for the tooltip. */
   fast: number;
   slow: number;
 }
 
-export const FAST_PERIOD = 20;
-export const SLOW_PERIOD = 60;
-
 /**
- * Find sessions where the 20-session average crossed the 60-session average.
+ * Find the sessions where each configured rule's cross completed.
  *
  * A cross is recorded only when both averages exist on the current *and*
- * previous session, so the first day either becomes available is never
- * mistaken for a crossing.
+ * previous session, so the day either average first becomes available is never
+ * mistaken for a crossing — which matters most for the 120-session average,
+ * whose first value arrives half a year in.
  */
 export function detectCrossovers(
   series: readonly SeriesPoint[],
+  rules: readonly CrossoverRule[] = CROSSOVER_RULES,
 ): CrossoverSignal[] {
   const signals: CrossoverSignal[] = [];
   if (!series || series.length < 2) return signals;
 
-  for (let i = 1; i < series.length; i++) {
-    const prev = series[i - 1];
-    const curr = series[i];
+  for (const rule of rules) {
+    for (let i = 1; i < series.length; i++) {
+      const prev = series[i - 1];
+      const curr = series[i];
 
-    const prevFast = prev.sma20;
-    const prevSlow = prev.sma60;
-    const fast = curr.sma20;
-    const slow = curr.sma60;
+      const prevFast = prev[rule.fast];
+      const prevSlow = prev[rule.slow];
+      const fast = curr[rule.fast];
+      const slow = curr[rule.slow];
 
-    if (prevFast === null || prevSlow === null || fast === null || slow === null) {
-      continue;
+      if (prevFast === null || prevSlow === null || fast === null || slow === null) {
+        continue;
+      }
+
+      const wasBelow = prevFast < prevSlow;
+      const isBelow = fast < slow;
+      if (wasBelow === isBelow) continue;
+
+      // Only the requested direction fires; the opposite cross is ignored.
+      if (rule.direction === "below" && !isBelow) continue;
+      if (rule.direction === "above" && isBelow) continue;
+
+      signals.push({
+        ruleId: rule.id,
+        date: curr.date,
+        price: curr.close,
+        kind: rule.kind,
+        label: rule.label,
+        fast,
+        slow,
+      });
     }
-
-    const wasAbove = prevFast > prevSlow;
-    const isAbove = fast > slow;
-    if (wasAbove === isAbove) continue;
-
-    signals.push({
-      date: curr.date,
-      price: curr.close,
-      kind: isAbove ? "bullish" : "bearish",
-      fast,
-      slow,
-    });
   }
 
-  return signals;
+  return signals.sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+  );
 }
 
 /**
@@ -82,14 +137,16 @@ export function detectCrossovers(
 export function withCrossoverMarkers<T extends { date: string; close: number }>(
   points: readonly T[],
   signals: readonly CrossoverSignal[],
-): (T & { bullishSignal: number | null; bearishSignal: number | null })[] {
-  const byDate = new Map(signals.map((s) => [s.date, s]));
-  return points.map((point) => {
-    const signal = byDate.get(point.date);
-    return {
-      ...point,
-      bullishSignal: signal?.kind === "bullish" ? signal.price : null,
-      bearishSignal: signal?.kind === "bearish" ? signal.price : null,
-    };
-  });
+): (T & { buySignal: number | null; sellSignal: number | null })[] {
+  const buys = new Map<string, number>();
+  const sells = new Map<string, number>();
+  for (const s of signals) {
+    (s.kind === "buy" ? buys : sells).set(s.date, s.price);
+  }
+
+  return points.map((point) => ({
+    ...point,
+    buySignal: buys.get(point.date) ?? null,
+    sellSignal: sells.get(point.date) ?? null,
+  }));
 }

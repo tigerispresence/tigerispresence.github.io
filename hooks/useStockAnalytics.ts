@@ -17,14 +17,14 @@ import {
 
 /** A price point annotated with the markers the scatter overlays read. */
 export interface ChartPoint extends SeriesPoint {
-  bullishSignal?: number | null;
-  bearishSignal?: number | null;
+  buySignal?: number | null;
+  sellSignal?: number | null;
 }
 
 export interface StockAnalytics {
   series: SeriesPoint[];
   distribution: DistributionResult;
-  /** 20/60 moving-average crossovers, computed on the full series. */
+  /** Configured moving-average crossovers, computed on the full series. */
   crossovers: CrossoverSignal[];
   volatilitySim: SimulationResult | null;
   dcaSim: SimulationResult | null;

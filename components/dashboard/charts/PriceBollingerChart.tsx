@@ -9,6 +9,7 @@ import { TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
 import { useStockData } from "../StockDataContext";
 import { SMA_LINES } from "./smaConfig";
+import { DownTriangle, UpTriangle } from "./signalShapes";
 
 export default function PriceBollingerChart() {
   const { data, analytics } = useStockData();
@@ -44,13 +45,21 @@ export default function PriceBollingerChart() {
               <div className="flex-1">
                   <h3 className="text-xl font-semibold text-white">Price &amp; Bollinger Bands</h3>
                   <p className="text-gray-500 text-xs mt-0.5">
-                      Triangles mark 20/60 SMA crossovers — a mechanical trend indicator, not investment advice.
+                      Triangles mark SMA crossovers — a mechanical indicator, not investment advice.
                   </p>
               </div>
               {analytics.crossovers.length > 0 && (
                   <div className="text-right shrink-0">
                       <div className="text-gray-400 text-[10px] font-medium uppercase tracking-wider">Signals</div>
-                      <div className="text-white font-bold">{analytics.crossovers.length}</div>
+                      <div className="font-bold">
+                          <span className="text-green-400">
+                              {analytics.crossovers.filter((s) => s.kind === "buy").length}
+                          </span>
+                          <span className="text-gray-600 mx-1">/</span>
+                          <span className="text-red-400">
+                              {analytics.crossovers.filter((s) => s.kind === "sell").length}
+                          </span>
+                      </div>
                   </div>
               )}
           </div>
@@ -183,16 +192,18 @@ export default function PriceBollingerChart() {
                           name="Price"
                       />
                       <Scatter
-                          dataKey="bullishSignal"
-                          name="SMA 20 crosses above 60"
+                          dataKey="buySignal"
+                          name="Buy — SMA 60 crosses below 120"
                           fill="#22c55e"
-                          shape="triangle"
+                          shape={<UpTriangle />}
+                          legendType="triangle"
                       />
                       <Scatter
-                          dataKey="bearishSignal"
-                          name="SMA 20 crosses below 60"
+                          dataKey="sellSignal"
+                          name="Sell — SMA 10 crosses below 20"
                           fill="#ef4444"
-                          shape="triangle"
+                          shape={<DownTriangle />}
+                          legendType="triangle"
                       />
                   </ComposedChart>
               </ResponsiveContainer>
