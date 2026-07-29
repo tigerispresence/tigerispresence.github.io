@@ -10,7 +10,7 @@ import { motion } from "framer-motion";
 import { useStockData } from "../StockDataContext";
 import { SMA_LINES } from "./smaConfig";
 import { DownTriangle, UpTriangle } from "./signalShapes";
-import { SIGNAL_LABELS } from "@/lib/calc/signals";
+import { SIGNAL_DESCRIPTION, SIGNAL_LABELS } from "@/lib/calc/signals";
 
 export default function PriceBollingerChart() {
   const { data, analytics } = useStockData();
@@ -46,7 +46,7 @@ export default function PriceBollingerChart() {
               <div className="flex-1">
                   <h3 className="text-xl font-semibold text-white">Price &amp; Bollinger Bands</h3>
                   <p className="text-gray-500 text-xs mt-0.5">
-                      SMA 10 crossing below 20 fires a signal; whether 60 sits below or above 120 decides its direction. Mechanical indicator, not investment advice.
+                      {SIGNAL_DESCRIPTION}
                   </p>
               </div>
               {analytics.crossovers.length > 0 && (

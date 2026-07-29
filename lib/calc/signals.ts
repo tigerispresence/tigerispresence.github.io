@@ -3,14 +3,19 @@ import type { SeriesPoint } from "./series";
 /**
  * Regime-filtered moving-average crossover signals.
  *
- * There is one trigger — the 10-session average crossing *below* the
- * 20-session average — and the 60/120 relationship decides how to read it:
+ * There is one trigger — the fast average crossing *below* the next one up —
+ * and a slower pair decides how to read it:
  *
- *   SMA 60 below SMA 120  ->  buy   (long-term regime is weak, so a
- *                                    short-term dip is treated as depressed)
- *   SMA 60 above SMA 120  ->  sell  (long-term regime is strong, so a
- *                                    short-term breakdown is treated as
- *                                    momentum rolling over)
+ *   regime average below its slower partner  ->  buy   (regime is weak, so a
+ *                                                       short-term dip reads
+ *                                                       as depressed)
+ *   regime average above its slower partner  ->  sell  (regime is strong, so a
+ *                                                       short-term breakdown
+ *                                                       reads as momentum
+ *                                                       rolling over)
+ *
+ * Periods live in TRIGGER and REGIME below; labels and copy derive from them,
+ * so retuning the rule is a one-line change.
  *
  * The same event therefore means opposite things depending on the backdrop:
  * contrarian in a weak regime, trend-following in a strong one.
@@ -19,7 +24,7 @@ import type { SeriesPoint } from "./series";
  * Crossovers lag by construction — averages only cross after the move has
  * happened — and they whipsaw in sideways markets.
  *
- * Markers fire on the *crossing session* only. "SMA 10 is below SMA 20" stays
+ * Markers fire on the *crossing session* only. The trigger condition stays
  * true for long stretches; drawing a triangle on each of those sessions would
  * put hundreds on the chart and bury the moment the relationship changed.
  */
@@ -29,9 +34,12 @@ export type SignalKind = "buy" | "sell";
 export type Regime = "below" | "above";
 
 /** The short-term cross that fires a signal. */
-export const TRIGGER = { fast: "sma10", slow: "sma20" } as const;
-/** The long-term pair whose relationship classifies the signal. */
-export const REGIME = { fast: "sma60", slow: "sma120" } as const;
+export const TRIGGER = { fast: "sma5", slow: "sma10" } as const;
+/** The longer pair whose relationship classifies the signal. */
+export const REGIME = { fast: "sma20", slow: "sma60" } as const;
+
+/** "sma20" -> "20", so labels and copy follow the constants above. */
+const period = (key: string) => key.replace("sma", "");
 
 export interface CrossoverSignal {
   date: string;
@@ -48,22 +56,29 @@ export interface CrossoverSignal {
 }
 
 export const SIGNAL_LABELS: Record<SignalKind, string> = {
-  buy: "Buy — SMA 10 below 20, while 60 below 120",
-  sell: "Sell — SMA 10 below 20, while 60 above 120",
+  buy: `Buy — SMA ${period(TRIGGER.fast)} below ${period(TRIGGER.slow)}, while ${period(REGIME.fast)} below ${period(REGIME.slow)}`,
+  sell: `Sell — SMA ${period(TRIGGER.fast)} below ${period(TRIGGER.slow)}, while ${period(REGIME.fast)} above ${period(REGIME.slow)}`,
 };
 
+/** One-line explanation for the chart header, derived from the same constants. */
+export const SIGNAL_DESCRIPTION =
+  `SMA ${period(TRIGGER.fast)} crossing below ${period(TRIGGER.slow)} fires a signal; ` +
+  `whether ${period(REGIME.fast)} sits below or above ${period(REGIME.slow)} decides its direction. ` +
+  `Mechanical indicator, not investment advice.`;
+
 /**
- * Find sessions where SMA 10 crossed below SMA 20, classified by regime.
+ * Find sessions where the trigger average crossed below its partner,
+ * classified by the regime pair.
  *
  * A cross is recorded only when both trigger averages exist on the current
  * *and* previous session, so the day an average first becomes available is
  * never mistaken for a crossing.
  *
  * A signal is skipped entirely when the regime cannot be determined — either
- * average missing, or the two exactly equal. That matters on short ranges: the
- * 120-session average needs roughly six months of history, so crosses before
- * that point are genuinely unclassifiable and emitting a guess would be worse
- * than emitting nothing.
+ * average missing, or the two exactly equal. The slower regime average needs
+ * its full window before it produces anything, so crosses before that point
+ * are genuinely unclassifiable and emitting a guess would be worse than
+ * emitting nothing.
  */
 export function detectCrossovers(
   series: readonly SeriesPoint[],
@@ -84,7 +99,7 @@ export function detectCrossovers(
       continue;
     }
 
-    // Only the downward cross fires; 10 rising back above 20 is silent.
+    // Only the downward cross fires; the fast average rising back above is silent.
     const crossedDown = prevFast >= prevSlow && fast < slow;
     if (!crossedDown) continue;
 
