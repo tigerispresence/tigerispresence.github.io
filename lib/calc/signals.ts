@@ -1,130 +1,113 @@
 import type { SeriesPoint } from "./series";
 
 /**
- * Moving-average crossover signals.
+ * Regime-filtered moving-average crossover signals.
  *
- * These are mechanical technical-analysis markers, not investment advice. A
- * signal fires purely because one moving average crossed another on that
- * session. Crossovers lag by construction — the averages only cross after the
- * move has happened — and they whipsaw in sideways markets. Treat them as a
- * description of trend change, not a prediction.
+ * There is one trigger — the 10-session average crossing *below* the
+ * 20-session average — and the 60/120 relationship decides how to read it:
  *
- * Markers fire on the *crossing session*, not on every session the condition
- * holds. A condition like "SMA10 is below SMA20" is true for long stretches;
- * drawing a triangle on each of those sessions would put hundreds of markers
- * on the chart and bury the moment the relationship actually changed.
+ *   SMA 60 below SMA 120  ->  buy   (long-term regime is weak, so a
+ *                                    short-term dip is treated as depressed)
+ *   SMA 60 above SMA 120  ->  sell  (long-term regime is strong, so a
+ *                                    short-term breakdown is treated as
+ *                                    momentum rolling over)
+ *
+ * The same event therefore means opposite things depending on the backdrop:
+ * contrarian in a weak regime, trend-following in a strong one.
+ *
+ * These are mechanical technical-analysis markers, not investment advice.
+ * Crossovers lag by construction — averages only cross after the move has
+ * happened — and they whipsaw in sideways markets.
+ *
+ * Markers fire on the *crossing session* only. "SMA 10 is below SMA 20" stays
+ * true for long stretches; drawing a triangle on each of those sessions would
+ * put hundreds on the chart and bury the moment the relationship changed.
  */
 
 export type SignalKind = "buy" | "sell";
+/** Which side of the long-term average the medium-term one sits on. */
+export type Regime = "below" | "above";
 
-/** Which SMA fields a rule compares. Tied to SeriesPoint so renames break the build. */
-type SmaKey = Extract<keyof SeriesPoint, `sma${string}`>;
-
-export interface CrossoverRule {
-  id: string;
-  fast: SmaKey;
-  slow: SmaKey;
-  /**
-   * Which direction of cross fires the marker: "below" means the fast average
-   * crossing down through the slow one.
-   */
-  direction: "below" | "above";
-  kind: SignalKind;
-  label: string;
-}
-
-/**
- * The configured rules.
- *
- * Note these take opposite stances by design. The 10/20 rule is
- * trend-following: short-term momentum rolling over is read as weakness. The
- * 60/120 rule is mean-reverting: the medium-term average falling below the
- * long-term one is read as the stock being depressed rather than as the
- * conventional bearish "death cross".
- */
-export const CROSSOVER_RULES: CrossoverRule[] = [
-  {
-    id: "sell-10-20",
-    fast: "sma10",
-    slow: "sma20",
-    direction: "below",
-    kind: "sell",
-    label: "SMA 10 crosses below 20",
-  },
-  {
-    id: "buy-60-120",
-    fast: "sma60",
-    slow: "sma120",
-    direction: "below",
-    kind: "buy",
-    label: "SMA 60 crosses below 120",
-  },
-];
+/** The short-term cross that fires a signal. */
+export const TRIGGER = { fast: "sma10", slow: "sma20" } as const;
+/** The long-term pair whose relationship classifies the signal. */
+export const REGIME = { fast: "sma60", slow: "sma120" } as const;
 
 export interface CrossoverSignal {
-  ruleId: string;
   date: string;
   /** Close on the session the cross completed. */
   price: number;
   kind: SignalKind;
-  label: string;
-  /** The two averages at the cross, for the tooltip. */
+  regime: Regime;
+  /** Trigger averages at the cross, for the tooltip. */
   fast: number;
   slow: number;
+  /** Regime averages at the cross. */
+  regimeFast: number;
+  regimeSlow: number;
 }
 
+export const SIGNAL_LABELS: Record<SignalKind, string> = {
+  buy: "Buy — SMA 10 below 20, while 60 below 120",
+  sell: "Sell — SMA 10 below 20, while 60 above 120",
+};
+
 /**
- * Find the sessions where each configured rule's cross completed.
+ * Find sessions where SMA 10 crossed below SMA 20, classified by regime.
  *
- * A cross is recorded only when both averages exist on the current *and*
- * previous session, so the day either average first becomes available is never
- * mistaken for a crossing — which matters most for the 120-session average,
- * whose first value arrives half a year in.
+ * A cross is recorded only when both trigger averages exist on the current
+ * *and* previous session, so the day an average first becomes available is
+ * never mistaken for a crossing.
+ *
+ * A signal is skipped entirely when the regime cannot be determined — either
+ * average missing, or the two exactly equal. That matters on short ranges: the
+ * 120-session average needs roughly six months of history, so crosses before
+ * that point are genuinely unclassifiable and emitting a guess would be worse
+ * than emitting nothing.
  */
 export function detectCrossovers(
   series: readonly SeriesPoint[],
-  rules: readonly CrossoverRule[] = CROSSOVER_RULES,
 ): CrossoverSignal[] {
   const signals: CrossoverSignal[] = [];
   if (!series || series.length < 2) return signals;
 
-  for (const rule of rules) {
-    for (let i = 1; i < series.length; i++) {
-      const prev = series[i - 1];
-      const curr = series[i];
+  for (let i = 1; i < series.length; i++) {
+    const prev = series[i - 1];
+    const curr = series[i];
 
-      const prevFast = prev[rule.fast];
-      const prevSlow = prev[rule.slow];
-      const fast = curr[rule.fast];
-      const slow = curr[rule.slow];
+    const prevFast = prev[TRIGGER.fast];
+    const prevSlow = prev[TRIGGER.slow];
+    const fast = curr[TRIGGER.fast];
+    const slow = curr[TRIGGER.slow];
 
-      if (prevFast === null || prevSlow === null || fast === null || slow === null) {
-        continue;
-      }
-
-      const wasBelow = prevFast < prevSlow;
-      const isBelow = fast < slow;
-      if (wasBelow === isBelow) continue;
-
-      // Only the requested direction fires; the opposite cross is ignored.
-      if (rule.direction === "below" && !isBelow) continue;
-      if (rule.direction === "above" && isBelow) continue;
-
-      signals.push({
-        ruleId: rule.id,
-        date: curr.date,
-        price: curr.close,
-        kind: rule.kind,
-        label: rule.label,
-        fast,
-        slow,
-      });
+    if (prevFast === null || prevSlow === null || fast === null || slow === null) {
+      continue;
     }
+
+    // Only the downward cross fires; 10 rising back above 20 is silent.
+    const crossedDown = prevFast >= prevSlow && fast < slow;
+    if (!crossedDown) continue;
+
+    const regimeFast = curr[REGIME.fast];
+    const regimeSlow = curr[REGIME.slow];
+    if (regimeFast === null || regimeSlow === null) continue;
+    if (regimeFast === regimeSlow) continue;
+
+    const regime: Regime = regimeFast < regimeSlow ? "below" : "above";
+
+    signals.push({
+      date: curr.date,
+      price: curr.close,
+      kind: regime === "below" ? "buy" : "sell",
+      regime,
+      fast,
+      slow,
+      regimeFast,
+      regimeSlow,
+    });
   }
 
-  return signals.sort(
-    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
-  );
+  return signals;
 }
 
 /**
