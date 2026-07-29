@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import {
   Area, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, Scatter, Tooltip, XAxis, YAxis,
 } from "recharts";
@@ -10,6 +12,21 @@ import { SMA_LINES } from "./smaConfig";
 
 export default function PriceBollingerChart() {
   const { data, analytics } = useStockData();
+
+  // Purely presentational, so it lives here rather than in the dashboard
+  // shell: hiding a line changes nothing the analytics hook computes. Staying
+  // mounted across symbol changes means the selection persists as you browse.
+  const [hiddenSmas, setHiddenSmas] = useState<Set<string>>(new Set());
+
+  const toggleSma = (key: string) =>
+    setHiddenSmas((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+
+  const visibleSmas = SMA_LINES.filter((sma) => !hiddenSmas.has(sma.key));
 
   return (
     <>
@@ -36,6 +53,41 @@ export default function PriceBollingerChart() {
                       <div className="text-white font-bold">{analytics.crossovers.length}</div>
                   </div>
               )}
+          </div>
+          {/* These chips are the SMA legend: fixed 5/10/20/60/120 order, and
+              each carries its line's colour so the mapping is unambiguous. */}
+          <div className="mb-4">
+              <div className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-2">
+                  Moving Averages
+              </div>
+              <div className="flex flex-wrap gap-2">
+                  {SMA_LINES.map((sma) => {
+                      const isVisible = !hiddenSmas.has(sma.key);
+                      return (
+                          <button
+                              key={sma.key}
+                              onClick={() => toggleSma(sma.key)}
+                              aria-pressed={isVisible}
+                              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 border ${
+                                  isVisible
+                                      ? "text-white border-transparent"
+                                      : "bg-transparent text-gray-500 border-gray-700 hover:border-gray-500"
+                              }`}
+                              style={
+                                  isVisible
+                                      ? { backgroundColor: `${sma.color}26`, borderColor: sma.color }
+                                      : undefined
+                              }
+                          >
+                              <span
+                                  className="w-3 h-0.5 rounded-full shrink-0"
+                                  style={{ backgroundColor: isVisible ? sma.color : "#4b5563" }}
+                              />
+                              {sma.label}
+                          </button>
+                      );
+                  })}
+              </div>
           </div>
           <div className="h-[400px] w-full">
               <ResponsiveContainer width="100%" height="100%">
@@ -103,7 +155,7 @@ export default function PriceBollingerChart() {
                           dot={false}
                           name="Lower Band"
                       />
-                      {SMA_LINES.map((sma) => (
+                      {visibleSmas.map((sma) => (
                           <Line
                               key={sma.key}
                               type="monotone"
@@ -116,6 +168,10 @@ export default function PriceBollingerChart() {
                               // straight line through prices it never averaged.
                               connectNulls={false}
                               name={sma.label}
+                              // The chips above are the SMA legend; a second
+                              // entry here would duplicate them and reorder
+                              // unpredictably as lines are toggled.
+                              legendType="none"
                           />
                       ))}
                       <Line
