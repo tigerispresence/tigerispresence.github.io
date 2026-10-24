@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import SearchArea from "@/components/SearchArea";
@@ -13,16 +14,34 @@ import { useMarketData } from "@/hooks/useMarketData";
 import { useStockQuery } from "@/hooks/useStockQuery";
 import { normalizeSymbol } from "@/lib/utils/symbols";
 
-/** Loads the ?q= symbol the TradingView heatmap redirects with. */
-function SearchEffect({ onSearch }: { onSearch: (query: string) => void }) {
+/**
+ * URL-driven actions: ?q= loads a symbol (the TradingView heatmap and the
+ * sector table link here), ?home= returns to the landing state (the page
+ * titles link here). Either way the URL is cleaned back to "/".
+ */
+function SearchEffect({
+  onSearch,
+  onHome,
+}: {
+  onSearch: (query: string) => void;
+  onHome: () => void;
+}) {
   const searchParams = useSearchParams();
   const queryParam = searchParams?.get("q");
+  const homeParam = searchParams?.get("home");
 
   useEffect(() => {
     if (!queryParam) return;
     onSearch(normalizeSymbol(queryParam));
     window.history.replaceState({}, "", "/");
   }, [queryParam, onSearch]);
+
+  useEffect(() => {
+    if (!homeParam) return;
+    onHome();
+    window.scrollTo({ top: 0 });
+    window.history.replaceState({}, "", "/");
+  }, [homeParam, onHome]);
 
   return null;
 }
@@ -39,6 +58,7 @@ export default function Home() {
     search,
     load,
     changeRange,
+    reset,
   } = useStockQuery(refreshMarket);
 
   const handleSearch = (query: string) => search(normalizeSymbol(query));
@@ -54,7 +74,19 @@ export default function Home() {
           className="text-center mb-8 space-y-4"
         >
           <h1 className="text-5xl md:text-7xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white to-gray-400">
-            Stock Analysis
+            {/* Already home: reset in place rather than navigating. */}
+            <Link
+              href="/"
+              onClick={(e) => {
+                e.preventDefault();
+                reset();
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              title="Back to home"
+              className="hover:opacity-80 transition-opacity"
+            >
+              Stock Analysis
+            </Link>
           </h1>
           <p className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto">
             WorkingNow - Youngkyu Lee
@@ -68,7 +100,7 @@ export default function Home() {
         <StockHeatmap />
 
         <Suspense fallback={null}>
-          <SearchEffect onSearch={handleSearch} />
+          <SearchEffect onSearch={handleSearch} onHome={reset} />
         </Suspense>
 
         <div className="w-full max-w-2xl relative z-20">

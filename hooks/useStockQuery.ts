@@ -30,6 +30,9 @@ export function useStockQuery(onLoaded?: () => void) {
   // tear down and recreate the interval on every load.
   const currentSymbol = useRef<string | null>(null);
   const currentRange = useRef<string>("1y");
+  // Bumped by every load and by reset, so a response that lands after the
+  // user has moved on is dropped instead of reappearing on screen.
+  const generation = useRef(0);
 
   const load = useCallback(
     async (
@@ -37,6 +40,9 @@ export function useStockQuery(onLoaded?: () => void) {
       opts: { range?: string; from?: string; silent?: boolean } = {},
     ) => {
       const range = opts.range ?? currentRange.current;
+      // A background refresh must not cancel a load the user started, so it
+      // only checks the generation; it is dropped if anything changed meanwhile.
+      const gen = opts.silent ? generation.current : ++generation.current;
       if (!opts.silent) {
         setLoading(true);
         setError(null);
@@ -44,16 +50,21 @@ export function useStockQuery(onLoaded?: () => void) {
       }
       try {
         const data = await fetchStock(symbol, { range, from: opts.from });
+        if (gen !== generation.current) return;
+        // A refresh that started while the user was loading another stock
+        // shares its generation; the symbol check catches that case.
+        if (opts.silent && data.symbol !== currentSymbol.current) return;
         setStockData(data);
         currentSymbol.current = data.symbol;
         currentRange.current = range;
         if (!opts.silent) onLoaded?.();
       } catch (err) {
+        if (gen !== generation.current) return;
         if (!opts.silent) {
           setError(err instanceof Error ? err.message : "Failed to load stock");
         }
       } finally {
-        if (!opts.silent) setLoading(false);
+        if (!opts.silent && gen === generation.current) setLoading(false);
       }
     },
     [onLoaded],
@@ -62,6 +73,7 @@ export function useStockQuery(onLoaded?: () => void) {
   /** Resolve free-form input, loading directly when the match is unambiguous. */
   const search = useCallback(
     async (query: string) => {
+      const gen = ++generation.current;
       setLoading(true);
       setError(null);
       setStockData(null);
@@ -71,6 +83,7 @@ export function useStockQuery(onLoaded?: () => void) {
         // Explicit submit, so the AI fallback is allowed here. The typeahead
         // deliberately does not use it.
         const { results = [] } = await fetchSearch(query, { deep: true });
+        if (gen !== generation.current) return;
 
         const exact = results.find(
           (r: Candidate) => r.symbol?.toUpperCase() === query.toUpperCase(),
@@ -85,6 +98,7 @@ export function useStockQuery(onLoaded?: () => void) {
         // No search hits: the query may still be a valid ticker.
         return load(query);
       } catch {
+        if (gen !== generation.current) return;
         return load(query);
       }
     },
@@ -100,6 +114,18 @@ export function useStockQuery(onLoaded?: () => void) {
     },
     [load],
   );
+
+  /** Back to the landing state: no stock, no candidates, default range. */
+  const reset = useCallback(() => {
+    generation.current++;
+    currentSymbol.current = null;
+    currentRange.current = "1y";
+    setStockData(null);
+    setCandidates([]);
+    setError(null);
+    setLoading(false);
+    setTimeRange("1y");
+  }, []);
 
   // Silent background refresh so the chart does not flash a spinner.
   useEffect(() => {
@@ -120,6 +146,7 @@ export function useStockQuery(onLoaded?: () => void) {
     search,
     load,
     changeRange,
+    reset,
     clearCandidates: () => setCandidates([]),
   };
 }

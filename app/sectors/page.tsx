@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import NavTabs from "@/components/NavTabs";
 import AskClaude from "@/components/AskClaude";
@@ -34,7 +35,9 @@ export default function SectorsPage() {
           className="text-center mb-8 space-y-4"
         >
           <h1 className="text-5xl md:text-7xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white to-gray-400">
-            Sector Analysis
+            <Link href="/?home=1" title="Back to home" className="hover:opacity-80 transition-opacity">
+              Sector Analysis
+            </Link>
           </h1>
           <p className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto">
             The 11 S&amp;P 500 sectors against SPY
