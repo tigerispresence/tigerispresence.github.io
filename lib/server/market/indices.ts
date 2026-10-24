@@ -27,6 +27,15 @@ const SYMBOLS = {
   tyx: "^TYX",
 } as const;
 
+/**
+ * Yahoo answers a `KRW=X` request under either `KRW=X` or `USDKRW=X`, and
+ * which one varies between calls. An exact match dropped the rate to zero
+ * whenever the long form came back.
+ */
+const SYMBOL_ALIASES: Record<string, string[]> = {
+  [SYMBOLS.usdkrw]: ["KRW=X", "USDKRW=X"],
+};
+
 const EMPTY: IndexReading = { current: 0, changePercent: 0, date: null };
 
 /**
@@ -48,14 +57,19 @@ export async function getMarketData(): Promise<MarketData> {
   ]);
 
   const read = (symbol: string): IndexReading => {
+    const wanted = SYMBOL_ALIASES[symbol] ?? [symbol];
     const item = Array.isArray(quotes)
-      ? quotes.find((q: any) => q.symbol === symbol)
+      ? quotes.find((q: any) => wanted.includes(q.symbol))
       : undefined;
     if (!item) return EMPTY;
     return {
       current: item.regularMarketPrice || 0,
       changePercent: item.regularMarketChangePercent || 0,
-      date: new Date().toISOString(),
+      // The quote's own timestamp, so a weekend or holiday close is shown as
+      // such instead of being stamped with the fetch time.
+      date: item.regularMarketTime
+        ? new Date(item.regularMarketTime).toISOString()
+        : null,
     };
   };
 

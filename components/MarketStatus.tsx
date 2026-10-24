@@ -22,6 +22,12 @@ interface MarketStatusProps {
     loading: boolean;
 }
 
+/** Local time of the last trade, e.g. "Fri 6:29 AM", so a closed market is visible. */
+const formatAsOf = (iso: string | null) =>
+    iso
+        ? new Date(iso).toLocaleString(undefined, { weekday: "short", hour: "numeric", minute: "2-digit" })
+        : null;
+
 const getChangeColor = (value: number) => {
     if (value > 0) return "text-green-400";
     if (value < 0) return "text-red-400";
@@ -36,9 +42,11 @@ interface MetricCardProps {
     suffix?: string;
     icon?: React.ElementType;
     href?: string;
+    date?: string | null;
 }
 
-const MetricCard = ({ title, value, change, prefix = "", suffix = "", icon: Icon, href }: MetricCardProps) => {
+const MetricCard = ({ title, value, change, prefix = "", suffix = "", icon: Icon, href, date }: MetricCardProps) => {
+    const asOf = formatAsOf(date ?? null);
     const content = (
         <div className={`bg-gray-900/50 backdrop-blur-xl border border-gray-800 rounded-2xl p-4 flex flex-col justify-between transition-colors ${href ? 'hover:bg-gray-800/80 cursor-pointer group' : 'hover:bg-gray-800/50'}`}>
             <div className="flex justify-between items-start mb-2">
@@ -57,6 +65,7 @@ const MetricCard = ({ title, value, change, prefix = "", suffix = "", icon: Icon
                     </span>
                 )}
             </div>
+            {asOf && <div className="text-gray-500 text-[10px] mt-1">as of {asOf}</div>}
         </div>
     );
 
@@ -122,6 +131,7 @@ function MarketStatus({ data, loading }: MarketStatusProps) {
                     title="S&P 500"
                     value={displayData.indices.sp500.current}
                     change={displayData.indices.sp500.changePercent}
+                    date={displayData.indices.sp500.date}
                     icon={BarChart2}
                     href="https://finance.yahoo.com/quote/%5EGSPC"
                 />
@@ -129,6 +139,7 @@ function MarketStatus({ data, loading }: MarketStatusProps) {
                     title="NASDAQ"
                     value={displayData.indices.nasdaq.current}
                     change={displayData.indices.nasdaq.changePercent}
+                    date={displayData.indices.nasdaq.date}
                     icon={BarChart2}
                     href="https://finance.yahoo.com/quote/%5EIXIC"
                 />
@@ -136,6 +147,7 @@ function MarketStatus({ data, loading }: MarketStatusProps) {
                     title="USD/KRW"
                     value={displayData.indices.usdkrw.current}
                     change={displayData.indices.usdkrw.changePercent}
+                    date={displayData.indices.usdkrw.date}
                     prefix="₩"
                     icon={DollarSign}
                     href="https://finance.yahoo.com/quote/KRW=X"
@@ -144,6 +156,7 @@ function MarketStatus({ data, loading }: MarketStatusProps) {
                     title="Bitcoin"
                     value={displayData.indices.btc.current}
                     change={displayData.indices.btc.changePercent}
+                    date={displayData.indices.btc.date}
                     prefix="$"
                     icon={Bitcoin}
                     href="https://finance.yahoo.com/quote/BTC-USD"
@@ -152,6 +165,7 @@ function MarketStatus({ data, loading }: MarketStatusProps) {
                     title="10-Yr Bond"
                     value={displayData.indices.tnx.current}
                     change={displayData.indices.tnx.changePercent}
+                    date={displayData.indices.tnx.date}
                     icon={Activity}
                     href="https://finance.yahoo.com/quote/%5ETNX"
                 />
@@ -159,6 +173,7 @@ function MarketStatus({ data, loading }: MarketStatusProps) {
                     title="30-Yr Bond"
                     value={displayData.indices.tyx.current}
                     change={displayData.indices.tyx.changePercent}
+                    date={displayData.indices.tyx.date}
                     icon={Activity}
                     href="https://finance.yahoo.com/quote/%5ETYX"
                 />
@@ -166,6 +181,7 @@ function MarketStatus({ data, loading }: MarketStatusProps) {
                     title="VIX"
                     value={displayData.indices.vix.current}
                     change={displayData.indices.vix.changePercent}
+                    date={displayData.indices.vix.date}
                     icon={Activity}
                     href="https://finance.yahoo.com/quote/%5EVIX"
                 />

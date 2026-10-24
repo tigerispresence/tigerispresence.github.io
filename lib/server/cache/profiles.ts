@@ -14,6 +14,8 @@
 export const CACHE_PROFILES = {
   /** Live prices. */
   quote: { stale: 60, revalidate: 300, expire: 900 },
+  /** The market status bar (indices, FX, BTC): one small batched quote. */
+  live: { stale: 30, revalidate: 60, expire: 300 },
   /** Daily closes: yesterday's bars never change. */
   history: { stale: 300, revalidate: 3600, expire: 86_400 },
   /** Statements change quarterly. */

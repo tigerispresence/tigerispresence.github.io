@@ -4,7 +4,7 @@ import { getMarketData, type MarketData } from "@/lib/server/market/indices";
 
 export async function cachedMarketData(): Promise<MarketData> {
   "use cache";
-  cacheLife(CACHE_PROFILES.quote);
+  cacheLife(CACHE_PROFILES.live);
   cacheTag("market:indices", "market:feargreed");
   return getMarketData();
 }
