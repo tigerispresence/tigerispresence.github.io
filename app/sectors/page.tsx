@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import NavTabs from "@/components/NavTabs";
+import AskClaude from "@/components/AskClaude";
 import SectorSummary from "@/components/sectors/SectorSummary";
 import SectorReturnsChart from "@/components/sectors/SectorReturnsChart";
 import SectorRotationChart from "@/components/sectors/SectorRotationChart";
@@ -41,6 +42,16 @@ export default function SectorsPage() {
         </motion.div>
 
         <NavTabs />
+
+        <AskClaude
+          context={{ kind: "sectors" }}
+          subject="the sectors"
+          suggestions={[
+            "Which sectors look best positioned for the current macro regime?",
+            "Is the rotation out of tech likely to continue?",
+            "How would a Fed rate cut change the sector picture?",
+          ]}
+        />
 
         {loading && <div className="w-full animate-pulse h-96 bg-gray-900/50 rounded-3xl" />}
 

@@ -92,3 +92,57 @@ export async function fetchThesis(symbol: string, name: string) {
   if (!res.ok) throw new Error("Failed to fetch thesis");
   return res.json();
 }
+
+export type AskContext = { kind: "stock"; symbol: string } | { kind: "sectors" };
+
+export interface AskTurn {
+  role: "user" | "assistant";
+  content: string;
+}
+
+/** Streamed events from /api/ask; mirrors AskEvent on the server. */
+export type AskStreamEvent =
+  | { type: "status"; text: string }
+  | { type: "text"; text: string }
+  | { type: "sources"; sources: { title: string; url: string }[] }
+  | { type: "error"; message: string }
+  | { type: "done" };
+
+export class AskError extends Error {
+  constructor(message: string, readonly code?: string) {
+    super(message);
+  }
+}
+
+/** Ask Claude about what is on screen, calling `onEvent` as the answer streams in. */
+export async function askClaude(
+  request: { question: string; context: AskContext; history: AskTurn[] },
+  onEvent: (event: AskStreamEvent) => void,
+  { signal, accessCode }: { signal?: AbortSignal; accessCode?: string } = {},
+): Promise<void> {
+  const res = await fetch("/api/ask", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(accessCode ? { "x-ask-code": accessCode } : {}),
+    },
+    body: JSON.stringify(request),
+    signal,
+  });
+  if (!res.ok || !res.body) {
+    const body = await res.json().catch(() => ({}));
+    throw new AskError(body.error || "Failed to ask Claude", body.code);
+  }
+
+  const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
+  let buffer = "";
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer += value;
+    const lines = buffer.split("\n");
+    buffer = lines.pop() ?? "";
+    for (const line of lines) if (line.trim()) onEvent(JSON.parse(line) as AskStreamEvent);
+  }
+  if (buffer.trim()) onEvent(JSON.parse(buffer) as AskStreamEvent);
+}

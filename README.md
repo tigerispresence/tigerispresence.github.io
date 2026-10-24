@@ -32,7 +32,8 @@ social-discussion list — and both fall back gracefully without one.
 | Variable | Required | Purpose |
 |---|---|---|
 | `GEMINI_API_KEY` | No | Google Gemini. Used if set. |
-| `ANTHROPIC_API_KEY` | No | Anthropic Claude. Used if Gemini is not set. |
+| `ANTHROPIC_API_KEY` | No | Anthropic Claude. Used if Gemini is not set. Also required for the **Ask Claude** chat panel, which always uses Claude (streaming + web search). |
+| `ASK_ACCESS_CODE` | No | If set, Ask Claude only answers visitors who enter this code. Recommended on a public URL: every question is a billed API call. |
 | `AI_PROVIDER` | No | Force `gemini` or `claude`. Otherwise auto-selects. |
 | `GEMINI_MODEL` | No | Pin one Gemini model instead of the default fallback chain. |
 

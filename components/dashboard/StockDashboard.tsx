@@ -22,6 +22,7 @@ import AIInsights from "../AIInsights";
 import FinancialsChart from "../FinancialsChart";
 import SeasonalityHeatmap from "../SeasonalityHeatmap";
 import NewsSection from "../NewsSection";
+import AskClaude from "../AskClaude";
 
 export type { StockData };
 
@@ -103,6 +104,18 @@ const StockDashboard = memo(({ data }: StockDashboardProps) => {
         className="w-full max-w-6xl mx-auto mt-8 space-y-8"
       >
         <StockHeader />
+
+        {/* Keyed by symbol so a new stock starts a fresh conversation. */}
+        <AskClaude
+          key={data.symbol}
+          context={{ kind: "stock", symbol: data.symbol }}
+          subject={data.symbol}
+          suggestions={[
+            `What's the bull and bear case for ${data.symbol} right now?`,
+            `How exposed is ${data.symbol} to rising rates and inflation?`,
+            `Any recent news that explains ${data.symbol}'s latest move?`,
+          ]}
+        />
 
         <RiskMetrics data={data} />
         <SmartMoneyFlow data={data} />
