@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import SearchArea from "@/components/SearchArea";
 import StockDashboard from "@/components/dashboard/StockDashboard";
 import MarketStatus from "@/components/MarketStatus";
+import NavTabs from "@/components/NavTabs";
 import StockHeatmap from "@/components/StockHeatmap";
 import TimeRangeControl from "@/components/TimeRangeControl";
 import { useMarketData } from "@/hooks/useMarketData";
@@ -50,7 +51,7 @@ export default function Home() {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12 space-y-4"
+          className="text-center mb-8 space-y-4"
         >
           <h1 className="text-5xl md:text-7xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white to-gray-400">
             Stock Analysis
@@ -59,6 +60,8 @@ export default function Home() {
             WorkingNow - Youngkyu Lee
           </p>
         </motion.div>
+
+        <NavTabs />
 
         <MarketStatus data={marketData} loading={marketLoading} />
 

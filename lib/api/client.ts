@@ -1,4 +1,5 @@
 import type { StockData } from "@/lib/types/stock";
+import type { SectorData } from "@/lib/types/sectors";
 
 /**
  * Client-side API helpers.
@@ -27,6 +28,15 @@ export async function fetchStock(
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.error || "Failed to fetch stock data");
+  }
+  return res.json();
+}
+
+export async function fetchSectors(): Promise<SectorData> {
+  const res = await fetch("/api/sectors");
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || "Failed to fetch sector data");
   }
   return res.json();
 }

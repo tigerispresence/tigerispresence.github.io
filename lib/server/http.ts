@@ -10,6 +10,8 @@ export const CACHE_HEADERS = {
   stock: "public, max-age=0, s-maxage=300, stale-while-revalidate=3600",
   /** The status bar shows FX and BTC, which trade around the clock. */
   market: "public, max-age=0, s-maxage=60, stale-while-revalidate=120",
+  /** Matches the server's `quote` profile; a long SWR would serve hour-old returns. */
+  sectors: "public, max-age=0, s-maxage=300, stale-while-revalidate=600",
   /** A ticker lookup is effectively permanent; let the browser hold it too. */
   search: "public, max-age=60, s-maxage=86400, stale-while-revalidate=604800",
   news: "public, max-age=0, s-maxage=900, stale-while-revalidate=3600",
