@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect } from "react";
+import { Suspense, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -13,6 +13,7 @@ import TimeRangeControl from "@/components/TimeRangeControl";
 import { useMarketData } from "@/hooks/useMarketData";
 import { useStockQuery } from "@/hooks/useStockQuery";
 import { normalizeSymbol } from "@/lib/utils/symbols";
+import { handOffToOpener, listenForHandoff } from "@/lib/utils/tabHandoff";
 
 /**
  * URL-driven actions: ?q= loads a symbol (the TradingView heatmap and the
@@ -32,8 +33,13 @@ function SearchEffect({
 
   useEffect(() => {
     if (!queryParam) return;
-    onSearch(normalizeSymbol(queryParam));
+    const symbol = normalizeSymbol(queryParam);
     window.history.replaceState({}, "", "/");
+    // A market-map click opens a new tab; hand the symbol back to the tab it
+    // came from and close, or show it here if that tab can't take it.
+    void handOffToOpener(symbol).then((handled) => {
+      if (!handled) onSearch(symbol);
+    });
   }, [queryParam, onSearch]);
 
   useEffect(() => {
@@ -61,7 +67,26 @@ export default function Home() {
     reset,
   } = useStockQuery(refreshMarket);
 
-  const handleSearch = (query: string) => search(normalizeSymbol(query));
+  const handleSearch = useCallback((query: string) => search(normalizeSymbol(query)), [search]);
+
+  // Take over market-map clicks that opened in a new tab (see tabHandoff).
+  const scrollOnLoad = useRef(false);
+  useEffect(
+    () =>
+      listenForHandoff((symbol) => {
+        scrollOnLoad.current = true;
+        void handleSearch(symbol);
+      }),
+    [handleSearch],
+  );
+  // Scroll once the stock has rendered: before that the page below the search
+  // box is too short to scroll it to the top. Instant rather than smooth,
+  // since browsers skip smooth scrolls in a tab that is still in the background.
+  useEffect(() => {
+    if (!scrollOnLoad.current || (!stockData && !error && candidates.length === 0)) return;
+    scrollOnLoad.current = false;
+    document.getElementById("stock-search")?.scrollIntoView({ block: "start" });
+  }, [stockData, error, candidates]);
 
   return (
     <main className="min-h-screen bg-black text-white selection:bg-blue-500/30">
@@ -103,7 +128,7 @@ export default function Home() {
           <SearchEffect onSearch={handleSearch} onHome={reset} />
         </Suspense>
 
-        <div className="w-full max-w-2xl relative z-20">
+        <div id="stock-search" className="w-full max-w-2xl relative z-20 scroll-mt-4">
           <SearchArea onSearch={handleSearch} isLoading={loading} />
         </div>
 
