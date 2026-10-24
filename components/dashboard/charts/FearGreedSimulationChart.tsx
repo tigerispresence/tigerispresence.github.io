@@ -8,8 +8,19 @@ import { Activity } from "lucide-react";
 import { SIM_KEY } from "@/lib/calc/sim/types";
 import { useStockData } from "../StockDataContext";
 
+const monthYear = (iso: string) =>
+  new Date(iso).toLocaleDateString(undefined, { month: "short", year: "numeric" });
+
 export default function FearGreedSimulationChart() {
-  const { analytics, selectedFgZones, toggleFgZone } = useStockData();
+  const { data, analytics, selectedFgZones, toggleFgZone } = useStockData();
+
+  // The span actually simulated. CNN's feed starts in July 2020, so a longer
+  // range is simulated only from then; say so rather than imply full coverage.
+  const simDays = analytics.fearGreedSim?.history ?? [];
+  const coverage = simDays.length > 0 ? `${monthYear(simDays[0].date)} – ${monthYear(simDays[simDays.length - 1].date)}` : null;
+  const firstPrice = data.history[0]?.date;
+  // A few days' slack: the feed has no weekend readings, so its first match can trail the price series slightly.
+  const truncated = !!(firstPrice && simDays[0] && new Date(simDays[0].date).getTime() - new Date(firstPrice).getTime() > 7 * 86_400_000);
 
   return (
     <>
@@ -27,7 +38,14 @@ export default function FearGreedSimulationChart() {
                   </div>
                   <div>
                       <h3 className="text-xl font-semibold text-white">Fear & Greed Trading Simulation</h3>
-                      <p className="text-gray-400 text-sm">Strategy: Buy 1 Share when CNN Fear & Greed Index is in selected zones + <span className="text-green-400">Reinvest Dividends</span> <span className="text-orange-400 border border-orange-500/30 bg-orange-500/10 px-1 py-0.5 rounded ml-1 text-xs">Max 1 Year Data</span></p>
+                      <p className="text-gray-400 text-sm">Strategy: Buy 1 Share when CNN Fear & Greed Index is in selected zones + <span className="text-green-400">Reinvest Dividends</span> {coverage && (
+                          <span
+                              className="text-orange-400 border border-orange-500/30 bg-orange-500/10 px-1 py-0.5 rounded ml-1 text-xs"
+                              title={truncated ? "CNN's Fear & Greed history starts in July 2020, so the simulation begins there." : undefined}
+                          >
+                              {coverage}{truncated ? " · F&G data from Jul 2020" : ""}
+                          </span>
+                      )}</p>
                   </div>
               </div>
 

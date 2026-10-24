@@ -11,6 +11,7 @@ import {
   cachedSeasonality,
 } from "@/lib/server/cache/stock";
 import { buildStockPayload } from "./assemble";
+import { FEAR_GREED_EARLIEST } from "@/lib/server/cnn/fearGreed";
 import { rangeToDates } from "./dateRange";
 import { mapRiskScores } from "./map/risk";
 import type { ResolvedSymbol } from "./resolveSymbol";
@@ -53,7 +54,7 @@ export async function getStockPayload(
     cachedCashFlow(resolved.symbol),
     cachedQuoteSummary(resolved.symbol),
     cachedOptionChain(resolved.symbol),
-    cachedFearGreedHistory(),
+    cachedFearGreedHistory(FEAR_GREED_EARLIEST),
     cachedBalanceSheet(resolved.symbol),
   ]);
 
@@ -66,7 +67,10 @@ export async function getStockPayload(
     seasonality,
     cashFlowSeries,
     optionChain,
-    fearGreedHistory,
+    // Trimmed to the requested range so the Fear & Greed simulation covers the
+    // same span as the price history. It used to receive CNN's default one
+    // year regardless, so 2Y, 5Y and 10Y all simulated the same twelve months.
+    fearGreedHistory: fearGreedHistory?.filter((p) => p.date >= fromIso) ?? null,
     riskScores: mapRiskScores({
       quoteSummary,
       quote,

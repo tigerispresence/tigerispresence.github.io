@@ -1,7 +1,7 @@
 import { cacheLife, cacheTag } from "next/cache";
 import { CACHE_PROFILES } from "./profiles";
 import type { Dividend, FearGreedPoint, PricePoint } from "@/lib/types/stock";
-import { getFearGreedHistory } from "@/lib/server/cnn/fearGreed";
+import { FEAR_GREED_EARLIEST, getFearGreedHistory } from "@/lib/server/cnn/fearGreed";
 import {
   getBalanceSheetTimeSeries,
   getCashFlowTimeSeries,
@@ -131,10 +131,19 @@ export async function cachedOptionChain(
   };
 }
 
-/** Shared across every symbol, so it carries its own market-wide tag. */
-export async function cachedFearGreedHistory(): Promise<FearGreedPoint[] | null> {
+/**
+ * Shared across every symbol, so it carries its own market-wide tag.
+ *
+ * The whole feed sits under one cache entry and each request trims it to its
+ * range. `start` is an argument, not a constant inside, so it is part of the
+ * cache key: entries cached before the feed reached back past one year are
+ * not served for it.
+ */
+export async function cachedFearGreedHistory(
+  start: string = FEAR_GREED_EARLIEST,
+): Promise<FearGreedPoint[] | null> {
   "use cache";
   cacheLife(CACHE_PROFILES.history);
   cacheTag("market:feargreed");
-  return getFearGreedHistory();
+  return getFearGreedHistory(start);
 }

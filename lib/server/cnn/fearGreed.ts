@@ -31,9 +31,17 @@ interface GraphDataResponse {
   };
 }
 
-async function fetchGraphData(): Promise<GraphDataResponse | null> {
+/**
+ * The feed's first day. The endpoint takes a start date (`/graphdata/YYYY-MM-DD`)
+ * and returns daily readings from then on; without one it returns about a
+ * year. Earlier start dates are rejected with a 500.
+ */
+export const FEAR_GREED_EARLIEST = "2020-07-15";
+
+async function fetchGraphData(start?: string): Promise<GraphDataResponse | null> {
   try {
-    const response = await fetch(GRAPH_DATA_URL, { headers: BROWSER_HEADERS });
+    const url = start ? `${GRAPH_DATA_URL}/${start}` : GRAPH_DATA_URL;
+    const response = await fetch(url, { headers: BROWSER_HEADERS });
     if (!response.ok) throw new Error(`CNN API status ${response.status}`);
     return (await response.json()) as GraphDataResponse;
   } catch (error) {
@@ -42,9 +50,13 @@ async function fetchGraphData(): Promise<GraphDataResponse | null> {
   }
 }
 
-/** Roughly one year of daily Fear & Greed readings. */
-export async function getFearGreedHistory(): Promise<FearGreedPoint[] | null> {
-  const data = await fetchGraphData();
+/**
+ * Daily Fear & Greed readings since `start`, falling back to the default
+ * one-year feed if CNN rejects the dated request.
+ */
+export async function getFearGreedHistory(start?: string): Promise<FearGreedPoint[] | null> {
+  let data = await fetchGraphData(start);
+  if (start && !Array.isArray(data?.fear_and_greed_historical?.data)) data = await fetchGraphData();
   const historical = data?.fear_and_greed_historical?.data;
   if (!Array.isArray(historical)) return null;
 
