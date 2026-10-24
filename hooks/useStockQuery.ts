@@ -25,11 +25,16 @@ export function useStockQuery(onLoaded?: () => void) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [timeRange, setTimeRange] = useState("1y");
+  /** Start date of a "custom" range; undefined for the presets. */
+  const [rangeFrom, setRangeFrom] = useState<string | undefined>(undefined);
 
   // Read inside the refresh timer without making it a dependency, which would
   // tear down and recreate the interval on every load.
   const currentSymbol = useRef<string | null>(null);
-  const currentRange = useRef<string>("1y");
+  // The custom range's start date travels with it: "custom" alone resolves to
+  // one year on the server, which silently replaced a 36-month slider choice
+  // on the next background refresh or the next stock loaded.
+  const currentRange = useRef<{ range: string; from?: string }>({ range: "1y" });
   // Bumped by every load and by reset, so a response that lands after the
   // user has moved on is dropped instead of reappearing on screen.
   const generation = useRef(0);
@@ -39,7 +44,9 @@ export function useStockQuery(onLoaded?: () => void) {
       symbol: string,
       opts: { range?: string; from?: string; silent?: boolean } = {},
     ) => {
-      const range = opts.range ?? currentRange.current;
+      const { range, from } = opts.range
+        ? { range: opts.range, from: opts.from }
+        : currentRange.current;
       // A background refresh must not cancel a load the user started, so it
       // only checks the generation; it is dropped if anything changed meanwhile.
       const gen = opts.silent ? generation.current : ++generation.current;
@@ -49,14 +56,14 @@ export function useStockQuery(onLoaded?: () => void) {
         setCandidates([]);
       }
       try {
-        const data = await fetchStock(symbol, { range, from: opts.from });
+        const data = await fetchStock(symbol, { range, from });
         if (gen !== generation.current) return;
         // A refresh that started while the user was loading another stock
         // shares its generation; the symbol check catches that case.
         if (opts.silent && data.symbol !== currentSymbol.current) return;
         setStockData(data);
         currentSymbol.current = data.symbol;
-        currentRange.current = range;
+        currentRange.current = { range, from };
         if (!opts.silent) onLoaded?.();
       } catch (err) {
         if (gen !== generation.current) return;
@@ -108,6 +115,8 @@ export function useStockQuery(onLoaded?: () => void) {
   const changeRange = useCallback(
     (range: string, from?: string) => {
       setTimeRange(range);
+      setRangeFrom(from);
+      currentRange.current = { range, from };
       if (currentSymbol.current) {
         return load(currentSymbol.current, { range, from });
       }
@@ -119,12 +128,13 @@ export function useStockQuery(onLoaded?: () => void) {
   const reset = useCallback(() => {
     generation.current++;
     currentSymbol.current = null;
-    currentRange.current = "1y";
+    currentRange.current = { range: "1y" };
     setStockData(null);
     setCandidates([]);
     setError(null);
     setLoading(false);
     setTimeRange("1y");
+    setRangeFrom(undefined);
   }, []);
 
   // Silent background refresh so the chart does not flash a spinner.
@@ -143,6 +153,7 @@ export function useStockQuery(onLoaded?: () => void) {
     loading,
     error,
     timeRange,
+    rangeFrom,
     search,
     load,
     changeRange,

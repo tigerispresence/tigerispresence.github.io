@@ -50,4 +50,19 @@ describe("useStockQuery", () => {
 
     expect(result.current.stockData?.symbol).toBe("MSFT");
   });
+
+  it("keeps a custom range for background refreshes and the next stock", async () => {
+    mockFetch.mockResolvedValue(stock("AAPL"));
+    const { result } = renderHook(() => useStockQuery());
+    await act(() => result.current.load("AAPL"));
+    await act(() => result.current.changeRange("custom", "2023-10-24"));
+
+    await act(() => result.current.load("AAPL", { silent: true }));
+    expect(mockFetch).toHaveBeenLastCalledWith("AAPL", { range: "custom", from: "2023-10-24" });
+
+    mockFetch.mockResolvedValue(stock("MSFT"));
+    await act(() => result.current.load("MSFT"));
+    expect(mockFetch).toHaveBeenLastCalledWith("MSFT", { range: "custom", from: "2023-10-24" });
+    expect(result.current.rangeFrom).toBe("2023-10-24");
+  });
 });

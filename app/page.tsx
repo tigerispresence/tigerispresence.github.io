@@ -61,6 +61,7 @@ export default function Home() {
     loading,
     error,
     timeRange,
+    rangeFrom,
     search,
     load,
     changeRange,
@@ -182,7 +183,7 @@ export default function Home() {
         )}
 
         {stockData && (
-          <TimeRangeControl timeRange={timeRange} onChange={changeRange} />
+          <TimeRangeControl timeRange={timeRange} from={rangeFrom} onChange={changeRange} />
         )}
 
         <StockDashboard data={stockData} />
