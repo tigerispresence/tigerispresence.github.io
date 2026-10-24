@@ -28,7 +28,7 @@ export async function GET(
   try {
     const data = await cachedNewsAndSentiment(symbol);
     return NextResponse.json(data, {
-      headers: { "Cache-Control": CACHE_HEADERS.news },
+      headers: CACHE_HEADERS.news,
     });
   } catch (error) {
     console.error("[api/insights]", error);

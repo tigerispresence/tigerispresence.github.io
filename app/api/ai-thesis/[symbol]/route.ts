@@ -39,7 +39,7 @@ export async function GET(
     }
 
     return NextResponse.json(thesis, {
-      headers: { "Cache-Control": CACHE_HEADERS.ai },
+      headers: CACHE_HEADERS.ai,
     });
   } catch (error) {
     console.error("[api/ai-thesis]", error);

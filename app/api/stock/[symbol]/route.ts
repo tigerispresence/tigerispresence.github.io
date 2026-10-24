@@ -53,7 +53,7 @@ export async function GET(
     const payload = await getStockPayload(resolved, range, from);
 
     return NextResponse.json(payload, {
-      headers: { "Cache-Control": CACHE_HEADERS.stock },
+      headers: CACHE_HEADERS.stock,
     });
   } catch (error) {
     console.error("[api/stock]", error);

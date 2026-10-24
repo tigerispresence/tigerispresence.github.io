@@ -9,7 +9,7 @@ export async function GET() {
   try {
     const data = await cachedSectorData();
     return NextResponse.json(data, {
-      headers: { "Cache-Control": CACHE_HEADERS.sectors },
+      headers: CACHE_HEADERS.sectors,
     });
   } catch (error) {
     console.error("[api/sectors]", error);

@@ -125,6 +125,9 @@ describe("POST /api/stock", () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockPayload.mockResolvedValue(samplePayload as any);
     const res = await get("AAPL");
-    expect(res.headers.get("cache-control")).toContain("s-maxage=300");
+    expect(res.headers.get("cdn-cache-control")).toContain("s-maxage=300");
+    // The browser must revalidate: given stale-while-revalidate, Chrome serves
+    // its own hour-old copy first.
+    expect(res.headers.get("cache-control")).not.toContain("stale-while-revalidate");
   });
 });

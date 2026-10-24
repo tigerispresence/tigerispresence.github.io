@@ -9,7 +9,7 @@ export async function GET() {
   try {
     const data = await cachedSectorMacroData();
     return NextResponse.json(data, {
-      headers: { "Cache-Control": CACHE_HEADERS.macro },
+      headers: CACHE_HEADERS.macro,
     });
   } catch (error) {
     console.error("[api/sectors/macro]", error);

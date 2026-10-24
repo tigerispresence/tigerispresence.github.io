@@ -18,7 +18,8 @@ describe("GET /api/sectors", () => {
     });
     const res = await GET();
     expect(res.status).toBe(200);
-    expect(res.headers.get("Cache-Control")).toContain("s-maxage=300");
+    expect(res.headers.get("CDN-Cache-Control")).toContain("s-maxage=300");
+    expect(res.headers.get("Cache-Control")).not.toContain("stale-while-revalidate");
   });
 
   it("returns an uncached 503 when upstream is unavailable", async () => {

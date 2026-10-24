@@ -16,7 +16,7 @@ export async function GET() {
   try {
     const data = await cachedMarketData();
     return NextResponse.json(data, {
-      headers: { "Cache-Control": CACHE_HEADERS.market },
+      headers: CACHE_HEADERS.market,
     });
   } catch (error) {
     console.error("[api/market]", error);

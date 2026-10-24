@@ -32,7 +32,7 @@ export async function GET(
     return NextResponse.json(
       // Generic search links whenever the model call is unavailable or empty.
       { posts: posts ?? backupSocialLinks(symbol), generated: posts !== null },
-      { headers: { "Cache-Control": CACHE_HEADERS.ai } },
+      { headers: CACHE_HEADERS.ai },
     );
   } catch (error) {
     console.error("[api/insights/social]", error);

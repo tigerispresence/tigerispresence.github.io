@@ -71,7 +71,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json(
       { results: results.slice(0, 12) },
-      { headers: { "Cache-Control": CACHE_HEADERS.search } },
+      { headers: CACHE_HEADERS.search },
     );
   } catch (error) {
     console.error("[api/search]", error);
