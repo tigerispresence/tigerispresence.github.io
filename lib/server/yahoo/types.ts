@@ -30,6 +30,8 @@ export interface YahooQuote {
 export interface YahooHistoryRow {
   date: Date;
   close: number | null;
+  /** Split- and dividend-adjusted close: the basis for total return. */
+  adjClose?: number | null;
   /** Present only when the request passes `events: 'dividends'`. */
   dividends?: number;
 }

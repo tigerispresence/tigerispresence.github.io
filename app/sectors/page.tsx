@@ -7,11 +7,17 @@ import SectorSummary from "@/components/sectors/SectorSummary";
 import SectorReturnsChart from "@/components/sectors/SectorReturnsChart";
 import SectorRotationChart from "@/components/sectors/SectorRotationChart";
 import SectorTable from "@/components/sectors/SectorTable";
+import MacroSnapshot from "@/components/sectors/macro/MacroSnapshot";
+import MacroHistoryChart from "@/components/sectors/macro/MacroHistoryChart";
+import MacroTakeaway from "@/components/sectors/macro/MacroTakeaway";
+import SectorMacroTable from "@/components/sectors/macro/SectorMacroTable";
 import { useSectorData } from "@/hooks/useSectorData";
+import { useSectorMacro } from "@/hooks/useSectorMacro";
 import { SECTOR_PERIODS, type SectorPeriod } from "@/lib/types/sectors";
 
 export default function SectorsPage() {
   const { data, error, loading } = useSectorData();
+  const macro = useSectorMacro();
   const [period, setPeriod] = useState<SectorPeriod>("1M");
   // Hovering a sector in any view highlights it in the others.
   const [highlighted, setHighlighted] = useState<string | null>(null);
@@ -87,6 +93,36 @@ export default function SectorsPage() {
             )}
           </motion.div>
         )}
+
+        {/* Independent of the momentum data above: either can fail without the other. */}
+        <section className="w-full mt-12 space-y-6" aria-labelledby="macro-heading">
+          <div>
+            <h2 id="macro-heading" className="text-2xl md:text-3xl font-bold tracking-tight text-white">
+              Macro Backdrop: CPI &amp; Treasury Yields
+            </h2>
+            <p className="text-gray-400 text-sm mt-1">
+              How each sector has behaved relative to SPY as inflation and interest rates change.
+            </p>
+          </div>
+          {macro.loading && <div className="w-full animate-pulse h-64 bg-gray-900/50 rounded-3xl" />}
+          {macro.error && (
+            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-center">
+              {macro.error}
+            </div>
+          )}
+          {macro.data && (
+            <>
+              <MacroSnapshot data={macro.data} />
+              <MacroTakeaway macro={macro.data} sectors={data} />
+              <SectorMacroTable macro={macro.data} sectors={data} highlighted={highlighted} onHighlight={setHighlighted} />
+              <MacroHistoryChart data={macro.data} />
+              <p className="text-xs text-gray-500 text-center">
+                CPI and Treasury yields from FRED (Federal Reserve Bank of St. Louis); sector total returns
+                (dividends included) from Yahoo Finance monthly closes.
+              </p>
+            </>
+          )}
+        </section>
       </div>
     </main>
   );

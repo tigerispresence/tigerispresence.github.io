@@ -1,5 +1,6 @@
 import type { StockData } from "@/lib/types/stock";
 import type { SectorData } from "@/lib/types/sectors";
+import type { SectorMacroData } from "@/lib/types/macro";
 
 /**
  * Client-side API helpers.
@@ -37,6 +38,15 @@ export async function fetchSectors(): Promise<SectorData> {
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.error || "Failed to fetch sector data");
+  }
+  return res.json();
+}
+
+export async function fetchSectorMacro(): Promise<SectorMacroData> {
+  const res = await fetch("/api/sectors/macro");
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || "Failed to fetch macro data");
   }
   return res.json();
 }
